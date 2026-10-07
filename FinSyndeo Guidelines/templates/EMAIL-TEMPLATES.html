@@ -1,0 +1,186 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FinSyndeo email templates and delivery rules · FinSyndeo</title><link rel="stylesheet" href="../delivery.css"><header><a href="../START-HERE.html"><img src="../assets/FinSyndeo-logo.png" alt="FinSyndeo by SOPHIMA"></a><nav><a href="../START-HERE.html">Delivery home</a><a href="../prototype/FinSyndeo-platform.html">Open prototype</a><button onclick="window.print()">Print</button></nav></header><main><details><summary>Contents</summary><div class="toc"><a href="#section-1">Shared delivery rules</a><a href="#section-2">E01 Account email verification</a><a href="#section-3">E02 Application saved or submitted</a><a href="#section-4">E03 Clarification needed</a><a href="#section-5">E04 Potential providers available</a><a href="#section-6">E05 No current provider found</a><a href="#section-7">E06 Eligibility review or policy exclusion</a><a href="#section-8">E07 Applicant confirmation for an introducer submission</a><a href="#section-9">E08 Introduction requested and sharing approval</a><a href="#section-10">E09 Official introduction master template</a><a href="#section-11">E10 Introduction sent</a><a href="#section-12">E11 Additional introduction payment</a><a href="#section-13">E12 New suitable provider alert</a><a href="#section-14">E13 Provider invitation and application</a><a href="#section-15">E14 Provider profile decision or material update</a><a href="#section-16">E15 Provider case report available</a><a href="#section-17">E16 Provider commission reporting request</a><a href="#section-18">E17 Introducer invitation and agreement</a><a href="#section-19">E18 Introducer rate change</a><a href="#section-20">E19 Introducer commission and invoice availability</a><a href="#section-21">E20 Introducer invoice or payment status</a><a href="#section-22">E21 Deletion request acknowledgement and outcome</a><a href="#section-23">E22 Admin exceptions</a></div></details><p><a href="EMAIL-TEMPLATES.md">Editable reference</a></p><article><h1 id="section-0">FinSyndeo email templates and delivery rules</h1>
+<p>Approved design reference dated 6 October 2026; delivery 7 October 2026. Builds on Marios&#x27;s Email templates chat. None of these emails is sent by this review. Replace placeholders only from verified records, never from model guesses. Templates must be versioned, maintained in English and previewed before activation.</p>
+<h2 id="section-1">Shared delivery rules</h2>
+<p>Use the authenticated case contact and verified provider contact for the selected service. If a contact is missing, stale or ambiguous, hold the draft for clarification. Do not invent an email or choose the first unrelated banker. Select To and CC deliberately. Do not include introducer tier or commission in bank/client introduction emails. Tier information belongs only in the introducer&#x27;s private agreement and notices.</p>
+<p>The first provider shortlist is anonymous. Before sharing, show the actual institution legal name, the authorised client profile revision, intended recipient and privacy notice to the applicant. Record approval. On-behalf submission requires real applicant/authorised representative confirmation, not an Admin check in the introducer&#x27;s place.</p>
+<p>Transactional notifications can be generated automatically from validated events. An introduction send must additionally pass current identity/authority, regulatory, provider, applicant-sharing and applicable entitlement/payment checks. Initial proposed launch mode: generate everything automatically and use one final SOPHIMA approval before release. Straight-through release may be enabled later only for an explicitly approved low-risk policy with legal/Article 22 safeguards. Exceptions go to review, not silent auto-approval.</p>
+<p>Use an outbox with an idempotency key, approved template version, case revision, recipient list, attachment hash, permission snapshot, delivery status and retry limits. Revalidate at actual send time. A failed acknowledgement must not send a duplicate introduction. Record bounced/failed messages and offer a secure portal task. Never put passports, raw KYC reports, sanctions allegations or provider policy documents into routine email bodies. Prefer authenticated portal links for sensitive profiles; authorised attachment delivery requires its own safeguards.</p>
+<h2 id="section-2">E01 Account email verification</h2>
+<p>Audience: the account owner. Trigger: account creation; send automatically with expiring single-use verification link.</p>
+<p>Subject: Verify your FinSyndeo email address</p>
+<p>Hello [first name],</p>
+<p>Please verify your email address to access your FinSyndeo account: [verification link].</p>
+<p>This link expires at [expiry]. If you did not request this account, you can ignore this message.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-3">E02 Application saved or submitted</h2>
+<p>Audience: applicant. Trigger: initial confirmed submission, not every autosave.</p>
+<p>Subject: Your FinSyndeo application [case reference]</p>
+<p>Hello [first name],</p>
+<p>Your request for [service] has been saved under reference [case reference]. You can review your answers and available next steps in your account: [secure case link].</p>
+<p>No financial institution has approved your application at this stage.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-4">E03 Clarification needed</h2>
+<p>Audience: applicant or verified authorised contact. Trigger: validated missing-information task.</p>
+<p>Subject: Information needed for your FinSyndeo request [case reference]</p>
+<p>Hello [first name],</p>
+<p>Please clarify the following information so we can continue assessing your request:</p>
+<p>[Specific questions tied to the applicant declaration]</p>
+<p>Please update your application securely here: [case task link]. Avoid sending sensitive identity information by ordinary email.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-5">E04 Potential providers available</h2>
+<p>Audience: applicant. Trigger: current confirmed assessment with verified eligible results.</p>
+<p>Subject: Review potential providers for [case reference]</p>
+<p>Hello [first name],</p>
+<p>Potential options are available for your [service] request. Sign in to compare how they meet your essential requirements and preferences: [results link].</p>
+<p>A potential match is not an offer, account approval or guarantee of acceptance. You choose whether to request an introduction.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-6">E05 No current provider found</h2>
+<p>Subject: Update on your FinSyndeo request [case reference]</p>
+<p>Hello [first name],</p>
+<p>We have not identified a provider in our current network that supports the requirements declared in your application. You can review your preferences or enable alerts for future suitable providers here: [case link].</p>
+<p>This is not a rejection by a financial institution.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-7">E06 Eligibility review or policy exclusion</h2>
+<p>Subject: Update on your FinSyndeo request [case reference]</p>
+<p>Hello [first name],</p>
+<p>Use exactly one status paragraph:</p>
+<ul>
+<li><strong>Review pending:</strong> Your request requires further review before we can offer an introduction. We will notify you through your account when the review is complete or if clarification is needed.</li>
+<li><strong>Current policy exclusion:</strong> Based on the information provided, your application falls outside FinSyndeo&#x27;s current eligibility criteria. We cannot offer provider matching or arrange an introduction for the requested service at this time.</li>
+<li><strong>Temporary check unavailable:</strong> We are temporarily unable to complete a required pre-introduction check. Your request is on hold; this does not indicate a decision by a financial institution.</li>
+</ul>
+<p>You can correct your information or request an eligibility review here: [secure link].</p>
+<p>FinSyndeo by SOPHIMA</p>
+<p>Never disclose restricted compliance findings through this general template.</p>
+<h2 id="section-8">E07 Applicant confirmation for an introducer submission</h2>
+<p>Subject: Please confirm the request submitted on your behalf [case reference]</p>
+<p>Hello [first name],</p>
+<p>[Introducer name] has submitted a [service] request on behalf of [applicant name]. Please sign in using your own verified account to review the information, confirm the authority and approve or correct the request: [single-use claim link].</p>
+<p>No introduction will be arranged until the required confirmations and checks are complete. If you did not authorise the submission, please report it through [secure support route].</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-9">E08 Introduction requested and sharing approval</h2>
+<p>Subject: Confirm your requested introduction [case reference]</p>
+<p>Hello [first name],</p>
+<p>You requested an introduction to [institution legal name] for [service]. Please review the client profile, recipient details and institution privacy notice, then confirm the information you authorise us to share: [secure confirmation link].</p>
+<p>Any applicable introduction charge will be shown before payment. Your request remains subject to current pre-introduction checks and the institution&#x27;s own assessment.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-10">E09 Official introduction master template</h2>
+<p>To: [verified banker email for selected service] CC: [verified authorised applicant contact email; approved additional contacts only] Subject: Introduction [applicant legal name] | [service] | [case reference]</p>
+<p>Dear [banker first name],</p>
+<p>I am pleased to introduce [applicant name], [represented by authorised contact name and role, for an entity], regarding [concise requested service].</p>
+<p>Based on the information provided and our preliminary review, the request appears relevant to [institution legal name]&#x27;s declared services and acceptance criteria. This introduction is subject to your institution&#x27;s own eligibility, compliance and onboarding assessment.</p>
+<p>Client overview</p>
+<ul>
+<li>Applicant: [name]</li>
+<li>Incorporation or residence: [country appropriate to route]</li>
+<li>Business activity or professional background: [applicant-confirmed summary]</li>
+<li>Requirement: [essential services and currencies]</li>
+<li>Relevant amounts: [account flow / processing volume / expected placement / financing request; explicit currency and period]</li>
+</ul>
+<p>[The applicant-authorised client profile is attached / available through the authorised secure link. Include only the actual method used.]</p>
+<p>[Applicant contact first name], [banker name and title] is the designated contact at [institution legal name] for this request. I have copied you both so you can continue the discussion directly.</p>
+<p>The profile records preliminary information and does not represent completion of the institution&#x27;s KYC or a commitment to accept the client.</p>
+<p>Kind regards, [Approved SOPHIMA sender name and title] [Verified SOPHIMA contracting entity] | FinSyndeo</p>
+<p>Route-specific summary inserts:</p>
+<div class="table-scroll" tabindex="0" aria-label="Scrollable table"><table><thead><tr><th>Route</th><th>Required summary</th></tr></thead><tbody>
+<tr><td>Bank</td><td>Account purpose, essential currencies, incoming/outgoing amounts and counts per month, corridors</td></tr>
+<tr><td>Merchant</td><td>Channel, activity, card-origin countries and shares, processing amount/count, settlement need, optional stated chargeback/fraud/price</td></tr>
+<tr><td>Both</td><td>Separate bank-flow and merchant-processing sections; do not sum or double-count them</td></tr>
+<tr><td>Financing</td><td>Amount/currency, purpose/use, stage, latest audited year as declared, existing financing/security and timeline</td></tr>
+<tr><td>Private banking</td><td>Residence, requested services, liquid asset band and intended placement separately, funds/wealth origins as declared</td></tr>
+<tr><td>Correspondent/payment</td><td>Institution type, verified permission scope, operational and client-funds flows separately, underlying clients, IBAN/API requirements</td></tr>
+</tbody></table></div>
+<h2 id="section-11">E10 Introduction sent</h2>
+<p>Subject: Your introduction to [institution name] [case reference]</p>
+<p>Hello [first name],</p>
+<p>Your authorised introduction has been sent to [banker name and institution] for [service]. You can view the introduction status in your account: [secure case link].</p>
+<p>The institution will contact you directly and apply its own assessment and onboarding procedures.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<p>Trigger only after recorded successful handoff to the delivery service; distinguish accepted-for-delivery from actual confirmed delivery in portal status.</p>
+<h2 id="section-12">E11 Additional introduction payment</h2>
+<p>Subject: Payment confirmation for [case reference]</p>
+<p>Hello [first name],</p>
+<p>We received [amount and currency] for [specified introduction entitlement]. Reference: [payment reference]. Your receipt and current request status are available here: [secure link].</p>
+<p>Payment does not guarantee institution acceptance or override pre-introduction checks. The terms and any refund/credit outcome shown at checkout apply.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<p>Send only from verified payment events. Failed, pending, cancelled, refunded and credited outcomes each need their own accurate status message. Do not hardcode EUR 250 or a fourth-request fee outside approved configuration.</p>
+<h2 id="section-13">E12 New suitable provider alert</h2>
+<p>Subject: A new potential provider for your FinSyndeo request</p>
+<p>Hello [first name],</p>
+<p>A newly available provider meets all your current essential requirements and your chosen fit threshold for [case reference]. You can review the updated anonymous options here: [secure results link].</p>
+<p>Potential matches remain subject to current checks and the provider&#x27;s own assessment. You can change your threshold or turn off alerts in your account: [preferences link].</p>
+<p>FinSyndeo by SOPHIMA</p>
+<p>Send only with active permission, current assessment, genuine scoring and fresh eligibility. No provider identity or invented percentage in the message.</p>
+<h2 id="section-14">E13 Provider invitation and application</h2>
+<p>Subject: Complete your FinSyndeo provider profile</p>
+<p>Dear [provider contact name],</p>
+<p>Please complete your institution&#x27;s services and client acceptance criteria through this secure invitation: [invitation link]. You can upload internal policies to help SOPHIMA assess suitable prospects.</p>
+<p>Documents remain for SOPHIMA&#x27;s authorised internal use. Listing requires verified authorisation, an approved profile and a current referral agreement. Your institution&#x27;s name remains hidden in applicant shortlists until the approved introduction process.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-15">E14 Provider profile decision or material update</h2>
+<p>Subject: Your FinSyndeo provider profile [reference]</p>
+<p>Dear [contact name],</p>
+<p>Use the actual status paragraph:</p>
+<ul>
+<li><strong>Approved:</strong> Your provider profile, version [version], has been approved and is effective from [date]. Prospects will be assessed using the approved criteria.</li>
+<li><strong>Clarification:</strong> We need clarification of [specific profile items] before we can publish this version. Any existing approved version remains in effect only if it is still valid and active.</li>
+<li><strong>Paused:</strong> Your provider listing is currently paused under [recipient-appropriate explanation]. Please review the required action in your account before submitting an updated profile.</li>
+</ul>
+<p>Please review it here: [secure profile link]. Updates to acceptance criteria require the applicable review before they affect matching.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-16">E15 Provider case report available</h2>
+<p>Subject: Your FinSyndeo case report for [period]</p>
+<p>Dear [contact name],</p>
+<p>Your authorised [report type] covering [period] is available here: [secure report link]. The report includes only the permitted fields for your institution.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-17">E16 Provider commission reporting request</h2>
+<p>Subject: Commission report requested for [agreed period]</p>
+<p>Dear [provider contact name],</p>
+<p>Please provide the agreed analytical commission report for [period], identifying the relevant client and provider relationship for each commission entry, with the agreed currency, net commission, applicable tax breakdown and receipt reference.</p>
+<p>Include the stable statement-line reference, commission amount and its gross/net definition, VAT treatment, any withholding or directly attributable charges and provider payment reference where available. SOPHIMA separately reconciles actual cash received; the report is not itself proof of bank settlement.</p>
+<p>Submit it through [secure portal link]. This request is distinct from FinSyndeo&#x27;s outgoing case reports.</p>
+<p>Kind regards, [Approved SOPHIMA sender]</p>
+<h2 id="section-18">E17 Introducer invitation and agreement</h2>
+<p>Subject: Your FinSyndeo introducer invitation</p>
+<p>Dear [introducer contact name],</p>
+<p>SOPHIMA has invited you to review the Introducer Agreement and your commission schedule through [secure invitation link]. Your schedule is [standard tier schedule / agreed bespoke schedule], version [version].</p>
+<p>Please review and accept using your own verified account. Your referral link provides attribution only and is not a login credential.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-19">E18 Introducer rate change</h2>
+<p>Subject: Your FinSyndeo commission schedule update</p>
+<p>Dear [contact name],</p>
+<p>Your applicable commission rate is [rate]% from [effective date], under [agreement/schedule version and reason suitable for recipient]. The rate applies to [precise agreed scope and calculation basis]. Posted historical entries retain their original terms unless a documented correction is required.</p>
+<p>Review the schedule and any required acceptance here: [secure link].</p>
+<p>FinSyndeo by SOPHIMA</p>
+<p>Do not mention a standard tier where a bespoke rate applies. Do not expose internal review notes.</p>
+<h2 id="section-20">E19 Introducer commission and invoice availability</h2>
+<p>Subject: Commission statement available for [period]</p>
+<p>Dear [contact name],</p>
+<p>Your commission statement has been updated. Sign in to review the entries available for invoicing under your agreement and upload your invoice securely here: [ledger link].</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-21">E20 Introducer invoice or payment status</h2>
+<p>Subject: Your invoice [invoice number] [status]</p>
+<p>Dear [contact name],</p>
+<p>Your invoice is [received / clarification required / approved / partially paid / paid]. Please review the actual amounts, payment status and any required action in your secure account. [Specific nonsensitive clarification, if needed.]</p>
+<p>Supporting status information is available here: [secure invoice link].</p>
+<p>FinSyndeo by SOPHIMA</p>
+<h2 id="section-22">E21 Deletion request acknowledgement and outcome</h2>
+<p>Subject: Your FinSyndeo data request [request reference]</p>
+<p>Hello [first name],</p>
+<p>We have received your request to [close the account / delete personal information / withdraw an application]. [Immediate effects already performed, such as alerts stopped.]</p>
+<p>We will review the request and respond within the applicable data-protection timeframe. If information must be retained under a lawful exception, we will explain the categories, reason and retention period.</p>
+<p>Expected response date: [calculated due date]. If a lawful extension is needed, we will inform you within the applicable period and explain the reason.</p>
+<p>FinSyndeo by SOPHIMA</p>
+<p>Outcome wording:</p>
+<p>Your request [reference] has been reviewed. We have completed [actual deletion, correction, restriction or account actions]. We retain [specific limited categories] for [documented purpose and basis] until [date or meaningful retention criterion], with access and use limited accordingly. [Relevant recipients have been notified where required / actual documented recipient-notification status.]</p>
+<p>Information already lawfully held by an institution is subject to that institution&#x27;s own duties and privacy notice. You can request clarification or exercise your rights through [privacy contact / secure route], and you have the right to complain to the competent data-protection authority.</p>
+<p>Recipient-notification variant, only where required and after the action is confirmed:</p>
+<p>Subject: Personal-data update for introduction [case reference]</p>
+<p>Dear [authorised institution privacy contact],</p>
+<p>SOPHIMA has [corrected / erased / restricted] [specified data previously shared] relating to [necessary subject/case identifier]. Please assess the corresponding information under your applicable obligations. The updated authorised information and action details are available through [secure restricted link]. This notice does not require erasure of records that your institution must lawfully retain.</p>
+<p>Do not promise deletion by recipient institutions, expose unrelated internal findings or claim erasure of legally retained records.</p>
+<h2 id="section-23">E22 Admin exceptions</h2>
+<p>Subject: FinSyndeo action required [case or incident reference]</p>
+<p>[Feed stale / unresolved screening match / unclear authority / missing provider contact / payment mismatch / provider-policy conflict / delivery failure]</p>
+<p>Review the restricted task here: [authenticated Admin link].</p>
+<p>Do not include sensitive details in the subject or message; role permissions apply at the link. Batch routine notices to reduce manual noise. Security or compliance critical failures trigger the approved escalation independently of ordinary notifications.</p></article></main><footer>7 October 2026 · Consolidated delivery to Renos · Approved prototype and specifications · Live integrations remain to be implemented</footer></html>

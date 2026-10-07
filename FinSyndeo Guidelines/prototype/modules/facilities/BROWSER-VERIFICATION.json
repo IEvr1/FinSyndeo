@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-02T17:31:04.337Z",
+  "checks": 38,
+  "layouts": 63,
+  "widths": [
+    1280,
+    390,
+    320
+  ],
+  "browser": "Headless Microsoft Edge; file:// offline opening",
+  "pageErrors": []
+}

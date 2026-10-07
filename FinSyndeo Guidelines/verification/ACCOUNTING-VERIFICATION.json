@@ -1,0 +1,5 @@
+{
+  "scope": "Local in-memory simulations only; no live authentication, payments, signatures or API calls",
+  "passed": 26,
+  "failed": 0
+}

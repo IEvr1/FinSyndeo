@@ -1,0 +1,10 @@
+{
+  "revision": 2,
+  "merchantBankFieldsHidden": true,
+  "localCoveragePresent": true,
+  "countryEditorLinked": true,
+  "browserErrors": [],
+  "matchingRegressions": 24,
+  "countryGroupsTested": true,
+  "priorEvidence": "Other retained verification files describe the earlier baseline."
+}

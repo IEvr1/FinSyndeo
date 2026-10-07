@@ -1,0 +1,160 @@
+{
+  "scope": "Delivered English HTML documentation at 390 and 1280 pixels; local screenshots and page error checks",
+  "checks": [
+    {
+      "file": "START-HERE.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "Prototype and implementation delivery · FinSyndeo"
+    },
+    {
+      "file": "START-HERE.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "Prototype and implementation delivery · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/TECHNICAL-SPECIFICATIONS.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo implementation specifications · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/TECHNICAL-SPECIFICATIONS.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo implementation specifications · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/APPLICANT-SPEC.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "Applicant form and draft specification · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/APPLICANT-SPEC.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "Applicant form and draft specification · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/MATCHING-SPEC.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "Applicant and provider matching contract · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/MATCHING-SPEC.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "Applicant and provider matching contract · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/ACCOUNTING-SPEC.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo — Introducer, accounting and introduction-fee implementation specification · FinSyndeo"
+    },
+    {
+      "file": "technical-specifications/ACCOUNTING-SPEC.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo — Introducer, accounting and introduction-fee implementation specification · FinSyndeo"
+    },
+    {
+      "file": "templates/EMAIL-TEMPLATES.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo email templates and delivery rules · FinSyndeo"
+    },
+    {
+      "file": "templates/EMAIL-TEMPLATES.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo email templates and delivery rules · FinSyndeo"
+    },
+    {
+      "file": "templates/CLIENT-PROFILES-AND-DD.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo client profiles and internal due diligence report · FinSyndeo"
+    },
+    {
+      "file": "templates/CLIENT-PROFILES-AND-DD.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo client profiles and internal due diligence report · FinSyndeo"
+    },
+    {
+      "file": "templates/PROFILE-bank.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "PROFILE bank · FinSyndeo"
+    },
+    {
+      "file": "templates/PROFILE-bank.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "PROFILE bank · FinSyndeo"
+    },
+    {
+      "file": "templates/INTERNAL-DD-SAMPLE.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "INTERNAL DD SAMPLE · FinSyndeo"
+    },
+    {
+      "file": "templates/INTERNAL-DD-SAMPLE.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "INTERNAL DD SAMPLE · FinSyndeo"
+    },
+    {
+      "file": "agreements/INTRODUCER-AGREEMENTS.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo / SOPHIMA — Introducer Agreement Review Drafts · FinSyndeo"
+    },
+    {
+      "file": "agreements/INTRODUCER-AGREEMENTS.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "FinSyndeo / SOPHIMA — Introducer Agreement Review Drafts · FinSyndeo"
+    },
+    {
+      "file": "admin-manual/ADMIN-MANUAL.html",
+      "width": 390,
+      "overflow": false,
+      "images": true,
+      "title": "English Admin manual · FinSyndeo"
+    },
+    {
+      "file": "admin-manual/ADMIN-MANUAL.html",
+      "width": 1280,
+      "overflow": false,
+      "images": true,
+      "title": "English Admin manual · FinSyndeo"
+    }
+  ],
+  "errors": []
+}

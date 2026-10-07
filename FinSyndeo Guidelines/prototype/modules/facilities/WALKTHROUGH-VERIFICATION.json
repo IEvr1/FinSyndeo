@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-02T17:33:49.689Z",
+  "checks": 15,
+  "layouts": 16,
+  "widths": [
+    1280,
+    390,
+    320
+  ],
+  "pageErrors": [],
+  "journeys": [
+    "sorting and comparison",
+    "results notification opt-in and opt-out",
+    "90% versus 95% threshold",
+    "free introduction",
+    "fourth introduction selection, payment failure and success",
+    "provider single reporting period, scheduled and ad hoc report",
+    "saved preferences and sample storage isolation"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "checks": 13,
+  "pageErrors": [],
+  "browser": "Headless Edge",
+  "widths": [
+    1280,
+    390
+  ],
+  "scope": "Local prototype UI only; no real acceptance or payments"
+}

@@ -1,0 +1,1 @@
+(()=>{let session;try{session=JSON.parse(sessionStorage.getItem('finsyndeo-whole-review-preview-session')||'null');}catch(e){}const role=document.currentScript.dataset.role;if(!session||session.role!==role){document.documentElement.style.visibility='hidden';location.replace('Sign-in.html?role='+role+'&next='+encodeURIComponent(location.pathname.split('/').pop()));}})();

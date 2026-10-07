@@ -1,0 +1,882 @@
+{
+  "version": "2026-10-07-Revision-2",
+  "supersedes": "Renos-delivery-2026-10-07",
+  "recipient": "Renos",
+  "files": [
+    {
+      "path": "admin-manual/ADMIN-MANUAL.html",
+      "bytes": 14440,
+      "sha256": "5127f6c80c9bd032da82433f78038e50acdcfbdcded6429461ea651f08988880"
+    },
+    {
+      "path": "admin-manual/FinSyndeo-Admin-Manual-English.docx",
+      "bytes": 929702,
+      "sha256": "be76810bfe076dbb9cee549480e4081d4ce1f33871c6d273bd948bda5c6f8312"
+    },
+    {
+      "path": "agreements/INTRODUCER-AGREEMENTS.html",
+      "bytes": 24641,
+      "sha256": "2210a2f34624852df9652c2d5ac9c64396073f4a0429288965a7db6c3247ca6a"
+    },
+    {
+      "path": "agreements/INTRODUCER-AGREEMENTS.md",
+      "bytes": 21904,
+      "sha256": "a1b9fa11c4835ff4e917af684ae57ca7b7784e3c24bfb7c4a0d7ef5e9f8d428f"
+    },
+    {
+      "path": "assets/FinSyndeo-logo.png",
+      "bytes": 901052,
+      "sha256": "65a66b0fec16bf8f8780eee8ba5f48123545997e869e65c077defecaf10e1489"
+    },
+    {
+      "path": "delivery.css",
+      "bytes": 6708,
+      "sha256": "08b8ef070421e472953a477d4bb4df3fd0ccac154537e6173d56ba8226e462fa"
+    },
+    {
+      "path": "prototype/approved-workflows.js",
+      "bytes": 10310,
+      "sha256": "4fc46cc919663ec80a9b27873656baee966080a125a4916c5bcad05e388ffe38"
+    },
+    {
+      "path": "prototype/assets/FinSyndeo-logo.png",
+      "bytes": 901052,
+      "sha256": "65a66b0fec16bf8f8780eee8ba5f48123545997e869e65c077defecaf10e1489"
+    },
+    {
+      "path": "prototype/base.css",
+      "bytes": 5972,
+      "sha256": "eea62d0bbe57d5c00c2ad402e5abb42b271a19aa805f792e000fc627f6b4b8f4"
+    },
+    {
+      "path": "prototype/billing-model.js",
+      "bytes": 40000,
+      "sha256": "bc1546c1b70c54deda680d804f0422b3f300789bcb76231c39ffbc556399afe8"
+    },
+    {
+      "path": "prototype/country-policy/Country-acceptance.html",
+      "bytes": 15723,
+      "sha256": "81496bcbc0f88d9a47290ab0b330e1678dd531dc1d8a32ac2dd142b415f86a53"
+    },
+    {
+      "path": "prototype/country-policy/provider-catalog.js",
+      "bytes": 3669,
+      "sha256": "4abfd9935c31bb152f57cbf71527653a3c7993d1485cfde943705cce460de82b"
+    },
+    {
+      "path": "prototype/criterion-catalog.js",
+      "bytes": 40073,
+      "sha256": "7af4344a9287446f904753e45fc100c7e779669ed8f4ea96f836b2a7230ac7f8"
+    },
+    {
+      "path": "prototype/embed-bridge.js",
+      "bytes": 15275,
+      "sha256": "0ef289aad38a71f6691114d0d08cbd3c02897c0e58ace170e171dfdb68f109c1"
+    },
+    {
+      "path": "prototype/embed-init.js",
+      "bytes": 2093,
+      "sha256": "70e9db6fe7b94fa272159386385f15bca6f6948206f25c453cb0cf992bee99c9"
+    },
+    {
+      "path": "prototype/embed.css",
+      "bytes": 503,
+      "sha256": "5d0bc5d393f54ccc5928d6f0c68d9d864667acf25cb36deee0ce28d403d95229"
+    },
+    {
+      "path": "prototype/FinSyndeo-platform.html",
+      "bytes": 2341,
+      "sha256": "36804a546c17a0028be06c01dc5dd7cc20211fa2733cbbcb7fe2afb6f98a15bf"
+    },
+    {
+      "path": "prototype/intro-model.js",
+      "bytes": 81179,
+      "sha256": "a3c3465f12a7a82ffe6e1e811e74698674f490157da4bf5b51c01fa4059b0438"
+    },
+    {
+      "path": "prototype/matching-engine.js",
+      "bytes": 46113,
+      "sha256": "3e658e576ade7303c0eed077fc609b1070ae192826eb52be2216dc1bd7f60621"
+    },
+    {
+      "path": "prototype/modules/application/00-start.png",
+      "bytes": 42976,
+      "sha256": "78d659c3443718877297738f7511cdb6c21838b58c15c5b0959e34da2eb9da8a"
+    },
+    {
+      "path": "prototype/modules/application/01-company.png",
+      "bytes": 45988,
+      "sha256": "5e12cbfd108ff540a43c5c564bfb52b7032a21fd70a3e230db4c7737a9bfce52"
+    },
+    {
+      "path": "prototype/modules/application/02-business-activity.png",
+      "bytes": 65328,
+      "sha256": "9f289ce63c7d077c235275c11ebed6531234c0b70b3c45771f2beb377ea50e79"
+    },
+    {
+      "path": "prototype/modules/application/03-account-flows.png",
+      "bytes": 94238,
+      "sha256": "ecb13f514715d44f9c7e778320ad44694838131fef41e6566568307322e692c6"
+    },
+    {
+      "path": "prototype/modules/application/04-ownership.png",
+      "bytes": 72208,
+      "sha256": "dba4969ad414032826da73a3c874163e1d83dd6d466c5c392c746bad748f3f72"
+    },
+    {
+      "path": "prototype/modules/application/05-contact-review.png",
+      "bytes": 78425,
+      "sha256": "08dc147f744b8372d8cb712262c5e3b124af040835f6552e6d230378e0f2962d"
+    },
+    {
+      "path": "prototype/modules/application/06-mobile-ownership.png",
+      "bytes": 80615,
+      "sha256": "46c9f5c1a1dcda4b1f341dd8f99d576ce194e1e9de698edaf4a12652f34747cd"
+    },
+    {
+      "path": "prototype/modules/application/07-results-state.png",
+      "bytes": 41124,
+      "sha256": "261e09d822b8cfea627904090525b25da4e3e2c0bbcc372006fbb32eaf51407f"
+    },
+    {
+      "path": "prototype/modules/application/08-nationality-dropdown.png",
+      "bytes": 82125,
+      "sha256": "2eb1dea377fb9cbcd1bee7a3dd6d9fe0fdfc01c190c480b50aca15ecc66bbdf4"
+    },
+    {
+      "path": "prototype/modules/application/09-unified-company.png",
+      "bytes": 44664,
+      "sha256": "f9aedb417aa0c553da2d46f75cdc2944c9153bbec14af973b577a10fed3f43f9"
+    },
+    {
+      "path": "prototype/modules/application/10-history-simplified.png",
+      "bytes": 55402,
+      "sha256": "589944ab2787b03401f520ebc0ca15924c6298641f9bb65f530e23ecc0636afd"
+    },
+    {
+      "path": "prototype/modules/application/11-preferences-simplified.png",
+      "bytes": 52566,
+      "sha256": "a0519e69047d67c5cdb95fa43473cefe461dc04c5eb8f2d322db299aba7ab8c4"
+    },
+    {
+      "path": "prototype/modules/application/12-financing-request.png",
+      "bytes": 58405,
+      "sha256": "9fd4622efa160e603ab07e779629770c19d3974ceb5767685d20537205ad132f"
+    },
+    {
+      "path": "prototype/modules/application/13-financing-financials.png",
+      "bytes": 65028,
+      "sha256": "282c83d483de1bdf23217a743c80bd5e70e3f5ac1d478a750c5aec5f1b10a71e"
+    },
+    {
+      "path": "prototype/modules/application/14-financing-security.png",
+      "bytes": 48899,
+      "sha256": "4bf4d026af609af2b2ed6c80e777d8d0f32422370fb4ecc0efb1e1095a1bdf60"
+    },
+    {
+      "path": "prototype/modules/application/20-private-profile.png",
+      "bytes": 56175,
+      "sha256": "72e9f34a37bda2bd49e9361957367312975cc5c93a32cf06318f5527e63f4ec4"
+    },
+    {
+      "path": "prototype/modules/application/21-private-needs.png",
+      "bytes": 63684,
+      "sha256": "134bcca6d3214e41a562a15388049ffdc6d4ae7c4483784e13107cc65797f45b"
+    },
+    {
+      "path": "prototype/modules/application/22-private-wealth.png",
+      "bytes": 68841,
+      "sha256": "f1b8d02dd2107e702b536611f2e1f8153fcb261bfe1607af0bc2b98c3f5d47b3"
+    },
+    {
+      "path": "prototype/modules/application/23-private-funds.png",
+      "bytes": 74490,
+      "sha256": "97cdf328a6b040645b676a129cced4155824f459b6e3549ac04f728dbac9e947"
+    },
+    {
+      "path": "prototype/modules/application/24-private-review.png",
+      "bytes": 66525,
+      "sha256": "3370585152b206b222e29865ac505764d4e42dccb2f2dddb3102113f5c38e0ea"
+    },
+    {
+      "path": "prototype/modules/application/30-applicant-cards.png",
+      "bytes": 67361,
+      "sha256": "ad0749ff1d9e429b4470d23e251e2d8642cc88fcd606ddc4a626c242d95986aa"
+    },
+    {
+      "path": "prototype/modules/application/31-underlying-clients.png",
+      "bytes": 53671,
+      "sha256": "fd3f02008a93fa612334fc7110692cf8b4bd2659463e56b5803964e415ea538d"
+    },
+    {
+      "path": "prototype/modules/application/35-institution-flows.png",
+      "bytes": 104377,
+      "sha256": "bd492e6ed3cd5d7efb581e231d90c66ead25139d79c9c822348707fc5e1e9760"
+    },
+    {
+      "path": "prototype/modules/application/36-ownership-alignment.png",
+      "bytes": 79446,
+      "sha256": "e75e5ce68c9f29ac1376badb7dbe726f2bdd2eddaeb853942938ba4a500ab18e"
+    },
+    {
+      "path": "prototype/modules/application/account-access.js",
+      "bytes": 374,
+      "sha256": "d14e5231f1a5d3b8c842607da1dca067a9f74388da6b90875c07f02f74d25421"
+    },
+    {
+      "path": "prototype/modules/application/account-assessments.png",
+      "bytes": 39564,
+      "sha256": "f533c2ce039ca8aede8c3daa91f3ae25580d3bbb7592416691c99d880c3fcace"
+    },
+    {
+      "path": "prototype/modules/application/account-flow.js",
+      "bytes": 3056,
+      "sha256": "c3c467725a666dd38427fb8dfd4295fabe4ff369e28e82da58a74a10e5ba0445"
+    },
+    {
+      "path": "prototype/modules/application/APPLICATION-REVIEW.html",
+      "bytes": 959,
+      "sha256": "c7fecf8da9ee0ad98eb0ddd89bff68949f2ab94e4536ca5fac27b6848d400ea2"
+    },
+    {
+      "path": "prototype/modules/application/audit-fixes.js",
+      "bytes": 6247,
+      "sha256": "f335ac3dbf93f682b6af049be46eca68125d9906940447fb42976051f331feb4"
+    },
+    {
+      "path": "prototype/modules/application/compliance-refinements.js",
+      "bytes": 6455,
+      "sha256": "5eb6fd58cd44491e6a5de0e24c87d811abad6adf2cfb67a88b2351068df8d821"
+    },
+    {
+      "path": "prototype/modules/application/counterparties.js",
+      "bytes": 3620,
+      "sha256": "171036e908686564cfdfeb811c2c88165bfdda378c05df119bc2f75235962a5b"
+    },
+    {
+      "path": "prototype/modules/application/countries.json",
+      "bytes": 4070,
+      "sha256": "401d33c257531609df7208d181daf2420c8fbf602e5e926c0c73328f0fc09358"
+    },
+    {
+      "path": "prototype/modules/application/final-adjustments.js",
+      "bytes": 3312,
+      "sha256": "a3130140b6d5a4ef736929a45b21afe9794be150aa109335567d7a4d8a327671"
+    },
+    {
+      "path": "prototype/modules/application/final-summary.js",
+      "bytes": 7973,
+      "sha256": "27ec0f29cb72e009a24f266718a6ddc46e1e776a49fcc594d421cec0b4b8b930"
+    },
+    {
+      "path": "prototype/modules/application/financing.js",
+      "bytes": 8470,
+      "sha256": "fd53b2874ea0e6ca8c40a3ec9399585c0f03d3ee821df5b3c2f7ba4cebf3d6bc"
+    },
+    {
+      "path": "prototype/modules/application/FinSyndeo-review.html",
+      "bytes": 81174,
+      "sha256": "3d424f4eaffbe531ea0e8a1c12bcf3ac796c68525bebfc9265d94c424e14517a"
+    },
+    {
+      "path": "prototype/modules/application/Institution-apply.html",
+      "bytes": 1555,
+      "sha256": "b291d23f0f3b343e74064e66ebc082ff2989368187be8b79fc99e3d5de689ffd"
+    },
+    {
+      "path": "prototype/modules/application/institution-eligibility-current.png",
+      "bytes": 318779,
+      "sha256": "1e9c823e2e33bd86cce61e6da6053ab549f23e81d18b8806ee82cf119aa25765"
+    },
+    {
+      "path": "prototype/modules/application/institution-mobile.png",
+      "bytes": 118502,
+      "sha256": "bbd1428ba8e4c9f69013b757aed7d584f3d73b6a77a07878b75b84ffc486751d"
+    },
+    {
+      "path": "prototype/modules/application/institution-refinements.js",
+      "bytes": 9822,
+      "sha256": "4b96e6555293bc261f3ee348eb9b991e51645467be0eb9c55515c6417accdd5d"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-1.png",
+      "bytes": 66250,
+      "sha256": "615148a05246443c38654887c5fd1cf185daf8d432e7b3810bac966b935b5453"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-2.png",
+      "bytes": 66906,
+      "sha256": "afc3e58f9cc2132e9f7371b9cb87ece1ee822f077fbe4befef3809fc4e16c004"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-3.png",
+      "bytes": 120819,
+      "sha256": "ed9c060837e64fe98f91e4e95dee0270fc8401c6b8eb7010cf77f45334fbdfb8"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-4.png",
+      "bytes": 195326,
+      "sha256": "878657326244534f80651c8185c5f50086fc3d34b137df754d06f78b703be53b"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-5.png",
+      "bytes": 76963,
+      "sha256": "68782b7e97c3b4e8cc79cf0d1ec750e83e33ee0da943cc65ee8fa0e65c51b2ff"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-6.png",
+      "bytes": 105343,
+      "sha256": "f96c9202356c53b456e3083fb72efd2045eab103874b70c9b1608827369c7f8b"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-7.png",
+      "bytes": 101815,
+      "sha256": "da0d0bba32b3bfaaa8c4ad77c2989022599f3a437ab32b94fe7876d028a8743b"
+    },
+    {
+      "path": "prototype/modules/application/institution-step-8.png",
+      "bytes": 119912,
+      "sha256": "ad0f308cc23443538712d8f3566fdbb0349d65ac37aa8cf102617e7a22ad6e70"
+    },
+    {
+      "path": "prototype/modules/application/institution.js",
+      "bytes": 9462,
+      "sha256": "7c655ab0535666ff93840f75844cd6756ddb5e6a6431e69adaf644ff35429a1f"
+    },
+    {
+      "path": "prototype/modules/application/legacy-draft-schema.js",
+      "bytes": 36543,
+      "sha256": "6cc520bb65c978ceb357c1afd9679fd79dfd5bad7ac9e03fd2efcbef206253f0"
+    },
+    {
+      "path": "prototype/modules/application/My-account.html",
+      "bytes": 4235,
+      "sha256": "a54d5c06dc78da1e2cbb4dc0c80b82729602834048c7a9af57ebf57254419e32"
+    },
+    {
+      "path": "prototype/modules/application/ownership-control.js",
+      "bytes": 2488,
+      "sha256": "75f045726bef021ab3efde24a3235c73bc9e0e2294732ec41378405e48395bad"
+    },
+    {
+      "path": "prototype/modules/application/private-banking.js",
+      "bytes": 12087,
+      "sha256": "77da5b1d0d25bcff7975239735ab6b6e348938d676ca166d173bf0eb0d9d228e"
+    },
+    {
+      "path": "prototype/modules/application/provider-0.png",
+      "bytes": 66242,
+      "sha256": "ac01d35e4525681a39e956e8dc2b7ae3afd5f0b6596d0e00f16dd64e3146f805"
+    },
+    {
+      "path": "prototype/modules/application/provider-1.png",
+      "bytes": 66944,
+      "sha256": "a0e6cc20a0aa3674f591f0140e55d8e00f46dd1ca28aa10f7cd7d0270707f610"
+    },
+    {
+      "path": "prototype/modules/application/provider-2.png",
+      "bytes": 117175,
+      "sha256": "44eb6291c105cb2987bf08be7fa318ac2964adce211cfb1d7700f9fc8620ad02"
+    },
+    {
+      "path": "prototype/modules/application/provider-3.png",
+      "bytes": 288800,
+      "sha256": "77bc08a3763876b5c84399301209da522e3802c51652f090d5525c3bd8c09be1"
+    },
+    {
+      "path": "prototype/modules/application/provider-4.png",
+      "bytes": 93996,
+      "sha256": "036eee786de5c6501b4f5b231414d20a514330f1171768cc6b2f56305446c481"
+    },
+    {
+      "path": "prototype/modules/application/provider-5.png",
+      "bytes": 176684,
+      "sha256": "41a454e7d8d98a92cd728193db9138a83ea6452aeec90e6da3b64106777e98aa"
+    },
+    {
+      "path": "prototype/modules/application/provider-6.png",
+      "bytes": 91516,
+      "sha256": "3c16002a0f4bc018249533df7675f86d8ac17be8f64348b78846c756794b7412"
+    },
+    {
+      "path": "prototype/modules/application/provider-7.png",
+      "bytes": 128589,
+      "sha256": "affce901ed8ab0bc92df079d972482e24d989ca49bfb50aafcfbe62e6b30ad3c"
+    },
+    {
+      "path": "prototype/modules/application/provider-8.png",
+      "bytes": 268574,
+      "sha256": "164778abb93ec34537924bfcecf5b82eeb78e0d07dfece8b9d85c59023f7be69"
+    },
+    {
+      "path": "prototype/modules/application/provider-anonymous-preview.png",
+      "bytes": 36737,
+      "sha256": "0fc12fb66d42f1d46f5b4b6492a39a8470fae22c5d8a5730c1d8abe2f80564d2"
+    },
+    {
+      "path": "prototype/modules/application/provider-apply.css",
+      "bytes": 5972,
+      "sha256": "eea62d0bbe57d5c00c2ad402e5abb42b271a19aa805f792e000fc627f6b4b8f4"
+    },
+    {
+      "path": "prototype/modules/application/provider-apply.js",
+      "bytes": 64999,
+      "sha256": "a766a357f714469aad937f769192e37db4bffacec24c0be2aa459f4a2753b0d9"
+    },
+    {
+      "path": "prototype/modules/application/provider-catalog.js",
+      "bytes": 3669,
+      "sha256": "4abfd9935c31bb152f57cbf71527653a3c7993d1485cfde943705cce460de82b"
+    },
+    {
+      "path": "prototype/modules/application/provider-mobile.png",
+      "bytes": 89345,
+      "sha256": "4f3683049c2b99dbcc1f6e48ce88f0cd23ec4175bd3519cdc779115b36fb6e69"
+    },
+    {
+      "path": "prototype/modules/application/Provider-prospect-preview.html",
+      "bytes": 2472,
+      "sha256": "7efda30f8210c3b42d5ad12993ca67ed30a394dddd2fb7f3b3a3b45e2b938545"
+    },
+    {
+      "path": "prototype/modules/application/provider-revised-partnership.png",
+      "bytes": 102696,
+      "sha256": "700c715107fc4e28aff2c8bf9f39e3ac86aa83377fb84842a97b00ebe0b2698a"
+    },
+    {
+      "path": "prototype/modules/application/provider-revised-products.png",
+      "bytes": 129927,
+      "sha256": "96eb5cb222a7f0e4b1281d8a67089be847b9492da47b4ad427ee3d40ecda6d06"
+    },
+    {
+      "path": "prototype/modules/application/Provider-sign-in.html",
+      "bytes": 373,
+      "sha256": "c4d9773a636c05435bbcd174fa07b993260b91b8d68f7b9a708facc6965fcf20"
+    },
+    {
+      "path": "prototype/modules/application/provider-start.png",
+      "bytes": 66242,
+      "sha256": "ac01d35e4525681a39e956e8dc2b7ae3afd5f0b6596d0e00f16dd64e3146f805"
+    },
+    {
+      "path": "prototype/modules/application/refinements.js",
+      "bytes": 20663,
+      "sha256": "02bf25a69eeeab6129fbf17febb322ac9bf3bfb4962032f171f50c0be37968c7"
+    },
+    {
+      "path": "prototype/modules/application/review-updates.js",
+      "bytes": 6962,
+      "sha256": "78a924c35f0cb0c8be3e084268b0196b7d5fc906dfd1c23480bea94ffb1ff013"
+    },
+    {
+      "path": "prototype/modules/application/Sign-in.html",
+      "bytes": 3758,
+      "sha256": "3d60582222efe8ffcd5cc7e19e38530f3adc0d79f9f9f15030a534f3797397a8"
+    },
+    {
+      "path": "prototype/modules/application/SOPHIMA-provider-admin.html",
+      "bytes": 2098,
+      "sha256": "cc144031d4eaf3e640f6b0e50531f6dcb034c402a5eb102734b839bbac5bc97b"
+    },
+    {
+      "path": "prototype/modules/application/ubo-identities.js",
+      "bytes": 5096,
+      "sha256": "885b233dba8f68aa0c106fe9e760d1ded1a58524f059e9b38e4185fa79997393"
+    },
+    {
+      "path": "prototype/modules/facilities/base.css",
+      "bytes": 5972,
+      "sha256": "eea62d0bbe57d5c00c2ad402e5abb42b271a19aa805f792e000fc627f6b4b8f4"
+    },
+    {
+      "path": "prototype/modules/facilities/BASELINE-HASHES.json",
+      "bytes": 13182,
+      "sha256": "6869a71b2c8b74a09b5e13970695d7be3f6d6bf6d8b564554f086297866587e2"
+    },
+    {
+      "path": "prototype/modules/facilities/BROWSER-VERIFICATION.json",
+      "bytes": 204,
+      "sha256": "a18551d70b010edd39a14da4d38baf920c1ce4c20baf1c1a35e2f7bb2b19dde4"
+    },
+    {
+      "path": "prototype/modules/facilities/DELIVERY-VERIFICATION.json",
+      "bytes": 296,
+      "sha256": "a634d14df14e293b399f7f334bf699d15a5399abaae03c17fea06bf60db7f308"
+    },
+    {
+      "path": "prototype/modules/facilities/delta.css",
+      "bytes": 6949,
+      "sha256": "c04fe116f5e3ddf6ac026fc514eaebe357288a49c410dfaad89e92570d5cfb1c"
+    },
+    {
+      "path": "prototype/modules/facilities/Incremental-review.html",
+      "bytes": 1649,
+      "sha256": "b8b6bf49f388cd0a5d4aa375dd530f4948c6bd71f9ce446b5a3035a89052c5aa"
+    },
+    {
+      "path": "prototype/modules/facilities/MODEL-VERIFICATION.json",
+      "bytes": 98,
+      "sha256": "4a051078da358c62cbe60433d56020c155c4c7aee0ff2b9ca5f8048e702b7fa6"
+    },
+    {
+      "path": "prototype/modules/facilities/model.js",
+      "bytes": 40000,
+      "sha256": "bc1546c1b70c54deda680d804f0422b3f300789bcb76231c39ffbc556399afe8"
+    },
+    {
+      "path": "prototype/modules/facilities/Platform-preview.html",
+      "bytes": 2394,
+      "sha256": "89f9ad857fdc8cf0e559fd66342b8f8fba5a845c0d0ad8501680bdab71c1e261"
+    },
+    {
+      "path": "prototype/modules/facilities/REVIEW-NOTES.html",
+      "bytes": 955,
+      "sha256": "f8710d61bbe264f215b06aecbd49bcc088ed76e2e69af696ba86caf60a0402ac"
+    },
+    {
+      "path": "prototype/modules/facilities/ui.js",
+      "bytes": 50986,
+      "sha256": "74ab377e8f4654fc0eee4b27e2316f5da9f8148d39d1e9775d2dd96ec6624289"
+    },
+    {
+      "path": "prototype/modules/facilities/WALKTHROUGH-VERIFICATION.json",
+      "bytes": 482,
+      "sha256": "93e6149405f7a809489655cc5604c9139e3802bd340116b9f7906d54d85da67c"
+    },
+    {
+      "path": "prototype/modules/introducer/base.css",
+      "bytes": 5972,
+      "sha256": "eea62d0bbe57d5c00c2ad402e5abb42b271a19aa805f792e000fc627f6b4b8f4"
+    },
+    {
+      "path": "prototype/modules/introducer/countries.js",
+      "bytes": 3350,
+      "sha256": "c4579c1235338923c8340e3072873c4324dbdf87dd21782eb07ba00ebcb6bb73"
+    },
+    {
+      "path": "prototype/modules/introducer/countries.json",
+      "bytes": 4070,
+      "sha256": "401d33c257531609df7208d181daf2420c8fbf602e5e926c0c73328f0fc09358"
+    },
+    {
+      "path": "prototype/modules/introducer/DESIGN-REVIEW.html",
+      "bytes": 955,
+      "sha256": "f8710d61bbe264f215b06aecbd49bcc088ed76e2e69af696ba86caf60a0402ac"
+    },
+    {
+      "path": "prototype/modules/introducer/Introducer-module.html",
+      "bytes": 1528,
+      "sha256": "3ca11a8849a0fce1043590122420bfb97bf368fe3c2ec2d1d32e6aec1d8dee89"
+    },
+    {
+      "path": "prototype/modules/introducer/model.js",
+      "bytes": 81179,
+      "sha256": "a3c3465f12a7a82ffe6e1e811e74698674f490157da4bf5b51c01fa4059b0438"
+    },
+    {
+      "path": "prototype/modules/introducer/prototype.css",
+      "bytes": 5399,
+      "sha256": "d36a3df4d317c592c236a85e248fce937d6eedab1d15b8db20aafe991ec34fff"
+    },
+    {
+      "path": "prototype/modules/introducer/prototype.js",
+      "bytes": 76048,
+      "sha256": "38164ee05c0043b1c31b6d05d8808baf082e997066e7065f1c515976c15e56bb"
+    },
+    {
+      "path": "prototype/platform.css",
+      "bytes": 5806,
+      "sha256": "6243a7d38642b092a8945ab18fdc7fb1037c2b025d97e24142a1ef71fcfbe5d0"
+    },
+    {
+      "path": "prototype/platform.js",
+      "bytes": 49755,
+      "sha256": "87ff07a5da5f0d6b496b6da75613d362211ec0ce8c8f06eb323e2a3059fe89f7"
+    },
+    {
+      "path": "README.txt",
+      "bytes": 746,
+      "sha256": "340c6c9d31b4e9a6c0cc59fdf9eb47523dd55f1f96da882434f6e98ea8fc19fe"
+    },
+    {
+      "path": "START-HERE.html",
+      "bytes": 5769,
+      "sha256": "bb47adf5cdc92ff9200410a855911182080d1e91177f29c287bf042b6aaa0e60"
+    },
+    {
+      "path": "technical-specifications/ACCOUNTING-SPEC.html",
+      "bytes": 20151,
+      "sha256": "05a7678c32fea1ec642bc28787bad5e510e330a014493f90afd043d8032cd611"
+    },
+    {
+      "path": "technical-specifications/ACCOUNTING-SPEC.md",
+      "bytes": 16939,
+      "sha256": "05dd2eda58a2e27d503436cd8488ea3a6efde31105f9d92473eece9623647da1"
+    },
+    {
+      "path": "technical-specifications/APPLICANT-FIELD-DICTIONARY.json",
+      "bytes": 1463795,
+      "sha256": "8973c625843ded61a30af23b5e93fc33dd0467bafcb9729cd871e397152c233a"
+    },
+    {
+      "path": "technical-specifications/APPLICANT-SPEC.html",
+      "bytes": 12783,
+      "sha256": "7f0e87aee871230f58640c9c00a22d6ea2db9f8eff0bbaca5314b0f11ae11b33"
+    },
+    {
+      "path": "technical-specifications/APPLICANT-SPEC.md",
+      "bytes": 11146,
+      "sha256": "2c210012759390cbb9585006a5e8dfefa942cb3f1b370864cb8c77a414360901"
+    },
+    {
+      "path": "technical-specifications/COUNTRY-POLICY-ADDENDUM.html",
+      "bytes": 4041,
+      "sha256": "529037c28eefd3f4ee5d5c3013b4809d67170cc1b138a71d83c965ad9bba709b"
+    },
+    {
+      "path": "technical-specifications/COUNTRY-POLICY-ADDENDUM.md",
+      "bytes": 3761,
+      "sha256": "f76aef7f8d9e554f5b0182a3986fddf6c97c169876b6ae0cbca4bd89a7b1b827"
+    },
+    {
+      "path": "technical-specifications/FIELD-SPECIFICATION.html",
+      "bytes": 18695,
+      "sha256": "ccc1179b14bbbfc05ac1d72cee07515cab7d94cfa11a4a195371b6c9b5d71259"
+    },
+    {
+      "path": "technical-specifications/FIELD-SPECIFICATION.md",
+      "bytes": 15274,
+      "sha256": "c7f857377bc8e4181f9589ea31ecc8195240ac8f0dfd5eb912e48f13569b0dc5"
+    },
+    {
+      "path": "technical-specifications/MATCHING-COVERAGE.csv",
+      "bytes": 49565,
+      "sha256": "4869a2444dd5827a8c4a747122b650364ae18d175f7ba8652b6b84133b26c9fa"
+    },
+    {
+      "path": "technical-specifications/MATCHING-CRITERION-DICTIONARY.json",
+      "bytes": 135625,
+      "sha256": "02e374a4e594198ac15bcc84ff6970b82ec151c9fa47631cb1ec4254b1ece3c3"
+    },
+    {
+      "path": "technical-specifications/MATCHING-SPEC.html",
+      "bytes": 11235,
+      "sha256": "d553da388d2a8c4e6f9c8e361becde95d6db98fe6d8e5f1d0d3429c4570301b6"
+    },
+    {
+      "path": "technical-specifications/MATCHING-SPEC.md",
+      "bytes": 9718,
+      "sha256": "541b20580c6c4bb146153592c2393f0e9618904b1a76f8d1c1f1ef59a441b29e"
+    },
+    {
+      "path": "technical-specifications/MERCHANT-PROVIDER-ADDENDUM.html",
+      "bytes": 1814,
+      "sha256": "13681008bb5be18118fae6e26cceff6eda0440f34b5d1bb47a892af3746ed642"
+    },
+    {
+      "path": "technical-specifications/MERCHANT-PROVIDER-ADDENDUM.md",
+      "bytes": 1534,
+      "sha256": "9068752241ad93ba1c8dd1dfed6af49fafc258e7f8e849a67087bdc332abbe67"
+    },
+    {
+      "path": "technical-specifications/PRIVACY-CROSSCHECK.html",
+      "bytes": 13702,
+      "sha256": "fc99090ad3a0d98490cf37c528cf81225de619401e0290a06778914f42d530a0"
+    },
+    {
+      "path": "technical-specifications/PRIVACY-CROSSCHECK.md",
+      "bytes": 12140,
+      "sha256": "1d412d4c0feb5448f0b0d19b02dc9360977b8ee7138234ae5e256eb9404000fb"
+    },
+    {
+      "path": "technical-specifications/PRIVACY-REGULATORY-REVIEW.html",
+      "bytes": 20646,
+      "sha256": "ea76c5e1da459fcfc00b58fa69d574f77927a1a5a39ebfbb283e97fb2df4dcff"
+    },
+    {
+      "path": "technical-specifications/PRIVACY-REGULATORY-REVIEW.md",
+      "bytes": 17741,
+      "sha256": "01321496508e02e5d884a2d36fb2a1d36a4de51a40073b9ffbd20dc863804018"
+    },
+    {
+      "path": "technical-specifications/SCREENING-CONTINUITY-PROPOSAL.html",
+      "bytes": 9522,
+      "sha256": "b82642648dca9c7e6018d90f95866050898c9a7f1c082ae82754ba080702d0dc"
+    },
+    {
+      "path": "technical-specifications/SCREENING-CONTINUITY-PROPOSAL.md",
+      "bytes": 7582,
+      "sha256": "d5beb8fd29ac9dd3360283ca5aa82e65e67ab232b942afcc41aa0a08053132e6"
+    },
+    {
+      "path": "technical-specifications/SECURITY-ACCESSIBILITY-LAUNCH-CHECKLIST.html",
+      "bytes": 6758,
+      "sha256": "af3217d64bf81347bc44d7a209d0e14d6e479b255f9d7a44e580dcf40cb2c3d1"
+    },
+    {
+      "path": "technical-specifications/SECURITY-ACCESSIBILITY-LAUNCH-CHECKLIST.md",
+      "bytes": 5417,
+      "sha256": "98e28a4ddf51e9f615449b5038f8cb9c3f669aafb5b2ebc314f4bb92e5d6f91a"
+    },
+    {
+      "path": "technical-specifications/TECHNICAL-SPECIFICATIONS.html",
+      "bytes": 33414,
+      "sha256": "2f693c69e06f7d9aa2cd2549d0210ba9646a659306dcfe849d4cd9df7aac5382"
+    },
+    {
+      "path": "technical-specifications/TECHNICAL-SPECIFICATIONS.md",
+      "bytes": 30662,
+      "sha256": "b14b0bf15332c44fd08831593c5717359b45c31429eb7f94984563f2e8d8db98"
+    },
+    {
+      "path": "technical-specifications/TYPED-APPLICANT-SAMPLES.json",
+      "bytes": 476925,
+      "sha256": "db607707f2eaa3af7fe2a39fc0b650eed114d4507bc48dca014ad34b609fcc39"
+    },
+    {
+      "path": "templates/CLIENT-PROFILES-AND-DD.html",
+      "bytes": 21451,
+      "sha256": "9041dfa5ea4b9e1210631f00d4b80b7190315ff54d476a900c70d43cf1d80850"
+    },
+    {
+      "path": "templates/CLIENT-PROFILES-AND-DD.md",
+      "bytes": 16484,
+      "sha256": "2a02738f7cc2ef72a996b931c4f8d440cbec3f03199e9a98684a81fdf1524d9a"
+    },
+    {
+      "path": "templates/EMAIL-TEMPLATES.html",
+      "bytes": 22579,
+      "sha256": "cc002b3cc0f4d4c243e8fcf06539e0651c7c0b40bb20fe12557cff86b56fecdd"
+    },
+    {
+      "path": "templates/EMAIL-TEMPLATES.md",
+      "bytes": 18662,
+      "sha256": "23b361893b8e9062448199ee4cca1802cfc42848403d4e83369fc5b42d17901c"
+    },
+    {
+      "path": "templates/INTERNAL-DD-SAMPLE.html",
+      "bytes": 5756,
+      "sha256": "b1c220c71ff6640a8a721292085c3a9ba8b1e19add2da583fc05b320e5fca42d"
+    },
+    {
+      "path": "templates/PROFILE-bank.html",
+      "bytes": 3466,
+      "sha256": "b0e6ffa22a4bf48bbdb1cfc58acf262038b3d53b4c980d0eceb727ece77302d5"
+    },
+    {
+      "path": "templates/PROFILE-both.html",
+      "bytes": 3534,
+      "sha256": "8bc2c012365c6929c416d1a68115eae63335c56572d7f9e25c12ffe16c37379d"
+    },
+    {
+      "path": "templates/PROFILE-correspondent.html",
+      "bytes": 4309,
+      "sha256": "4792ebcbf24e21ff46b833e09abed445f9c1de126e32d5ed3d04e94949cf43e1"
+    },
+    {
+      "path": "templates/PROFILE-financing.html",
+      "bytes": 3538,
+      "sha256": "8b4837a9ad0724767a25858068d9879354980b2184333c90a6d377d82906f568"
+    },
+    {
+      "path": "templates/PROFILE-merchant.html",
+      "bytes": 3912,
+      "sha256": "9e9eb6e0778a8f491f50cd02d9568e73a72253ac107fb1185ab235e7dfdeda2a"
+    },
+    {
+      "path": "templates/PROFILE-private.html",
+      "bytes": 3394,
+      "sha256": "b8df6bfb68306213be9a0fe5d12be199ad90f7446d773856bd1e5d6e44b3d79e"
+    },
+    {
+      "path": "verification/ACCOUNTING-BROWSER-VERIFICATION.json",
+      "bytes": 175,
+      "sha256": "065d9ec10b5aa9b11b0d3dbf70473359008187693ce56443558fe88436a151f7"
+    },
+    {
+      "path": "verification/ACCOUNTING-VERIFICATION.json",
+      "bytes": 139,
+      "sha256": "d93b47d27bc1552e419a7f01be7c62e77f1fdb2e26bb5561ee4372bb120c85bc"
+    },
+    {
+      "path": "verification/applicant-check.cjs",
+      "bytes": 4690,
+      "sha256": "149901a1fb469462a0848b07457acb8a8b287982d25d2f470c860551f2d29ac4"
+    },
+    {
+      "path": "verification/APPLICANT-REGRESSION.json",
+      "bytes": 6467,
+      "sha256": "55108e9f37da4d3ae01d4c976f32fae694c2b33b9f061ddefe7e815469baac08"
+    },
+    {
+      "path": "verification/DELIVERY-VERIFICATION.json",
+      "bytes": 4971,
+      "sha256": "2a6ebde5a6d9149f1bd6ba53e4377200f0d49dc5858a033421a719b1c61a6eb5"
+    },
+    {
+      "path": "verification/DOCUMENT-PAGES-VERIFICATION.json",
+      "bytes": 4692,
+      "sha256": "a4defd75ca8aababcab17539d164d098ac84fb24ca66f6e9b6b564861aa88348"
+    },
+    {
+      "path": "verification/HANDOVER-VERIFICATION.json",
+      "bytes": 1130,
+      "sha256": "2fb25efc2c61bd61a2d8eddcc478920a8af39551d0186f8bef0981d81e812f95"
+    },
+    {
+      "path": "verification/MANUAL-VERIFICATION.json",
+      "bytes": 332,
+      "sha256": "1db78ecacbe18dee2dc04103cab6d38e84878efdc84032b424bb050edc53f25d"
+    },
+    {
+      "path": "verification/MATCHING-VERIFICATION.json",
+      "bytes": 2717,
+      "sha256": "b47709bd666016f9ef23746bc4cb3a00fa5f5c4b584e4187c31b0e45ceaef745"
+    },
+    {
+      "path": "verification/PACKAGE-LINK-VERIFICATION.json",
+      "bytes": 218,
+      "sha256": "71f003e5941e6875057358fdceb8016a1828800f9c0666027d554af67a91612c"
+    },
+    {
+      "path": "verification/README.txt",
+      "bytes": 721,
+      "sha256": "a77c3a6b9555029e6c95f4dcc31b5d1e179790fbb167fd9431160043fa2416cc"
+    },
+    {
+      "path": "verification/REVISION-2-LINKS.json",
+      "bytes": 55,
+      "sha256": "eea6af5372e1cbf01f12fb1a0f51c84ce2243a370999d3b7c2a6da3d729de6d3"
+    },
+    {
+      "path": "verification/REVISION-2-VERIFICATION.json",
+      "bytes": 288,
+      "sha256": "5b450f204a76143e691ffa81f1f4db2f17756bb117f67878d3c962aadebd7a9b"
+    },
+    {
+      "path": "verification/verify-accounting-browser.cjs",
+      "bytes": 4635,
+      "sha256": "cef432df66eb8ba9b7ceddea2b3dc2095e00abe4f6fd014696e2d5dac67601a8"
+    },
+    {
+      "path": "verification/verify-accounting.cjs",
+      "bytes": 12087,
+      "sha256": "670d8f2b2b03910326bb2591de59838e42bff4e3ed1c38e7756cc1407316b716"
+    },
+    {
+      "path": "verification/verify-delivery.cjs",
+      "bytes": 7837,
+      "sha256": "79de967995bd530aa318374f66b1989276ffb0c25fe8d38d11b862b69e062be4"
+    },
+    {
+      "path": "verification/verify-document-pages.cjs",
+      "bytes": 2333,
+      "sha256": "5c90572018168b34713b87ca9803ae5d039b2a1b5506fa0937339ed7dba41d91"
+    },
+    {
+      "path": "verification/verify-matching.cjs",
+      "bytes": 7746,
+      "sha256": "96dcaeea9643de21bc14038b636ceb1905f8765e712414ae6a99c8c99131a7cd"
+    }
+  ]
+}

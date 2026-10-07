@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../delivery.css"><main><a href="../START-HERE.html">Delivery home</a><article style="white-space:pre-wrap"># Country acceptance — implementation addendum
+
+This addendum supersedes the single combined scope selector in the country-policy review sample. Included in Revision 2. No email has been sent automatically.
+
+## Two separate policy groups
+1. Company incorporation, incoming payment countries and outgoing payment countries: selectable countries exclude the approved SOPHIMA exclusion list.
+2. UBO nationality and residence: retain the full country catalogue for truthful disclosure; screening remains mandatory before release.
+
+Within each group allow multi-selection and Select all. Store explicit per-dimension rules, regional defaults, individual country overrides and comments. Keep group drafts separate. Never apply Group 2 support to Group 1 restrictions. Country comments explain conditions but must not silently generate legal or matching rules. Supported with enhanced due diligence must result in conditional matching until required checks are fulfilled.
+
+## Exact provider notice
+Group 1 — Platform-permitted country list. Countries excluded under SOPHIMA’s country eligibility policy are unavailable for company incorporation and incoming/outgoing payment flows. You do not need to specify acceptance rules for pre-excluded countries. Record any additional restrictions imposed by your institution.
+
+Group 2 — Complete country list. All countries are available for UBO nationality and residence to permit accurate disclosure. Availability does not confirm eligibility; identity, ownership/control and sanctions checks still apply.
+
+## Exclusion policy and enforcement
+The sample excludes Russia and Iran only as explicitly identified review examples. It is not a complete sanctions list or production compliance decision. Do not deploy that illustrative array as the complete production policy.
+
+Maintain an approved country policy with ISO identifiers, reason, authority/source, effective date, version and responsible approver. UN, EU, US OFAC and UK lists contain targeted sanctions as well as jurisdiction-related restrictions: do not convert every geographic mention or person nationality into an automatic country prohibition. Identify jurisdiction-related regimes for the separate SOPHIMA commercial exclusion policy, preserving territory-level distinctions where relevant. FATF monitoring/high-risk classifications remain distinct from sanctions. Establish the applicable legal scope with qualified review before production activation.
+
+Use one server-side policy service for applicant and provider selectors, API submissions, AI-assisted input, imports, resumed applications and matching. Reject excluded Group 1 values even if typed manually or submitted through an altered client. Re-evaluate saved cases on policy changes; hold release when required screening is stale, unavailable, unresolved or prohibited. Providers cannot override platform exclusions, including through policy uploads. Preserve lawful audit records of policy versions and decisions. Group 2 disclosure still requires person/entity and ownership/control screening, not nationality-only determinations.
+
+## Acceptance tests
+- Excluded Group 1 countries absent from regional lists and search; typed/API/import values rejected.
+- Same countries available in Group 2 without automatically confirming eligibility.
+- Switching groups preserves distinct drafts and criteria selections.
+- Country exceptions override regional commercial defaults but never legal/platform exclusions.
+- EU remains a separate region; each country belongs to exactly one defined group.
+- Unknown rules remain conditional; enhanced due diligence is not a legal permission.
+- Policy changes affect saved applications and screening release gates consistently.
+</article></main></html>

@@ -1,0 +1,55 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FinSyndeo — Screening continuity and release controls · FinSyndeo</title><link rel="stylesheet" href="../delivery.css"><header><a href="../START-HERE.html"><img src="../assets/FinSyndeo-logo.png" alt="FinSyndeo by SOPHIMA"></a><nav><a href="../START-HERE.html">Delivery home</a><a href="../prototype/FinSyndeo-platform.html">Open prototype</a><button onclick="window.print()">Print</button></nav></header><main><details><summary>Contents</summary><div class="toc"><a href="#section-1">Scope</a><a href="#section-2">Source register</a><a href="#section-3">Freshness and failure handling</a><a href="#section-4">Result states</a><a href="#section-5">Subject and evidence model</a><a href="#section-6">Minimum acceptance scenarios</a><a href="#section-7">Source references</a></div></details><p><a href="SCREENING-CONTINUITY-PROPOSAL.md">Editable reference</a></p><article><h1 id="section-0">FinSyndeo — Screening continuity and release controls</h1>
+<p>6 October 2026 · Technical design proposal, not a connected service or legal opinion.</p>
+<h2 id="section-1">Scope</h2>
+<p>SOPHIMA acts as an introducer under the user-confirmed design premise. Screening must have a documented lawful purpose and scope; it is not presented as the institution&#x27;s completed KYC. Necessary applicant, identified controller/UBO/director, corporate-chain and relevant named-counterparty checks are linked to explicit subjects. Adding affiliates needs evidence and relevance. Sensitive or criminal-offence processing has a separate lawful-scope gate.</p>
+<h2 id="section-2">Source register</h2>
+<div class="table-scroll" tabindex="0" aria-label="Scrollable table"><table><thead><tr><th>Source</th><th>What the system must store</th><th>Important distinction</th></tr></thead><tbody>
+<tr><td>UN Security Council consolidated list and applicable measures</td><td>Official source URL, published/retrieved versions, integrity hash, authority/regime and actual designations</td><td>Countries associated with a listed person are not automatically prohibited countries</td></tr>
+<tr><td>EU consolidated financial sanctions data and applicable restrictive measures</td><td>Current authoritative data plus governing instruments, entity/person identifiers and ownership/control analysis</td><td>A name list alone is not all sectoral/service restrictions</td></tr>
+<tr><td>OFAC SDN and other applicable US measures</td><td>Applicable nexus, list/source version, aliases/identifiers and regime-specific ownership logic</td><td>Do not apply the US ownership rule as if it were every jurisdiction&#x27;s rule</td></tr>
+<tr><td>UK Sanctions List and applicable regulations</td><td>Current UK source and measures; migrate away from the closed OFSI consolidated feed</td><td>UK applicability and ownership/control tests require their own rules</td></tr>
+<tr><td>FATF calls for action / increased monitoring</td><td>Status, publication date, source and country code</td><td>Risk classification, not a universal sanctions ban</td></tr>
+<tr><td>EU AML high-risk third-country list</td><td>Current legal instrument, effective date and country code</td><td>Separate from FATF; duties depend on the actor&#x27;s scope</td></tr>
+<tr><td>SOPHIMA policy and provider acceptance</td><td>Approved owner, reason, product/axis scope, start/end, review date and version</td><td>Commercial refusal must not be mislabelled as a legal sanction</td></tr>
+</tbody></table></div>
+<p>Source selection and applicable jurisdiction/nexus require legal review. Do not hardcode a permanently banned nationality list by extracting all countries mentioned in name lists.</p>
+<h2 id="section-3">Freshness and failure handling</h2>
+<p>Use server jobs to ingest official/vendor updates at supported intervals, with push/change signals where available. Record last successful retrieval, last published version, transformation status, errors and configured maximum age by source. The Admin health view should distinguish Unchanged current source from Retrieval failed and Source too old.</p>
+<p>At submission and immediately before release, check the current subject/fact revision against applicable source/rule versions. Material identity, ownership, nationality, residence, tax, corridor, activity or provider changes invalidate the relevant readiness snapshot. A new designation/rule version schedules necessary re-screening of active cases and unsettled releases.</p>
+<p>If a mandatory source/check is stale, unavailable or incomplete, set a release hold and explain a neutral temporary-check status. Do not automatically report “sanctioned” or “no provider supports you”. No score, paid introduction or Admin convenience flag bypasses the gate. A controlled exception needs an authorised basis and evidence and cannot override a legal prohibition.</p>
+<p>“Real time” means current available verified source versions evaluated at the relevant action, not an assurance that government lists are continuously instantaneous or that all related entities are known.</p>
+<h2 id="section-4">Result states</h2>
+<ul>
+<li>Not run / Not enabled in lawful scope.</li>
+<li>Checked against recorded version; no apparent match identified.</li>
+<li>Possible identity match; release held for resolution.</li>
+<li>Identity resolved as false positive, with evidence and decision.</li>
+<li>Confirmed relevant restriction under a recorded applicable rule.</li>
+<li>SOPHIMA-policy exclusion, separately labelled.</li>
+<li>Provider-policy mismatch, product and country-axis specific.</li>
+<li>Required check unavailable or stale.</li>
+</ul>
+<p>An apparent PEP is not automatically a prohibited person. Media allegations are not factual findings. A competent review resolves uncertainty under the applicable law and approved policy; the UI does not publicise sensitive watchlist allegations.</p>
+<h2 id="section-5">Subject and evidence model</h2>
+<p>Each subject has stable person/entity ID, canonical and alias names, appropriate country dimensions, role(s), official identifier or proportionate disambiguators, source and relevance. Each screening run has subject revision, provider/regime, rule/list version, time, match evidence, status, reviewer/decision and expiry. A graph edge has separate role, ownership percentage/control description, jurisdiction, source and confidence; no guessed ownership from a director listing.</p>
+<p>Website and registry retrieval is bounded, protects against SSRF and treats content as untrusted evidence. Respect source-access limits; blocked/paid/unavailable registries become Unknown, not fabricated extracts. AI summaries preserve source links, retrieved date and contradictions. An AI output cannot authenticate a company, establish licence scope or authorise a decision alone.</p>
+<h2 id="section-6">Minimum acceptance scenarios</h2>
+<ol>
+<li>Identical data submitted via form, guided text, future voice, direct API or import gets the same applicable gate.</li>
+<li>A relevant named counterparty is present in the job and internal report; blank optional counterparties are Not supplied.</li>
+<li>Possible common-name hit is held; a documented false positive can be resolved without deleting the declared nationality.</li>
+<li>Russia/Iran nationality/residence/tax combinations are evaluated against actual current law, SOPHIMA policy and product rules, including legally relevant exceptions; an all-nationality blanket is not invented from a list.</li>
+<li>FATF-monitoring status does not create a fake sanctions finding. An approved commercial country exclusion remains explicit.</li>
+<li>A list/rule update between matching and introduction invalidates stale clearance and stops the queued release.</li>
+<li>Feed outage or expired licence evidence prevents an unqualified introduction-ready status.</li>
+<li>Declared beneficial ownership and control are evaluated under the applicable regime, including indirect/aggregated relationships where required.</li>
+<li>Internal DD evidence is excluded from the default external bank package; institution-specific sharing revision is enforced.</li>
+<li>Withdrawal, account closure or expired authority suppresses queued messages and releases; minimal lawfully retained evidence follows the retention register.</li>
+</ol>
+<h2 id="section-7">Source references</h2>
+<p>Official UN list: <a href="https://main.un.org/securitycouncil/en/content/un-sc-consolidated-list">UN Security Council consolidated list</a>.</p>
+<p>EU source context: <a href="https://finance.ec.europa.eu/eu-and-world/sanctions-restrictive-measures_en">EU sanctions</a>.</p>
+<p>US ownership distinction: <a href="https://ofac.treasury.gov/faqs/401">OFAC FAQ 401</a>.</p>
+<p>UK change: <a href="https://www.gov.uk/government/collections/uk-sanctions">UK sanctions collection</a>.</p>
+<p>FATF distinction: <a href="https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-june-2026.html">June 2026 increased monitoring</a>.</p>
+<p>EU AML countries: <a href="https://finance.ec.europa.eu/financial-crime/anti-money-laundering-and-countering-financing-terrorism-international-level_en">Commission international AML information</a>.</p></article></main><footer>7 October 2026 · Consolidated delivery to Renos · Approved prototype and specifications · Live integrations remain to be implemented</footer></html>

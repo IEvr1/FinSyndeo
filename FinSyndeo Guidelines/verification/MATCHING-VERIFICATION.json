@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-07",
+  "scope": "Local deterministic engine and workflow model; no live sanctions or legal verification",
+  "checks": [
+    {
+      "name": "Confirmed bank essentials eligible; no preferences means no score",
+      "passed": true
+    },
+    {
+      "name": "Missing provider criteria are conditional, never assumed support",
+      "passed": true
+    },
+    {
+      "name": "Unapproved uploaded policy cannot publish eligibility",
+      "passed": true
+    },
+    {
+      "name": "Known country prohibition excludes requested product",
+      "passed": true
+    },
+    {
+      "name": "Unknown country cannot be silently accepted",
+      "passed": true
+    },
+    {
+      "name": "Owner nationality and residence are independently evaluated",
+      "passed": true
+    },
+    {
+      "name": "Incoming and outgoing geographic rules are independent",
+      "passed": true
+    },
+    {
+      "name": "Essential unsupported currency excludes; preferred currency changes score",
+      "passed": true
+    },
+    {
+      "name": "Known count/amount limit enforced",
+      "passed": true
+    },
+    {
+      "name": "Noncomparable reporting currency is conditional",
+      "passed": true
+    },
+    {
+      "name": "Unmapped narrative policy conditions prevent automatic eligibility",
+      "passed": true
+    },
+    {
+      "name": "Expired or future policy cannot establish eligibility",
+      "passed": true
+    },
+    {
+      "name": "Alternative product OR: rejected offer cannot veto supported alternative",
+      "passed": true
+    },
+    {
+      "name": "Combined application needs both requested components",
+      "passed": true
+    },
+    {
+      "name": "Private residence, tax residence and nationality stay separate",
+      "passed": true
+    },
+    {
+      "name": "Financing maximum amount is enforced",
+      "passed": true
+    },
+    {
+      "name": "Correspondent own-funds limit distinct from client-funds limit",
+      "passed": true
+    },
+    {
+      "name": "Optional blank fraud/chargeback not invented as zero",
+      "passed": true
+    },
+    {
+      "name": "Screening subjects deduplicated; named controller role retained",
+      "passed": true
+    },
+    {
+      "name": "Outbox is idempotent and never claims an email was sent",
+      "passed": true
+    },
+    {
+      "name": "Admin cannot approve sharing on applicant behalf",
+      "passed": true
+    },
+    {
+      "name": "Withdrawn approval is invalid for release",
+      "passed": true
+    },
+    {
+      "name": "Erasure activity suppression cannot affect another applicant account",
+      "passed": true
+    },
+    {
+      "name": "Another applicant cannot withdraw an unrelated case",
+      "passed": true
+    }
+  ]
+}

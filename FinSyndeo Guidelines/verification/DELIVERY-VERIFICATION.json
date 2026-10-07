@@ -1,0 +1,244 @@
+{
+  "date": "2026-10-07",
+  "root": "C:\\Users\\Marios\\.codex\\.chatgpt-projects\\g-p-6a264e3116608191bb32cb3dd4c452e4\\Renos-delivery-2026-10-07\\prototype",
+  "checks": [
+    {
+      "name": "No language selector",
+      "passed": true
+    },
+    {
+      "name": "Meeting path absent",
+      "passed": true
+    },
+    {
+      "name": "bank sample valid",
+      "passed": true
+    },
+    {
+      "name": "bank real typed matcher",
+      "passed": true
+    },
+    {
+      "name": "bank actual case cannot bypass sharing as fixture",
+      "passed": true
+    },
+    {
+      "name": "bank has no invented percentage",
+      "passed": true
+    },
+    {
+      "name": "merchant sample valid",
+      "passed": true
+    },
+    {
+      "name": "merchant real typed matcher",
+      "passed": true
+    },
+    {
+      "name": "merchant actual case cannot bypass sharing as fixture",
+      "passed": true
+    },
+    {
+      "name": "merchant has no invented percentage",
+      "passed": true
+    },
+    {
+      "name": "both sample valid",
+      "passed": true
+    },
+    {
+      "name": "both real typed matcher",
+      "passed": true
+    },
+    {
+      "name": "both actual case cannot bypass sharing as fixture",
+      "passed": true
+    },
+    {
+      "name": "both has no invented percentage",
+      "passed": true
+    },
+    {
+      "name": "financing sample valid",
+      "passed": true
+    },
+    {
+      "name": "financing real typed matcher",
+      "passed": true
+    },
+    {
+      "name": "financing actual case cannot bypass sharing as fixture",
+      "passed": true
+    },
+    {
+      "name": "financing has no invented percentage",
+      "passed": true
+    },
+    {
+      "name": "individual sample valid",
+      "passed": true
+    },
+    {
+      "name": "individual real typed matcher",
+      "passed": true
+    },
+    {
+      "name": "individual actual case cannot bypass sharing as fixture",
+      "passed": true
+    },
+    {
+      "name": "individual has no invented percentage",
+      "passed": true
+    },
+    {
+      "name": "institution sample valid",
+      "passed": true
+    },
+    {
+      "name": "institution real typed matcher",
+      "passed": true
+    },
+    {
+      "name": "institution actual case cannot bypass sharing as fixture",
+      "passed": true
+    },
+    {
+      "name": "institution has no invented percentage",
+      "passed": true
+    },
+    {
+      "name": "Guided individual explicit route",
+      "passed": true
+    },
+    {
+      "name": "Guided both explicit route",
+      "passed": true
+    },
+    {
+      "name": "Applicant institution revision recipient approval",
+      "passed": true
+    },
+    {
+      "name": "Approved sharing passes release gate",
+      "passed": true
+    },
+    {
+      "name": "Old sharing revision invalid",
+      "passed": true
+    },
+    {
+      "name": "Privacy controls present",
+      "passed": true
+    },
+    {
+      "name": "Withdrawal closes flow and alerts",
+      "passed": true
+    },
+    {
+      "name": "Admin five navigation groups",
+      "passed": true
+    },
+    {
+      "name": "provider profile layout 320",
+      "passed": true
+    },
+    {
+      "name": "provider profile layout 390",
+      "passed": true
+    },
+    {
+      "name": "provider profile layout 768",
+      "passed": true
+    },
+    {
+      "name": "provider profile layout 1280",
+      "passed": true
+    },
+    {
+      "name": "introducer home layout 320",
+      "passed": true
+    },
+    {
+      "name": "introducer home layout 390",
+      "passed": true
+    },
+    {
+      "name": "introducer home layout 768",
+      "passed": true
+    },
+    {
+      "name": "introducer home layout 1280",
+      "passed": true
+    },
+    {
+      "name": "admin intro-invoices layout 320",
+      "passed": true
+    },
+    {
+      "name": "admin intro-invoices layout 390",
+      "passed": true
+    },
+    {
+      "name": "admin intro-invoices layout 768",
+      "passed": true
+    },
+    {
+      "name": "admin intro-invoices layout 1280",
+      "passed": true
+    },
+    {
+      "name": "applicant privacy layout 320",
+      "passed": true
+    },
+    {
+      "name": "applicant privacy layout 390",
+      "passed": true
+    },
+    {
+      "name": "applicant privacy layout 768",
+      "passed": true
+    },
+    {
+      "name": "applicant privacy layout 1280",
+      "passed": true
+    },
+    {
+      "name": "No browser JavaScript errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "errors": [],
+  "samples": [
+    {
+      "route": "bank",
+      "eligible": 4,
+      "conditional": 0
+    },
+    {
+      "route": "merchant",
+      "eligible": 4,
+      "conditional": 0
+    },
+    {
+      "route": "both",
+      "eligible": 4,
+      "conditional": 0
+    },
+    {
+      "route": "financing",
+      "eligible": 4,
+      "conditional": 0
+    },
+    {
+      "route": "individual",
+      "eligible": 3,
+      "conditional": 0
+    },
+    {
+      "route": "institution",
+      "eligible": 0,
+      "conditional": 4
+    }
+  ]
+}

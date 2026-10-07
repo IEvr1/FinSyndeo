@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FinSyndeo — Security and accessibility launch checklist · FinSyndeo</title><link rel="stylesheet" href="../delivery.css"><header><a href="../START-HERE.html"><img src="../assets/FinSyndeo-logo.png" alt="FinSyndeo by SOPHIMA"></a><nav><a href="../START-HERE.html">Delivery home</a><a href="../prototype/FinSyndeo-platform.html">Open prototype</a><button onclick="window.print()">Print</button></nav></header><main><details><summary>Contents</summary><div class="toc"><a href="#section-1">Security acceptance scope</a><a href="#section-2">Desktop/mobile accessibility target</a><a href="#section-3">Release evidence register</a></div></details><p><a href="SECURITY-ACCESSIBILITY-LAUNCH-CHECKLIST.md">Editable reference</a></p><article><h1 id="section-0">FinSyndeo — Security and accessibility launch checklist</h1>
+<p>6 October 2026 · Requirements for the delivered build. The browser-local prototype has not passed production security or accessibility certification.</p>
+<h2 id="section-1">Security acceptance scope</h2>
+<p>Use a recognised application-security verification baseline appropriate to the risk and architecture, with explicit requirement IDs and test evidence. <a href="https://owasp.org/projects/asvs">OWASP ASVS</a> supplies a verification framework; choosing it is not a certification.</p>
+<ul>
+<li>Real authenticated sessions, verified account recovery, privileged-role MFA, session expiry/revocation and invitation-only introducer/Admin access. Referral tokens identify attribution, never authentication.</li>
+<li>Server authorization by role, purpose and record owner for every case, policy, person, report, invoice, upload, download and export. Negative tests with a second applicant/provider/introducer must prove isolation.</li>
+<li>Never send full internal stores to external users. Confidential provider identity/terms, screening evidence, payout details and third-party data have separate recipient-specific views.</li>
+<li>Typed server schemas enforce route applicability, canonical countries/currencies, decimal precision, permitted updates, dates and state transitions. Client validation is convenience, not a security boundary.</li>
+<li>Use HTTPS, secure session cookies, CSRF protections where applicable, restrictive content policy, output encoding and controls against injection, abusive requests and account enumeration. Secrets and service keys remain server-side.</li>
+<li>Upload quarantine, file type/size checks, malware scanning and controlled extraction. Store originals separately from externally approved derivatives. No unsafe active document content or arbitrary public links to internal files.</li>
+<li>Website/registry fetching blocks private/internal network targets and unsafe redirects, has resource limits, and treats fetched text as evidence, not instructions. Uploaded text cannot change recipients, eligibility or commercial terms through prompt injection.</li>
+<li>Verified signed payment events, replay prevention, independent bank settlement reconciliation, locked invoice allocations and transactionally posted ledger events. Payment evidence uploads do not initiate or confirm cash by themselves.</li>
+<li>Appropriate maker/checker approval for payout destination changes, payment release and exceptional commercial/tax treatments; separate duties where staffing permits. No Admin self-signing for an introducer.</li>
+<li>Bounded audit retention, protected logs, backup/restore tests, erasure propagation and monitoring of feed/job/outbox failures. Logs must not leak raw sensitive content or become indefinite copies of deleted profiles.</li>
+<li>Tested incident response, vendor contracts, international-transfer arrangements, dependency updates and restore recovery. A live security assessment is performed against the actual deployment and revised after material changes.</li>
+</ul>
+<h2 id="section-2">Desktop/mobile accessibility target</h2>
+<p>Adopt WCAG 2.2 AA as the engineering target and verify the actual screens with manual and automated evidence. This recommendation is not a determination of the exact statutory standard for SOPHIMA. <a href="https://www.w3.org/TR/WCAG22/">W3C WCAG 2.2</a>.</p>
+<ul>
+<li>Keyboard-complete applicant/provider/introducer/Admin journeys; no focus traps; visible focus and correctly announced dialogs.</li>
+<li>Accessible names, labels, required/error states and live status announcements. Country picker works with keyboard and screen reader; selected values remain understandable when collapsed.</li>
+<li>Semantic headings and reading order. Required fields precede the single navigation row. Summary edits return to the correct field without losing values.</li>
+<li>Contrast and noncolour-only meaning; zoom/reflow tests; readable minimum text and sufficiently sized/spaced mobile actions.</li>
+<li>No compulsory speech, motion or calendar path. Voice has editable text fallback, permission-denied fallback, stop/cancel and clear AI disclosure.</li>
+<li>Accessible authentication/recovery and payment confirmation; no reliance on memory puzzles or inaccessible CAPTCHA-only paths.</li>
+<li>Physical iPhone and Android tests for keyboard covering fields, country overlays, scrolling, touch, orientation, audio interruption and reconnect/resume.</li>
+<li>English plus each genuinely supported translation and any RTL layout tested. Do not hide language controls on mobile or advertise disabled translations as delivered.</li>
+<li>Videos have useful captions/transcript and controls; narration quality does not prove the live voice interface works.</li>
+</ul>
+<p>The European Accessibility Act covers specified services, including e-commerce and consumer banking, with scope/exemption rules. Assess FinSyndeo&#x27;s actual service, enterprise and local implementation before determining its legal obligations; do not assume either automatic exemption or automatic classification as a bank. <a href="https://commission.europa.eu/strategy-and-policy/policies/justice-and-fundamental-rights/disability/european-accessibility-act-eaa_en">Commission EAA overview</a>.</p>
+<h2 id="section-3">Release evidence register</h2>
+<p>For each requirement, record Owner, Applicable/not applicable with reason, Build/version, Test, Evidence, Result, Remediation and Review date. Prototype checks are useful inputs; they do not replace delivered-build testing, physical-device review, vendor integration checks or legal sign-off.</p></article></main><footer>7 October 2026 · Consolidated delivery to Renos · Approved prototype and specifications · Live integrations remain to be implemented</footer></html>

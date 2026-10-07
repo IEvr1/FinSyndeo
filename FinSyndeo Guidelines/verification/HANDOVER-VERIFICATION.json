@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-07",
+  "approvedDesign": "Marios approval of 6 October audit proposals, English-only interface and documentation",
+  "workflowChecks": {"passed": 51, "failed": 0, "browserErrors": 0, "routes": ["bank", "merchant", "both", "financing", "individual", "institution"]},
+  "matchingAndRightsRegressions": {"passed": 24, "failed": 0},
+  "targetedAccountingRegressions": {"passed": 26, "failed": 0},
+  "accountingBrowserChecks": {"passed": 13, "browserErrors": 0},
+  "documentationViewportChecks": {"passed": 22, "failed": 0, "widths": [390,1280]},
+  "wordManualVisualReview": {"pagesInspected": 8, "result": "Passed after final layout adjustments"},
+  "scope": "Local prototype and documentation. Overlapping test scopes are not added into a unique test total. No production authentication, live screening, legal certification, real-device or penetration-test claim.",
+  "releaseConditions": "Production integrations, genuine authentication/authorisation, provider policies, legal/commercial particulars and launch acceptance tests are specified separately and must be implemented and validated before live use."
+}

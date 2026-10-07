@@ -1,0 +1,8 @@
+# Merchant provider corrections
+Merchant-only Products no longer ask for banking transfer networks or dedicated IBANs. Banking/private/correspondent product profiles retain their applicable fields. Acquiring services, acceptance currencies, card schemes, wallets/APMs, integration needs, processing limits and settlement terms remain distinct from banking.
+
+Product terms include Visa, Mastercard, American Express, UnionPay, Diners Club, Discover and JCB, with Other. Wallet/APM examples include Apple Pay, Google Pay, PayPal, paysafecard, Skrill, Neteller, Alipay and WeChat Pay. Examples are not assertions of institution support. Providers must explicitly confirm their complete APM list; an unanswered item is unknown, not supported by inference.
+
+Local payment coverage records customer country, currency codes, named methods and conditions together. Do not match independent country and currency lists as if every combination is supported. Unsupported local payments are excluded; unconfirmed coverage or conditions remain conditional. The engine accepts structured local-payment request tuples; production applicant input/API must collect those needs explicitly before claiming tuple matching.
+
+Three-letter currency input in the prototype validates format only. Production must validate against a maintained ISO currency catalogue. Preserve inactive legacy bank fields without evaluating them for merchant-only products. These changes and the country-policy addendum supersede conflicting earlier field descriptions.

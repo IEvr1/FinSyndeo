@@ -1,0 +1,351 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "route": "bank",
+      "valid": true,
+      "note": "",
+      "errors": [],
+      "scope": [],
+      "merchant": null
+    },
+    {
+      "route": "merchant",
+      "valid": true,
+      "note": "",
+      "errors": [],
+      "scope": [],
+      "merchant": [
+        {
+          "id": "merchant-monthly-value",
+          "label": "Expected monthly card-payment value"
+        },
+        {
+          "id": "merchant-monthly-count",
+          "label": "Expected successful payments per month"
+        },
+        {
+          "id": "merchant-average-ticket",
+          "label": "Average payment amount"
+        },
+        {
+          "id": "merchant-maximum-ticket",
+          "label": "Largest expected payment amount"
+        }
+      ]
+    },
+    {
+      "route": "both",
+      "valid": true,
+      "note": "",
+      "errors": [],
+      "scope": [],
+      "merchant": null
+    },
+    {
+      "route": "financing",
+      "valid": true,
+      "note": "",
+      "errors": [],
+      "scope": [],
+      "merchant": null
+    },
+    {
+      "route": "individual",
+      "valid": true,
+      "note": "",
+      "errors": [],
+      "scope": [],
+      "merchant": null
+    },
+    {
+      "route": "institution",
+      "valid": true,
+      "note": "",
+      "errors": [],
+      "scope": [],
+      "merchant": null
+    },
+    {
+      "test": "Bank reload",
+      "before": {
+        "parties": [
+          {
+            "id": "party-6ad6851d-f533-4e40-b896-f86ef6ec310f",
+            "scope": "bank",
+            "direction": "incoming",
+            "name": "ACME Receipts Ltd",
+            "kind": "Legal entity",
+            "country": "Cyprus",
+            "relationship": "Customer"
+          }
+        ],
+        "vals": [
+          "7",
+          "75000",
+          "9",
+          "66000"
+        ]
+      },
+      "after": {
+        "parties": [
+          {
+            "id": "party-6ad6851d-f533-4e40-b896-f86ef6ec310f",
+            "scope": "bank",
+            "direction": "incoming",
+            "name": "ACME Receipts Ltd",
+            "kind": "Legal entity",
+            "country": "Cyprus",
+            "relationship": "Customer"
+          }
+        ],
+        "vals": [
+          "7",
+          "75000",
+          "9",
+          "66000"
+        ]
+      }
+    },
+    {
+      "test": "Control-only no75floor",
+      "valid": true,
+      "people": [
+        {
+          "id": "person-fac6a546-5200-419e-92a9-78ec1c648b93",
+          "fullName": "Alex Example",
+          "name": "Alex Example",
+          "sharePercentage": null,
+          "percentage": "",
+          "controlRoles": [
+            "Controller"
+          ],
+          "nationalities": [
+            "Cyprus"
+          ],
+          "residence": "Cyprus"
+        }
+      ]
+    },
+    {
+      "test": "Foundation order",
+      "actionsLast": true,
+      "ready": true
+    },
+    {
+      "test": "Foundation controller reload",
+      "people": [
+        {
+          "id": "person-fac6a546-5200-419e-92a9-78ec1c648b93",
+          "fullName": "Alex Example",
+          "name": "Alex Example",
+          "sharePercentage": null,
+          "percentage": "",
+          "controlRoles": [
+            "Controller"
+          ],
+          "nationalities": [
+            "Cyprus"
+          ],
+          "residence": "Cyprus"
+        }
+      ]
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 1,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 2,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 3,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 39,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 4,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 5,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 320,
+      "n": 40,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 1,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 2,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 3,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 39,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 4,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 5,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 390,
+      "n": 40,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 1,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 2,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 3,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 39,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 4,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 5,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 768,
+      "n": 40,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 1,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 2,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 3,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 39,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 4,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 5,
+      "root": true,
+      "frame": true
+    },
+    {
+      "test": "Layout",
+      "width": 1280,
+      "n": 40,
+      "root": true,
+      "frame": true
+    }
+  ]
+}
