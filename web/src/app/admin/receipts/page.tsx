@@ -3,7 +3,7 @@
 
 export default function AdminPage() {
   return (
-    <AdminFunctionPage eyebrow="Receipts" title="Provider receipts" lead="Cash reconciliation and client allocation.">
+    <AdminFunctionPage eyebrow="Provider commissions" title="Add provider commissions" lead="Record provider-side commission receipts and client allocation.">
     </AdminFunctionPage>
   );
 }

@@ -2,6 +2,8 @@ import { eq, and, desc, isNull } from "drizzle-orm";
 import { createHash } from "crypto";
 import { getDb, schema } from "@/lib/db";
 import { evaluateMatches, fixtureProfile } from "@/lib/matching";
+import { applicantEmailVars } from "@/lib/email/vars";
+import { enqueueEmail } from "@/lib/services/outbox";
 
 export async function getApplicationForOwner(applicationId: string, ownerUserId: string) {
   const db = getDb();
@@ -49,7 +51,13 @@ export async function patchDraft(
   return { revisionId: current.id, contentHash: hash };
 }
 
-export async function confirmRevision(applicationId: string, ownerUserId: string, userId: string) {
+export async function confirmRevision(
+  applicationId: string,
+  ownerUserId: string,
+  userId: string,
+  contactEmail?: string,
+  contactFirstName?: string
+) {
   const db = getDb();
   const app = await getApplicationForOwner(applicationId, ownerUserId);
   if (!app?.currentRevisionId) throw new Error("Application not found.");
@@ -79,6 +87,22 @@ export async function confirmRevision(applicationId: string, ownerUserId: string
         isNull(schema.sharingApprovals.withdrawnAt)
       )
     );
+
+  if (contactEmail) {
+    const vars = applicantEmailVars({
+      firstName: contactFirstName,
+      caseReference: applicationId,
+      service: app.route,
+    });
+    await enqueueEmail({
+      templateId: "E02",
+      businessEvent: "application.confirmed",
+      idempotencyKey: `E02:${applicationId}:${current.revisionNumber}`,
+      to: [contactEmail],
+      vars,
+      revisionId: current.id,
+    });
+  }
 
   return current;
 }
@@ -117,7 +141,12 @@ export async function createNewRevision(applicationId: string, ownerUserId: stri
   return revision;
 }
 
-export async function computeMatches(applicationId: string, ownerUserId: string) {
+export async function computeMatches(
+  applicationId: string,
+  ownerUserId: string,
+  contactEmail?: string,
+  contactFirstName?: string
+) {
   const db = getDb();
   const app = await getApplicationForOwner(applicationId, ownerUserId);
   if (!app?.currentRevisionId) throw new Error("Application not found.");
@@ -166,5 +195,47 @@ export async function computeMatches(applicationId: string, ownerUserId: string)
     .set({ status: "matching", updatedAt: new Date() })
     .where(eq(schema.applications.id, applicationId));
 
+  if (contactEmail) {
+    const vars = applicantEmailVars({
+      firstName: contactFirstName,
+      caseReference: applicationId,
+      service: app.route,
+    });
+    const templateId = result.eligibleCount > 0 || result.conditionalCount > 0 ? "E04" : "E05";
+    await enqueueEmail({
+      templateId,
+      businessEvent: "matching.completed",
+      idempotencyKey: `${templateId}:${applicationId}:${revision.id}`,
+      to: [contactEmail],
+      vars,
+      revisionId: revision.id,
+    });
+  }
+
   return result;
+}
+
+export async function listIntroductionRequests(applicationId: string, ownerUserId: string) {
+  const app = await getApplicationForOwner(applicationId, ownerUserId);
+  if (!app) throw new Error("Application not found.");
+  const db = getDb();
+  return db
+    .select()
+    .from(schema.introductionRequests)
+    .where(eq(schema.introductionRequests.applicationId, applicationId));
+}
+
+export async function getProviderPublicSummary(providerId: string) {
+  const db = getDb();
+  const [p] = await db
+    .select({
+      id: schema.providers.id,
+      code: schema.providers.code,
+      legalName: schema.providers.legalName,
+      country: schema.providers.country,
+    })
+    .from(schema.providers)
+    .where(eq(schema.providers.id, providerId))
+    .limit(1);
+  return p ?? null;
 }

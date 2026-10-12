@@ -13,7 +13,7 @@ export async function POST(
     const ctx = await loadAuthContext(user);
     requireRole(ctx, "applicant");
     const { id } = await params;
-    const revision = await confirmRevision(id, user.id, user.id);
+    const revision = await confirmRevision(id, user.id, user.id, user.email, user.name?.split(" ")[0]);
     return NextResponse.json({ revision });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });

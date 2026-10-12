@@ -16,7 +16,7 @@ export default function FindProviderPage() {
         </section>
         <section className="tile">
           <h2>Guided intake</h2>
-          <p>Conversational prompts with typed answers. Voice when configured.</p>
+          <p>Spoken prompts and typed answers. Voice when configured.</p>
           <Link href="/applicant/guided" className="btn btn-primary">
             Start conversation
           </Link>

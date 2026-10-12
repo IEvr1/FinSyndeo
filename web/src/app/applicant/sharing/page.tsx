@@ -28,10 +28,10 @@ export default function SharingPage() {
 
   return (
     <>
-      <p className="eyebrow">Sharing</p>
-      <h1>Sharing permissions</h1>
+      <p className="eyebrow">Sharing permissions</p>
+      <h1>Approve an institution introduction</h1>
       <p className="lead">
-        Approve the institution, recipient and current revision before disclosure. An Admin checkbox cannot create this consent.
+        Check the named institution and recipient before sharing the current client profile.
       </p>
       <form className="panel" onSubmit={approve}>
         <label className="field">
@@ -39,7 +39,7 @@ export default function SharingPage() {
           <input value={applicationId} onChange={(e) => setApplicationId(e.target.value)} required />
         </label>
         <label className="field">
-          <span>Provider ID</span>
+          <span>Selected institution (provider ID)</span>
           <input value={providerId} onChange={(e) => setProviderId(e.target.value)} required />
         </label>
         <label className="field">
@@ -47,11 +47,11 @@ export default function SharingPage() {
           <input value={institution} onChange={(e) => setInstitution(e.target.value)} required />
         </label>
         <label className="field">
-          <span>Approved recipient email</span>
+          <span>Verified institution recipient</span>
           <input type="email" value={recipient} onChange={(e) => setRecipient(e.target.value)} required />
         </label>
         <button type="submit" className="btn btn-primary">
-          Approve sharing
+          Confirm sharing for this introduction
         </button>
       </form>
       {message && <div className="notice">{message}</div>}

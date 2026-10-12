@@ -1,9 +1,5 @@
-﻿import { AdminFunctionPage } from "@/components/AdminFunctionPage";
+﻿import { redirect } from "next/navigation";
 
-
-export default function AdminPage() {
-  return (
-    <AdminFunctionPage eyebrow="Payments" title="Payment recording" lead="Record supplier payments with evidence.">
-    </AdminFunctionPage>
-  );
+export default function AdminPaymentsRedirect() {
+  redirect("/admin/invoices");
 }

@@ -27,20 +27,30 @@ export async function PUT(request: Request) {
 
   if (!provider) return NextResponse.json({ error: "Provider not found." }, { status: 404 });
 
-  const profileData = fixtureProfile({
-    id: provider.id,
-    code: provider.code,
-    name: body.legalName ?? provider.legalName,
-    country: body.country ?? provider.country,
-    approved: provider.approved,
-    agreement: provider.agreementSigned,
-    active: provider.active,
-  });
-
-  const mergedProfile = {
-    ...profileData,
-    core: { ...((profileData.core as object) ?? {}), legalName: body.legalName },
-  };
+  const mergedProfile = body.profileData
+    ? {
+        ...body.profileData,
+        core: {
+          ...(body.profileData.core ?? {}),
+          legalName: body.legalName ?? body.profileData.core?.legalName ?? provider.legalName,
+          country: body.country ?? body.profileData.core?.country ?? provider.country,
+        },
+      }
+    : (() => {
+        const profileData = fixtureProfile({
+          id: provider.id,
+          code: provider.code,
+          name: body.legalName ?? provider.legalName,
+          country: body.country ?? provider.country,
+          approved: provider.approved,
+          agreement: provider.agreementSigned,
+          active: provider.active,
+        });
+        return {
+          ...profileData,
+          core: { ...((profileData.core as object) ?? {}), legalName: body.legalName },
+        };
+      })();
 
   const [latest] = await db
     .select()

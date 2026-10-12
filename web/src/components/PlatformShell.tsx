@@ -13,7 +13,15 @@ type Props = {
   children: React.ReactNode;
 };
 
+const WORKSPACE_LABELS: Record<string, string> = {
+  applicant: "Applicant workspace",
+  provider: "Provider workspace",
+  introducer: "Introducer workspace",
+  admin: "SOPHIMA Admin",
+};
+
 export function PlatformShell({ role, persona, nav, children }: Props) {
+  const workspaceLabel = WORKSPACE_LABELS[role] ?? `${role} workspace`;
   const pathname = usePathname();
   const groups = [...new Set(nav.map((n) => n.group).filter(Boolean))];
 
@@ -41,9 +49,7 @@ export function PlatformShell({ role, persona, nav, children }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] max-w-[1440px] mx-auto">
         <aside className="p-6 md:sticky md:top-0">
           <div className="mb-5 text-xs text-[var(--muted)]">
-            <b className="block text-base text-[var(--ink)] mb-1 capitalize">
-              {role.replace("_", " ")} workspace
-            </b>
+            <b className="block text-base text-[var(--ink)] mb-1">{workspaceLabel}</b>
             {persona}
           </div>
           <nav className="flex md:grid flex-wrap md:flex-col gap-2" aria-label="Platform navigation">

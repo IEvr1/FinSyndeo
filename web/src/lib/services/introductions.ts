@@ -4,7 +4,9 @@ import { evaluateReleaseGate, evaluateCheckoutGate } from "@/lib/release-gate";
 import { runScreeningForSubjects, type ScreeningSubject } from "@/lib/screening";
 import { buildClientProfileHtml, buildInternalDdReportHtml } from "@/lib/documents/profiles";
 import { createPaymentCheckout, gateEmail, sendEmail } from "@/lib/integrations";
-import { renderEmailHtml } from "@/lib/email/templates";
+import { renderEmailHtml, renderSubject } from "@/lib/email/templates";
+import { applicantEmailVars } from "@/lib/email/vars";
+import { enqueueEmail } from "@/lib/services/outbox";
 import { consumesOneEntitlement } from "@/lib/accounting";
 import { createHash } from "crypto";
 
@@ -153,6 +155,27 @@ export async function approveSharing(params: {
     .set({ status: "sharing_authorised", updatedAt: new Date() })
     .where(eq(schema.applications.id, app.id));
 
+  const contact = typed.context as { contact?: { email?: string; name?: string } } | undefined;
+  const email = contact?.contact?.email;
+  if (email) {
+    const vars = {
+      ...applicantEmailVars({
+        firstName: contact?.contact?.name?.split(" ")[0],
+        caseReference: app.id,
+        service: app.route,
+      }),
+      "institution legal name": params.institutionLegalName,
+    };
+    await enqueueEmail({
+      templateId: "E08",
+      businessEvent: "sharing.approved",
+      idempotencyKey: `E08:${approval.id}`,
+      to: [email],
+      vars,
+      revisionId: revision.id,
+    });
+  }
+
   return approval;
 }
 
@@ -220,12 +243,18 @@ export async function releaseIntroduction(introductionId: string, actorUserId: s
 
   const emailGate = gateEmail();
   if (emailGate.ready && approval) {
+    const vars = {
+      ...applicantEmailVars({
+        caseReference: app!.id,
+        service: app!.route,
+      }),
+      "institution name": approval.institutionLegalName,
+      "banker name and institution": `${approval.recipientName ?? approval.recipientEmail} · ${approval.institutionLegalName}`,
+    };
     await sendEmail({
       to: [approval.recipientEmail],
-      subject: "FinSyndeo introduction",
-      html: renderEmailHtml("E10", "<p>Your introduction has been released.</p>", {
-        case: app!.id,
-      }),
+      subject: renderSubject("E10", vars),
+      html: renderEmailHtml("E10", vars),
       idempotencyKey: `release-${intro.id}`,
     });
   }

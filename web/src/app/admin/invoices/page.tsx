@@ -3,7 +3,7 @@
 
 export default function AdminPage() {
   return (
-    <AdminFunctionPage eyebrow="Invoices" title="Invoice review" lead="Introducer invoice approval.">
+    <AdminFunctionPage eyebrow="Invoices & payments" title="Invoices & payments" lead="Introducer invoice review, payment recording and reconciliation.">
     </AdminFunctionPage>
   );
 }

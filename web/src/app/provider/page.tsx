@@ -10,15 +10,29 @@ export default function ProviderDashboard() {
         <section className="tile">
           <h2>Your profile</h2>
           <p>Services, industries, countries, authorisations and internal documents.</p>
-          <Link href="/provider/profile" className="btn btn-primary">Open</Link>
+          <Link href="/provider/profile" className="btn btn-primary">
+            Open
+          </Link>
+        </section>
+        <section className="tile">
+          <h2>Reporting preferences</h2>
+          <p>Automatic reporting periods and ad hoc reports.</p>
+          <Link href="/provider/preferences" className="btn btn-primary">
+            Open
+          </Link>
         </section>
         <section className="tile">
           <h2>Case reports</h2>
           <p>Only your authorised provider relationships.</p>
-          <Link href="/provider/reports" className="btn btn-primary">Open</Link>
+          <Link href="/provider/reports" className="btn btn-primary">
+            Open
+          </Link>
         </section>
       </div>
-      <p className="notice">Updated criteria require SOPHIMA review before publication.</p>
+      <p className="notice">
+        Updated criteria require SOPHIMA review before publication. The last approved version remains active during
+        review.
+      </p>
     </>
   );
 }

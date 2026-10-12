@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #181818;
-  --muted: #655b53;
-  --brand: #826a50;
-  --line: #ded4c8;
-  --paper: #faf8f5;
+  /* Aligned with FinSyndeo Guidelines/delivery.css */
+  --ink: #17202a;
+  --muted: #536071;
+  --brand: #917957;
+  --line: #ddd5ca;
+  --paper: #faf8f4;
   --panel: #fff;
-  --soft: #f0ebe4;
-  --focus: #375f86;
+  --soft: #f0ece5;
+  --focus: #386886;
   --doc-cream: #faf8f4;
   --doc-gold: #917957;
   --doc-navy: #233b50;
+  --red: #82432f;
 }
 
 * {
@@ -22,7 +24,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font: 16px/1.5 Arial, sans-serif;
+  font: 16px/1.65 "Segoe UI", Arial, sans-serif;
 }
 
 a {
@@ -156,9 +158,58 @@ th {
 
 .eyebrow {
   color: var(--brand);
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
+}
+
+.journey-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  list-style: none;
+  padding: 16px 20px;
+  margin: 0 0 24px;
+  background: #f7f4ee;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.journey-steps li {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.journey-steps li[aria-current="step"] {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.step-nav-btn {
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.step-nav-btn.step-nav-current {
+  background: var(--soft);
+  border-color: var(--brand);
+  font-weight: 650;
+}
+
+.checkline input {
+  margin-top: 4px;
 }
 
 .lead {
@@ -168,7 +219,7 @@ th {
 }
 
 h1 {
-  font-size: 30px;
+  font-size: 36px;
   line-height: 1.2;
   margin: 10px 0 12px;
 }
@@ -188,6 +239,54 @@ h2 {
 
 .doc-article h1 {
   font-size: 36px;
+}
+
+.draft-state {
+  font-size: 12px;
+  margin: 12px 0;
+}
+
+button.mini {
+  min-height: 44px;
+  font-size: 12px;
+  padding: 6px 12px;
+  margin-left: 8px;
+}
+
+.cards {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.card.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.compare-cards {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.listitem.panel {
+  margin-bottom: 16px;
+}
+
+.summaryline {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.disclaimer {
+  max-width: 780px;
 }
 
 @media (max-width: 800px) {

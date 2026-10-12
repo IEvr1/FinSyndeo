@@ -3,7 +3,7 @@
 
 export default function AdminPage() {
   return (
-    <AdminFunctionPage eyebrow="Notifications" title="Notification queue" lead="Outbox worker and email dispatch status.">
+    <AdminFunctionPage eyebrow="Notification history" title="Notification history" lead="Generate candidates and recheck consent, eligibility and screening before delivery.">
     </AdminFunctionPage>
   );
 }

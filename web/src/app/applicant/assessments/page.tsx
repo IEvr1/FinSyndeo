@@ -17,7 +17,7 @@ export default function AssessmentsPage() {
   return (
     <>
       <p className="eyebrow">My assessments</p>
-      <h1>Your assessments</h1>
+      <h1>My assessments</h1>
       <p className="lead">Resume, edit or review saved applications.</p>
       <div className="table-wrap">
         <table>
@@ -41,7 +41,12 @@ export default function AssessmentsPage() {
                   <td>{a.route}</td>
                   <td>{a.status}</td>
                   <td>
-                    <Link href={`/applicant/results?id=${a.id}`}>Results</Link>
+                    <Link href={`/applicant/results?id=${a.id}`} className="btn text-sm py-1 px-2">
+                      View results
+                    </Link>
+                    <Link href={`/applicant/questionnaire`} className="btn text-sm py-1 px-2 ml-2">
+                      Edit assessment
+                    </Link>
                   </td>
                 </tr>
               ))

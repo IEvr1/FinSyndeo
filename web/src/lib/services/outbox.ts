@@ -1,7 +1,12 @@
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { gateEmail, sendEmail } from "@/lib/integrations";
-import { renderEmailHtml, type TemplateId } from "@/lib/email/templates";
+import {
+  EMAIL_TEMPLATE_VERSION,
+  renderEmailHtml,
+  renderSubject,
+  type TemplateId,
+} from "@/lib/email/templates";
 
 export async function enqueueEmail(params: {
   templateId: TemplateId;
@@ -9,9 +14,9 @@ export async function enqueueEmail(params: {
   idempotencyKey: string;
   to: string[];
   cc?: string[];
-  body: string;
   vars: Record<string, string>;
   revisionId?: string;
+  bodyOverride?: string;
 }) {
   const db = getDb();
   const gate = gateEmail();
@@ -24,7 +29,11 @@ export async function enqueueEmail(params: {
       revisionId: params.revisionId,
       toAddresses: params.to,
       ccAddresses: params.cc ?? [],
-      payload: { body: params.body, vars: params.vars },
+      payload: {
+        vars: params.vars,
+        templateVersion: EMAIL_TEMPLATE_VERSION,
+        bodyOverride: params.bodyOverride,
+      },
       state: gate.ready ? "pending" : "blocked",
       lastError: gate.reason,
     })
@@ -47,12 +56,17 @@ export async function processOutboxBatch(limit = 20) {
 
   let processed = 0;
   for (const event of pending) {
-    const payload = event.payload as { body: string; vars: Record<string, string> };
-    const html = renderEmailHtml(event.templateId as TemplateId, payload.body, payload.vars);
+    const payload = event.payload as {
+      vars: Record<string, string>;
+      bodyOverride?: string;
+    };
+    const templateId = event.templateId as TemplateId;
+    const html = renderEmailHtml(templateId, payload.vars, payload.bodyOverride);
+    const subject = renderSubject(templateId, payload.vars);
     const result = await sendEmail({
       to: event.toAddresses as string[],
       cc: (event.ccAddresses as string[]) ?? undefined,
-      subject: `FinSyndeo — ${event.businessEvent}`,
+      subject,
       html,
       idempotencyKey: event.idempotencyKey,
     });
