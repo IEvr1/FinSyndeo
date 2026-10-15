@@ -1,0 +1,360 @@
+Update the landing page to match the proposed screenshot below, including its layout, spacing, logo placement and registration buttons. These revised written instructions supersede conflicting instructions in earlier deliveries; unaffected requirements remain unchanged. Screenshots retain their original URLs and show the reference interface. The written instructions below each screenshot define the changes to implement.
+Apply #826A50 as the single brown brand colour throughout the entire application, across all pages, roles, shared components,desktop/mobile layouts and logo.
+Strengthen password validation across registration, password changes and password resets.
+Require a minimum of 8 characters, including at least one lowercase letter, one uppercase letter, one number and one symbol. Enforce the same rules on the server and interface; permit password managers, pasting and show/hide. Block compromised passwords and rate-limit login attempts. Do not truncate passwords. Review MFA as part of the security design; the eight-character business requirement alone is not a security certification.
+Update “Primary institution type” to a single-select dropdown in this order:
+Commercial bank
+Private bank
+Commercial & private bank
+Electronic money institution (EMI)
+Payment institution
+Payment service provider (PSP)
+Money services business (MSB)
+Crypto-asset service provider (CASP)
+Investment firm
+Lender / financing provider
+Other — please specify
+Show only authorisation jurisdictions permitted under the platform’s approved country-exclusion policy. Maintain this policy using official UN, US OFAC, UK and EU sanctions sources. Distinguish jurisdiction restrictions from sanctions against individual persons or entities.
+Below the Authorisation jurisdiction dropdown, display: “If your authorisation jurisdiction is not listed, we currently do not accept authorisations issued in that jurisdiction.”
+Require selection of an available authorisation jurisdiction before continuing. Reject excluded jurisdictions server-side, including API submissions. Record the exclusion-policy version and recheck saved profiles when it changes.
+Do not allow free-text authorisation jurisdictions or add a “Country not listed?” lookup. Supply an approved, versioned country/territory exclusion register and source-update rules before production activation; do not infer country-wide exclusions from a sanctioned person’s nationality.
+Rename “Official register entry” to “Link to your regulatory register entry (optional)”. Show only for already authorised/registered institutions, including an applicable notified register entry where relevant; hide for pending applications. Add no helper text or URL validation, as requested. Remove its mandatory-field validation; SOPHIMA still verifies authorisation before publication.
+Populate the Country / jurisdiction of incorporation dropdown with jurisdictions permitted under the platform’s approved country-exclusion policy. Maintain this policy using official UN, US OFAC, UK and EU sanctions sources, distinguishing jurisdiction restrictions from sanctions against individual persons or entities.
+Below the dropdown, display:“If your country is not listed, we currently do not accept providers incorporated in that jurisdiction.”
+Require selection of an available incorporation country before continuing. Reject excluded countries server-side, including API submissions; do not allow free-text alternatives or a “Country not listed?” lookup. Record the policy version and recheck saved profiles when exclusions change. Supply the approved country/territory exclusion register before production activation; the prototype’s Russia/Iran examples are not the complete production list.
+Replace the crowded inline checkboxes with five clearly separated selectable cards in a two-column desktop layout and a single-column mobile layout.
+Keep the existing product labels and allow multiple selections. Give each card generous padding, consistent spacing and a checkbox clearly separated from its label. Make the entire card clickable.
+Use a white background, subtle borders and #826A50 for selected borders and checkboxes. Add more space above the cards and before the Back/Continue buttons. Preserve all existing selection behaviour and dynamic questions.
+Display a separate section underneath for every selected product family, in the same order as the selection list. Do not show only the most recently selected family.
+Use fixed, non-editable headings: Business bank accounts, Merchant accounts, Private banking, Financing and Correspondent / payment accounts.
+Remove “Product / account name” entirely for every product family, including its validation requirement. Do not add “Your product name” or “Financing product name”. Use fixed category headings and stable internal product/profile IDs; preserve distinct existing product variants and their rules.
+Give each section its own facilities, currencies and relevant dynamic questions. Preserve entered answers when switching steps or selecting additional families. Unselected families must be excluded from active matching without silently deleting their saved draft answers.
+Separate sections with clear spacing and borders. On mobile, stack them vertically. Use #826A50 for brand accents.
+Rename the section “Banking facilities currently available” and provide clearly spaced checkboxes only for:
+Fixed-term deposits
+Automated payroll / bulk salary payments
+Overdraft facilities
+Foreign exchange (FX)
+Corporate cards
+Trade finance
+Letters of credit (LCs)
+Letters of guarantee (LGs)
+Lombard loans / lending against pledged financial assets
+Other — please specify
+Remove operational activities, diversification and backup/reserve purposes from this list. Retain Trade finance, LCs, LGs and Lombard loans under banking. Where the same facility also appears under Financing or Private banking, use consistent capability identifiers and product-specific terms without duplicating matching results. LC/LG support does not automatically imply support for every trade-finance facility.
+Remove the capability-confirmation checkbox and its validation requirement.
+State: “Select only facilities currently available.” In an unfinished draft, unselected facilities remain unconfirmed. In a completed, provider-confirmed published capability list, unselected facilities mean not offered. Use final submission confirmation instead of the removed per-product checkbox. Add an optional “Planned facilities” section with repeatable entries: facility, expected launch month/year and optional comment. Record relative estimates such as “in six months” as a target month/year anchored to the date supplied.
+Planned facilities must not count as available in matching. Send automated provider reminders near the target date and flag overdue entries for SOPHIMA. Never activate a facility merely because its date has passed: the provider must confirm launch and current terms, followed by SOPHIMA publication approval.
+Use two columns on desktop, one on mobile, generous spacing and #826A50 for brand accents. Update applicant/provider matching mappings consistently.
+Rename the section “Merchant payment services currently available”.
+Display clearly spaced checkboxes:
+Online card payments
+In-person card payments / POS
+Alternative payment methods (APMs)
+Local payment methods in local currencies
+Place crypto options in an expandable “Crypto-related payment services” section:
+Fiat-to-crypto purchases (on-ramp)
+Crypto-to-fiat sales (off-ramp)
+Crypto payments accepted from customers
+Settlement to merchants in crypto
+Rename “Available currencies” to “Payment acceptance currencies”, keeping EUR, GBP, USD, CHF and Other.
+Remove the capability-confirmation checkbox and its validation requirement. State: “Select only services currently available.” Unselected services remain unconfirmed in an unfinished draft; in a completed, provider-confirmed published capability list they mean not offered.
+Add optional “Planned services” entries with service, expected launch month/year and comment. Send automated reminders and flag overdue entries. Dates passing must not activate a service: the provider confirms availability and terms and SOPHIMA approves publication before it counts in matching.
+Use two columns on desktop, one on mobile, generous spacing and #826A50 for brand accents. Keep applicant and provider matching criteria aligned.
+Under Product terms retain supported card schemes, named wallets/APMs, gateway/integration support, country/currency/payment-method combinations for local payments, settlement currencies and timing, reserves and relevant processing limits. Do not show banking transfer-network or dedicated-IBAN questions for merchant-only products. Migrate the former combined online/POS option to both new selections. Do not infer all local currencies are supported in every country.
+Rename the section “Private banking services currently available”.
+Use clearly spaced checkboxes only for:
+Personal banking accounts
+Corporate banking accounts
+Savings / fixed-term deposits
+Foreign exchange (FX)
+Investment advisory services
+Discretionary portfolio management
+Securities custody
+Securities trading / execution
+Lombard loans / lending against pledged financial assets
+Payment cards
+Other — please specify
+Only when “Corporate banking accounts” is selected, show a required single-selection field for corporate-account availability:
+Offered without requiring a UBO personal account
+Offered only if a UBO first opens a personal account
+Case-by-case
+For conditional availability, allow a short comment specifying which UBOs must first open personal accounts and any additional requirements. Match against the corporate applicant’s willingness and ability to satisfy that prerequisite. Do not present conditional support as unconditional availability, or automatically create/submit a personal application. Hide the conditional fields when corporate banking accounts are unchecked.
+Keep EUR, GBP, USD, CHF and Other under “Available account currencies”.
+Under Product terms preserve the minimum opening deposit, minimum ongoing balance and minimum investment amount where applicable, separately for personal and corporate accounts. Keep these thresholds aligned with applicant matching; blank thresholds remain unspecified, not zero.
+Remove “Safekeeping and diversification”. Separate custody from trading.
+Remove the capability-confirmation checkbox and its validation requirement. State: “Select only services currently available.” Unselected services remain unconfirmed in an unfinished draft; in a completed, provider-confirmed published capability list they mean not offered.
+Add optional “Planned services” entries with service, expected launch month/year and comment. Send automated reminders and flag overdue entries. Passing a date does not activate a service: provider confirmation and SOPHIMA publication approval are required before matching treats it as available.
+Use two columns on desktop, one on mobile, generous spacing and #826A50 for brand accents. Keep applicant questions and provider matching criteria aligned.
+Remove “Product / account name” entirely, including validation; do not replace it with “Financing product name”. Use the fixed heading “Financing” and rename the services section “Financing facilities currently available”.
+Provide clearly spaced checkboxes:
+Business loans / working-capital finance
+Revolving credit / overdraft facilities
+Equipment finance / leasing
+Property finance
+Project finance
+Trade finance
+Letters of credit (LCs)
+Letters of guarantee (LGs)
+Invoice finance / factoring
+Acquisition finance
+Refinancing
+Lombard loans / lending against pledged financial assets
+Other — please specify
+Rename “Available currencies” to “Financing currencies”.
+Use consistent capability identifiers for facilities also listed under banking or private banking; do not duplicate provider records or matching results.
+Remove the capability-confirmation checkbox and its validation requirement. State: “Select only facilities currently available.” Unselected facilities remain unconfirmed in an unfinished draft; in a completed, provider-confirmed published capability list they mean not offered.
+Add optional “Planned facilities” entries with facility, expected launch month/year and comment. Send automated reminders and flag overdue entries. Exclude planned facilities from matching until provider confirmation of availability/terms and SOPHIMA publication approval; passing the target date never activates them.
+Use two columns on desktop, one on mobile, generous spacing and #826A50 for brand accents.
+Align the financing applicant questionnaire and matching criteria with these selections
+Remove “Product / account name”. Use the fixed heading “Correspondent / payment accounts”.
+Under “Services currently available to financial institutions”, provide spaced checkboxes:
+Operational accounts — institution’s own funds
+Accounts for receiving and sending payments on behalf of clients
+Accounts for holding client funds
+Accounts specifically for safeguarding the applicant’s client funds
+Dedicated virtual IBANs for underlying clients
+API connectivity
+Bulk payments
+Collections and payouts
+Cross-border payments
+Foreign exchange (FX)
+Do not include the broad “Clearing / settlement” checkbox. Record supported payment networks and relevant access conditions separately under Product terms.
+Other — please specify
+When any client-payment or client-funds option is selected, ask:
+Whose payments or funds can the applicant handle? Select all that apply:
+Its own individual and business clients
+Other financial institutions and their underlying clients — downstream / nested arrangements
+Other — please specify
+If downstream / nested arrangements are selected, require permitted financial-institution types and approval conditions.
+When holding or safeguarding client funds is selected, ask:
+How can those funds be held? Select all that apply:
+Separate accounts for each underlying client
+Sub-accounts within a main account
+Pooled / omnibus account with individual balances recorded internally
+Other — please specify
+For safeguarding accounts, request the applicable conditions. Do not infer safeguarding from a client-funds account, sub-account or virtual IBAN. Processing an applicant’s own clients’ payments must not automatically be classified as nesting.
+Show a text field whenever “Other” is selected.
+Remove the capability-confirmation checkbox and its validation requirement. State: “Select only services currently available.” Unselected services remain unconfirmed in unfinished drafts; in a completed, provider-confirmed published capability list they mean not offered. Add optional planned services with expected launch month/year and comments, automated reminders and overdue flags. Exclude them from matching until provider confirmation and SOPHIMA publication approval; never activate them automatically on the target date.
+Match client-payment permission, fund-holding permission, safeguarding, account structure and downstream access separately. Mirror these distinctions in the applicant questionnaire.
+Use two columns on desktop, one on mobile, generous spacing and #826A50 for brand accents.
+Screenshot — Registration
+Remove the “Account type” dropdown. Carry forward the selection from the landing page.
+Use the heading “Register as an Applicant” or “Register as a Provider”. Keep the button labelled “Register”.
+Ensure the registered role and destination dashboard match the selection. Validate the role server-side; public registration must allow only Applicant or Provider.
+If no valid role is supplied, return the user to the landing page. Add a discreet “Change registration type” link back to that page.
+Screenshot — Country acceptance
+Remove the prototype notice and replace the country-by-country editor as the default view with “Upload your country acceptance policy”.
+Allow multiple PDF, Word, Excel and CSV files containing accepted countries, prohibited countries or customer acceptance policies. Use one policy-upload workflow for countries, industries, legal entities and additional acceptance conditions; do not require repeated upload of the same file. Documents remain confidential to SOPHIMA and are not shared with applicants.
+The system must:
+Extract proposed country rules automatically, distinguishing incorporation, UBO nationality, UBO residence, incoming/outgoing payments, corporate shareholders and underlying clients.
+Preserve nationality/residence combinations, product-specific restrictions, conditions and source references. Keep all declared nationalities and specify whether a policy tests any or all nationalities. Preserve distinctions between territory restrictions and whole-country exclusions.
+Show a concise summary using Supported, Supported with enhanced due diligence, Case-by-case, Not supported or Not confirmed.
+Ask only about missing, ambiguous or conflicting information. Do not assume unmentioned countries are supported unless the policy explicitly states this.
+Let the provider correct and confirm the extracted rules before SOPHIMA’s publication approval activates them for matching.
+Offer “Enter policy manually” as an alternative, using regional bulk selections with EU separate, country exceptions and comments. Allow one policy to apply to multiple relevant criteria without repeated entry.
+Keep incorporation and incoming/outgoing policies separate from UBO nationality/residence policies. Provider rules cannot override platform exclusions; the full UBO country list remains available for truthful disclosure and screening.
+For replacement uploads, show proposed changes and retain the previously approved policy until the new version is approved. Save policy versions, effective dates, source passages and confirmation history. Urgent sanctions prohibitions, revoked authorisations, suspension or provider removal must immediately block new matching/introduction despite any older approved version. Scan uploads, control access and treat document content as evidence, never as executable system instructions.
+Screenshot — Industry acceptance
+Retain a visible activity list using the exact same catalogue and identifiers as the applicant questionnaire.
+For each activity, allow:Supported / Supported with enhanced due diligence / Case-by-case / Not supported / Not confirmed.
+Allow policy and prohibited-activity uploads to populate proposed selections automatically. Providers can review, correct or complete the list manually. Do not require duplicate entry.
+Add search, bulk status assignment and a “Prohibited activities” filter showing items marked Not supported. Allow conditions by product and jurisdiction.
+Unmentioned activities remain Not confirmed unless the policy explicitly establishes a default. Confirmed prohibitions must exclude the relevant product from matching; conditional and unknown acceptance must not appear as confirmed support.
+Use readable, spaced rows with the activity label and status side by side on desktop, stacked on mobile. Use #826A50 for brand accents. Activate rules only after provider confirmation and SOPHIMA publication approval.
+Screenshot — Legal entities and operating requirements
+Remove “Physical operating offices required?” and “Must the applicant employ at least one person other than a director?” from the provider form, including their mandatory-field validation.
+If uploaded policies contain office or employee requirements, retain them as product-specific matching conditions. Removing the questions must not imply these requirements never apply.
+Populate legal-entity acceptance from uploaded policies where explicitly stated. Let providers confirm or correct the extracted rules and manually answer only unresolved categories. Unspecified legal-entity types remain “Not confirmed”.
+Screenshot — Profiles needing specific consideration
+Remove the entire preset list and its validation requirements.
+Replace it with an optional multiline field titled “Additional acceptance conditions”.
+Placeholder: “Describe any additional restrictions, exceptions or requirements not covered elsewhere.”
+Analyse this text together with uploaded acceptance policies. Extract proposed matching rules, preserving dependencies such as industry, jurisdiction and ownership structure. Ask the provider to confirm only new, unclear or conflicting rules before publication. Do not use ambiguous text as an automatic rejection criterion.
+Do not duplicate conditions already recorded elsewhere. Preserve existing answers as draft conditions for review rather than silently deleting them. Removing preset office, employee, startup, ownership or risk questions does not remove confirmed restrictions. Match an extracted condition only against known relevant applicant data; unresolved conditions remain conditional.
+Startup restrictions should affect matching only where the provider explicitly defines a requirement and the applicant’s operating or transaction history is known. Determine PEP status through the separate screening process.
+Keep any existing industry-specific EU payment-agent question in its relevant section. Use generous spacing and #826A50 for brand accents.
+Screenshots — Redesign the entire Product terms page
+Rename the page “Product terms & onboarding”. Display every selected product family in a separate, clearly labelled section. Show only relevant questions and preserve existing answers when reorganising fields.
+1. Relationship-manager languages
+Display “Relationship-manager languages available” as clearly spaced, multi-select checkboxes:English, Greek, French, German, Spanish, Italian, Hebrew, Arabic and Other.
+Selecting Other opens a text field. These are service languages; the application interface remains English.
+2. Onboarding methods
+Display “Available onboarding methods” as clearly spaced, multi-select cards:
+Remote — online identity verification
+Remote — recorded video identification
+Remote — live video interview
+In-person onboarding
+Other — please specify
+Remove the overlapping “Fully remote” option. The three remote options mean no in-person attendance is required. Preserve older selections without guessing their specific method. Where a provider requires several identification steps, record the complete route (for example online verification AND live interview); do not treat mandatory combined steps as interchangeable alternatives.
+Remove “Must legalised documents be presented physically?” entirely, including its validation and matching rules. Do not ask applicants about physical delivery of legalised documents.
+3. Monthly transaction limits — optional
+For products involving incoming/outgoing transfers, display:
+Incoming funds — one desktop row
+Maximum incoming amount per month (optional)
+Maximum incoming transactions per month (optional)
+Outgoing funds — one desktop row
+Maximum outgoing amount per month (optional)
+Maximum outgoing transactions per month (optional)
+Add “Currency for the monthly amount limits”, required only when a monetary limit is entered. Transaction counts must be non-negative whole numbers; monetary amounts must be non-negative.
+Stack fields vertically on mobile. Keep merchant-processing limits and financing terms within their relevant product sections rather than applying bank-transfer limits indiscriminately.
+Remove “Are all applicable numeric product restrictions recorded?” and its validation requirement. Blank limits mean “Not specified”, never zero or unlimited. Unknown limits must not be presented as confirmed capacity.
+4. Applicant questions and matching
+Ensure every applicable applicant journey includes:
+“Which onboarding methods are acceptable to you?” Use the same options as the provider, allow multiple selections and include an exclusive “No preference” option.
+“Preferred relationship-manager language” — optional. If selected, ask whether it is Required or Preferred.
+Do not add questions about legalised-document delivery.
+Use shared identifiers between applicant and provider fields:
+Any overlap between acceptable and available onboarding methods satisfies that criterion.
+No preference imposes no onboarding-method restriction.
+A required language mismatch affects eligibility; a preferred language affects ranking.
+Compare applicant monthly incoming/outgoing amounts and transaction counts with the corresponding stated provider limits.
+Compare monetary limits in the same currency, using a documented conversion rate and date where conversion is necessary.
+Missing provider information remains unconfirmed; do not silently treat it as support or automatic rejection. An “Other” onboarding method requires a confirmed structured mapping before satisfying a hard requirement. Missing currency-conversion data must leave a limit comparison unconfirmed. For correspondent/payment accounts, retain separate operational-funds and client-funds limits where supplied.
+5. Appearance and behaviour
+Use white cards, clear section headings, generous padding and consistent vertical spacing. Arrange checkbox options and paired fields in two columns on desktop and one column on mobile.
+Use only #826A50 for brown brand accents. Keep labels readable, controls keyboard-accessible and selected states clear.
+Retain existing relevant product-specific terms. Remove obsolete validation dependencies, update storage and matching mappings, and verify that answers remain saved when navigating between steps.
+Screenshot 1 — Working with SOPHIMA: Contact & referrals
+Keep these fields:
+Contact name — required
+Contact email — required
+Role / relationship to institution — required
+Contact phone — optional
+Replace “Preferred referral channel / onboarding link” with “Accepted referral methods”. Allow multiple selections:
+Email introduction
+Referral link — applicant completes the application
+Introducer portal — SOPHIMA submits on the applicant’s behalf
+Provider pre-approval form
+Other — please specify
+Always require “Email address for SOPHIMA introductions and referral notifications”, regardless of the selected methods. Include “Use contact email”.
+Show additional fields only when relevant:
+Referral link
+Referral URL
+SOPHIMA referral code, if applicable
+How the link identifies SOPHIMA as the introducer
+Introducer portal
+Portal URL
+Optional submission instructions
+Clearly flag this method as requiring SOPHIMA-assisted submission. Do not request passwords or login credentials.
+Provider pre-approval form
+Optional upload of the provider’s blank template
+“Can SOPHIMA’s standard client profile be accepted instead?” — Yes / No / Case-by-case
+A “Preview SOPHIMA’s client profile” button beside the question
+The preview must open a readable sample with a Word download option, using clearly labelled fictional data. Show the template relevant to the selected product; allow switching between templates when multiple products are selected. For Case-by-case, allow optional acceptance conditions.
+Other
+Required short description of the referral process
+Referral attribution
+Ask “How is SOPHIMA’s referral attribution confirmed?” Allow multiple selections:
+Written acknowledgement by email
+Unique SOPHIMA referral link / code
+Recorded through the introducer portal
+Other — please specify
+For every introduction, retain the application reference, institution, referral method, submission date and attribution evidence/status. Sending a notification must not automatically mark attribution as confirmed.
+Keep SOPHIMA-to-provider referral links distinct from introducer-to-FinSyndeo links. Retain Introducer → Client → Application → Provider relationship → Commission entries and attribution evidence according to the referral agreement. Email retries or repeated notifications must not create duplicate referrals.
+Workflow
+Email introduction: send the approved introduction and permitted client profile to the designated referral email.
+Referral link: send the link to the applicant and notify the banker of the referral, subject to the applicant’s sharing approval.
+Introducer portal: flag SOPHIMA-assisted submission; do not present it as automated.
+Pre-approval form: use SOPHIMA’s profile where accepted. Otherwise flag the provider’s form for assisted completion and review before submission.
+If several methods are accepted, allow SOPHIMA to choose the appropriate method for each introduction.
+Remove API-related questions. Keep provider contacts, referral instructions and uploaded forms confidential to SOPHIMA. Do not send applicant information without the required sharing approval.
+Use a two-column desktop layout, one column on mobile, generous spacing and #826A50 for brown brand accents. Preserve entered answers when navigating between steps.
+Screenshot 2 — Benefits & confirmations
+Keep “Distinctive benefits / strengths” as an optional multiline field. These benefits may appear in anonymised provider comparisons. Do not expose institution names, contact details or identifying links.
+Remove “What is in your pipeline?” from this page. Move existing product-specific answers to the relevant product’s planned-services section for provider review; preserve institution-wide country/currency or integration plans separately when they do not map to a single product. Do not discard saved information.
+Place each required confirmation on a separate, clearly spaced line:
+“I am authorised to provide this information on behalf of the institution.”
+“I confirm that the information is accurate and will update the institution’s profile when material changes occur.”
+Require both confirmations before proceeding to Review.
+Keep Back and Continue clearly separated from the confirmations. Preserve answers when navigating. Use generous spacing, a mobile-friendly layout and #826A50 for brown brand accents.
+“Export answers” button
+Rename it “Download my responses”.
+Download a readable PDF of the provider’s current saved questionnaire responses, with institution name, download date and status: Draft, Submitted for review, Changes required, Published or Paused. Identify the revision being downloaded; do not label an unapproved edit as the published version.
+Include only the provider’s own responses. Exclude internal SOPHIMA notes, applicant data and other institutions’ information.
+Downloading must not submit, approve or publish the profile. Save current edits before generating the PDF.
+Place the button discreetly at the top right on desktop and allow it to wrap neatly on mobile. Use #826A50 for brown brand accents.
+Screenshot — Missing information after submitting for review
+Replace the long error list with a short message:“Your profile is not ready to submit. Please complete the highlighted sections below.”
+Group outstanding items by questionnaire step, with a “Complete this section” link that opens the relevant step and focuses the first missing field. Highlight errors beside the fields themselves and preserve all entered answers.
+Update validation to match the revised questionnaire:
+Remove requirements for physical offices, employees, physical delivery of legalised documents, product names and numeric-limit completeness.
+Keep the regulatory register link optional and show it only for already authorised/registered institutions.
+Do not require manual country or industry selections where confirmed policy-upload rules already supply the information.
+Require only applicable fields for each selected product and regulatory status.
+Referral-agreement verification controls publication; absence of an agreement must not prevent submission for SOPHIMA review.
+Allow users to save an incomplete draft. Block submission only for genuinely required missing information, not optional unanswered fields or checks reserved for SOPHIMA.
+Keep section-level error counts updated as issues are resolved. Use accessible error messages, clear spacing and a mobile-friendly layout. Preserve functional error colours; use #826A50 for navigation and brand accents.
+Screenshot — Review provider profile
+Rename the heading “Review your provider profile”.
+Display separate summary cards for:
+Institution details
+Authorisations
+Each selected product and its current facilities
+Acceptance policies and conditions
+Product terms and onboarding
+Contacts, referral methods and benefits
+Uploaded documents — filenames and review status only
+Add an Edit button to each card, returning to the relevant step without losing answers.
+Highlight missing required information with “Required — please complete” and an Edit link. Display unanswered optional fields as “Not specified” or omit them. Do not interpret missing information as confirmed support.
+Replace the main button with “Submit profile to SOPHIMA”. Validate required fields before submission and explain any outstanding items clearly.
+After submission, show:“Your profile has been submitted to SOPHIMA for review. It will become available for matching only after approval and verification of a current referral agreement.”
+For routine updates to an existing published profile, keep the previously approved version active until changes are approved and show the submitted revision’s status. Urgent sanctions prohibitions, revoked authorisation, suspension or an authorised removal request must immediately block new matching/introduction without waiting for normal approval.
+Keep “Download my responses” available. Remove prototype/debug wording from the production interface.
+Use readable labels and values, generous spacing, mobile-friendly cards and #826A50 for brown brand accents.
+Screenshot — Reporting preferences
+Keep the heading “Your reporting preferences”.
+Replace the description with:“Choose when to receive a summary of cases introduced to your institution.”
+Display the reporting periods enabled by SOPHIMA as clearly spaced checkboxes, such as Monthly and Quarterly. Allow multiple selections.
+Add:
+“Receive scheduled reports” — on/off.
+“Request a report now” — opens an ad hoc date-range selection.
+Report recipient email — default to the authorised institution contact; changes must be verified before delivery.
+Show the next scheduled delivery date after saving. Rename the button “Save preferences” and display confirmation. Record schedule timezone, report period and recipients; prevent duplicate deliveries and retain delivery/retry history without sending unauthorised information.
+If SOPHIMA has not enabled any reporting periods, show “Scheduled reporting is not currently available” rather than an empty form and Save button.
+Reports must contain only cases referred to the signed-in institution and information authorised for that institution. Exclude internal SOPHIMA notes, introducer commissions and other providers’ cases.
+Use a white card, generous spacing, mobile-friendly controls and #826A50 for brown brand accents.
+Screenshot — Case reports
+Rename the heading “Your referred cases & reports”.
+Replace the description with:“View cases introduced to your institution and download available reports.”
+Provide two tabs:
+Referred cases: case reference, applicant name where authorised, requested service, introduction date, current status and “View client profile”.
+Reports: reporting period, generation date and Download PDF / Excel.
+Add search and filters for date, service and status. Include “Request a report” using the reporting options enabled by SOPHIMA.
+When empty, display:“No cases have been introduced to your institution yet.”Do not show blank tables or inactive download buttons.
+Client profiles become accessible only after the required applicant sharing approval and SOPHIMA release approval. Enforce institution-specific access on the server, including downloads and direct links.
+Exclude confidential internal due-diligence reports, SOPHIMA notes, introducer commissions and other institutions’ cases. Log profile access and downloads.
+Replace prototype wording with the short note:“Only information authorised for your institution is available here.”
+Use readable tables on desktop, stacked cards on mobile, generous spacing and #826A50 for brown brand accents.
+Screenshot — Account & data
+Rename the page “Sign-in & data settings”. Replace the placeholder with three sections:
+1. Your sign-in
+Registered name and email
+Change password
+Change email, subject to verification
+Sign out of all sessions
+2. Institution profile
+“Edit institution profile” — links to the questionnaire
+“Download my responses” — downloads the provider’s saved responses
+“Request removal from provider listings” — authorised institution representatives only
+A removal request must immediately pause new matching and introductions for that institution. Notify SOPHIMA to resolve existing referrals and contractual matters. Do not delete records automatically.
+3. Privacy & personal data
+Link to the Privacy Notice and retention policy
+“Request a copy of my personal data”
+“Request correction or deletion of my personal data”
+“Close my sign-in”
+Explain:“Closing your sign-in does not automatically remove the institution’s listing. Some records may be retained where legally required or necessary for contractual matters or legal claims.”
+Require re-authentication and explicit confirmation for sensitive actions. Prevent the last authorised institution administrator from abandoning the institution without an access-transfer or closure route. Provide a workable closure process; this safeguard must not indefinitely obstruct an individual’s applicable data rights.
+Display request status and confirmation. Enforce permissions server-side, exclude other users’ and applicants’ data from provider downloads, and retain an appropriate audit trail. Apply the approved purpose-specific retention schedule and applicable data-rights response deadlines; do not promise blanket instant deletion or treat company records as identical to an individual’s personal data.
+Use separate white cards, generous spacing, mobile-friendly controls and #826A50 for brand accents. Remove prototype wording from production.
+Screenshot — Provider dashboard
+Rename the heading “Your provider dashboard” and use the subtitle:“Manage your institution’s profile, referrals and reporting.”
+Show the institution’s name and profile status: Draft / Submitted for review / Changes required / Published / Paused. For a draft, show “Continue your profile”; for changes required, show “View requested changes”.
+Use four consistently sized cards:
+Institution profile — “Update services, acceptance policies and product terms.” Button: “Manage profile”.
+Reporting preferences — “Choose scheduled reports and request an ad hoc report.” Button: “Manage preferences”.
+Referred cases & reports — “View your institution’s referred cases and available reports.” Button: “View cases & reports”.
+Sign-in & data settings — “Manage sign-in details and data requests.” Button: “Open settings”.
+Match the sidebar labels to these destinations. Replace “Institution Apply” with “Institution profile”, “Case reports” with “Referred cases & reports”, and “Account & data” with “Sign-in & data settings”.
+Show pending-review information only when relevant:“Your changes are awaiting SOPHIMA review. Your previously approved profile remains active.”For a first submission, explain that matching begins only after approval and verification of a current referral agreement.
+Use two card columns on desktop and one on mobile. Keep descriptions short, align buttons consistently and use only #826A50 for brown brand elements. Display actual saved status; do not use fictional counts or assume publication.
