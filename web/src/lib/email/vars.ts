@@ -15,7 +15,7 @@ export function applicantEmailVars(params: {
     "secure case link": link,
     "results link": link,
     "case link": link,
-    "secure confirmation link": `${baseUrl()}/applicant/sharing?applicationId=${encodeURIComponent(caseRef)}`,
+    "secure confirmation link": `${baseUrl()}/applicant/results?view=introductions&id=${encodeURIComponent(caseRef)}`,
     "case task link": `${baseUrl()}/applicant/questionnaire`,
   };
 }

@@ -7,8 +7,7 @@ export const APPLICANT_NAV: NavItem[] = [
   { href: "/applicant/assessments", label: "My assessments" },
   { href: "/applicant/results", label: "Results & introductions" },
   { href: "/applicant/alerts", label: "Match notifications" },
-  { href: "/applicant/sharing", label: "Sharing permissions" },
-  { href: "/applicant/privacy", label: "Account & data" },
+  { href: "/applicant/privacy", label: "Sign-in & data settings" },
 ];
 
 export const PROVIDER_NAV: NavItem[] = [

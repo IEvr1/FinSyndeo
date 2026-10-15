@@ -1,7 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ApplicantRouteSelector } from "@/components/questionnaire/ApplicantRouteSelector";
+import { PrivateBankingSteps } from "@/components/questionnaire/private-banking/PrivateBankingSteps";
+import { PrivateBankingSummary } from "@/components/questionnaire/private-banking/PrivateBankingSummary";
 import { CountryMultiSelect } from "@/components/questionnaire/CountryMultiSelect";
 import { OnboardingPreferencesPanel } from "@/components/questionnaire/OnboardingPreferencesPanel";
 import { FieldRenderer, RadioGroupField } from "@/components/questionnaire/FieldRenderer";
@@ -13,7 +17,8 @@ import {
   isPersonalFlow,
   resolveDictionaryRoute,
 } from "@/lib/questionnaire/flows";
-import { stepEyebrow, stepTitle } from "@/lib/questionnaire/step-meta";
+import { stepEyebrow, stepTitleForRoute } from "@/lib/questionnaire/step-meta";
+import { validatePrivateBankingStep } from "@/lib/questionnaire/validate-private-banking";
 import type { CountryPickers, FieldValue, QuestionnaireValues } from "@/lib/questionnaire/types";
 import { isFieldVisible, isRenderableVisible } from "@/lib/questionnaire/visibility";
 
@@ -47,8 +52,12 @@ function saveDraft(draft: Draft) {
 
 function contactValid(values: QuestionnaireValues, personal: boolean): string | null {
   if (personal) {
-    if (!String(values["pb-name"] ?? "").trim() || !String(values["pb-email"] ?? "").trim()) {
-      return "Please enter your name and a valid email address.";
+    if (
+      !String(values["pb-name"] ?? "").trim() ||
+      !String(values["pb-surname"] ?? "").trim() ||
+      !String(values["pb-email"] ?? "").trim()
+    ) {
+      return "Please enter your name, surname and a valid email address.";
     }
     return null;
   }
@@ -71,13 +80,30 @@ function validateStepFields(
   pickers: CountryPickers
 ): string | null {
   if (step === 0) {
-    if (values.consent !== true) return "Please accept the Privacy Notice to continue.";
+    if (values.consent !== true) return "Please confirm you have read the Privacy Notice to continue.";
     return null;
+  }
+  if (step === 1) {
+    if (!String(values.applicant ?? "").trim()) {
+      return "Please select who this assessment is for.";
+    }
+    if (String(values.applicant) === "company" && !String(values["account-type"] ?? "").trim()) {
+      return "Please select the service you need.";
+    }
+    if (isPersonalFlow(values)) {
+      return null;
+    }
+  }
+  if (isPersonalFlow(values) && step >= 20 && step <= 23) {
+    return validatePrivateBankingStep(step, values, pickers);
   }
   if (step === 1 && !isPersonalFlow(values)) {
     if (!String(values["registration"] ?? "").trim() && values["registration-notissued"] !== true) {
       return "Please enter the company registration number or mark the identifier exception.";
     }
+  }
+  if (isPersonalFlow(values) && (step === 1 || (step >= 20 && step <= 23))) {
+    return null;
   }
   const fields = getFieldsForStep(route, step).filter((f) => isFieldVisible(f, values));
   for (const field of fields) {
@@ -99,7 +125,9 @@ function validateStepFields(
   return null;
 }
 
-export function QuestionnaireWizard() {
+type WizardProps = { showPageHeader?: boolean };
+
+export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
   const router = useRouter();
   const [page, setPage] = useState(0);
   const [values, setValues] = useState<QuestionnaireValues>({});
@@ -150,7 +178,7 @@ export function QuestionnaireWizard() {
       }
       if ((target === 40 || target === 5) && page !== 40) {
         const contact = contactValid(values, personal);
-        if (contact && (page === 5 || page === 24 || target === 40)) {
+        if (contact && (page === 5 || target === 40)) {
           setError(contact);
           return;
         }
@@ -209,7 +237,13 @@ export function QuestionnaireWizard() {
   const renderables = page === 40 ? [] : buildRenderableStep(route, page);
 
   function clearDraft() {
-    if (!confirm("Clear this draft and start again?")) return;
+    if (
+      !confirm(
+        "Discard this draft? Answers for this assessment will be deleted from this device. Other assessments and your profile are not affected."
+      )
+    ) {
+      return;
+    }
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {
@@ -221,13 +255,23 @@ export function QuestionnaireWizard() {
     setError("");
   }
 
+  const applicantKind = String(values.applicant ?? "");
+  const title = stepTitleForRoute(page, personal, applicantKind);
+
   return (
     <div>
-      {hydrated && (
-        <div className="draft-state mb-4">
-          Draft saved in this browser.{" "}
-          <button type="button" className="mini" onClick={clearDraft}>
-            Clear saved draft
+      {showPageHeader && page === 0 && (
+        <>
+          <p className="eyebrow">Questionnaire</p>
+          <h1>Start your assessment</h1>
+          <p className="lead">Tell us what you need. You can save your progress and return later.</p>
+        </>
+      )}
+      {hydrated && page > 0 && (
+        <div className="draft-state mb-4 text-sm text-[var(--muted)]">
+          Progress saved.{" "}
+          <button type="button" className="link-btn" onClick={clearDraft}>
+            Discard this draft
           </button>
         </div>
       )}
@@ -245,41 +289,59 @@ export function QuestionnaireWizard() {
                 aria-current={n === page ? "step" : undefined}
                 onClick={() => go(n)}
               >
-                {i + 1} · {stepTitle(n)}
+                {i + 1} · {stepTitleForRoute(n, personal, applicantKind)}
               </button>
             ))}
         </nav>
       )}
 
-      <p className="eyebrow">{stepEyebrow(page, personal)}</p>
-      <h1>{stepTitle(page)}</h1>
+      {page !== 0 && (
+        <>
+          <p className="eyebrow">{stepEyebrow(page, personal)}</p>
+          <h1>{title}</h1>
+        </>
+      )}
 
       {page === 0 && (
         <section className="panel">
-          <p className="lead">Start your assessment. Your answers are saved in this browser as a draft.</p>
-          <FieldRenderer
-            field={{
-              key: "id:consent",
-              id: "consent",
-              step: "0",
-              label:
-                "I agree to the processing of my information for assessment, matching and due diligence under the Privacy Notice.",
-              type: "checkbox",
-              required: true,
-            }}
-            values={values}
-            onChange={setValue}
-          />
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values.consent === true}
+              onChange={(e) => setValue("consent", e.target.checked)}
+            />
+            <span>
+              I have read the{" "}
+              <Link href="/applicant/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Notice
+              </Link>
+              .
+            </span>
+          </label>
         </section>
       )}
 
-      {(page === 5 || page === 24) && (
-        <OnboardingPreferencesPanel values={values} onChange={setValue} />
-      )}
+      {page === 5 && <OnboardingPreferencesPanel values={values} onChange={setValue} />}
 
       {page !== 0 && page !== 40 && (
         <section className="panel">
-          {renderables
+          {page === 1 && (
+            <ApplicantRouteSelector
+              values={values}
+              onChange={(key, value) => setValue(key, value)}
+            />
+          )}
+          {personal && [20, 21, 22, 23].includes(page) && (
+            <PrivateBankingSteps
+              step={page}
+              values={values}
+              pickers={pickers}
+              onChange={setValue}
+              onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
+            />
+          )}
+          {!(personal && [1, 20, 21, 22, 23].includes(page)) &&
+            renderables
             .filter((item) => isRenderableVisible(item, values))
             .map((item) => {
               if (item.kind === "country-picker") {
@@ -321,7 +383,22 @@ export function QuestionnaireWizard() {
         </section>
       )}
 
-      {page === 40 && (
+      {page === 40 && personal && (
+        <>
+          <p className="lead">Review your answers before finding potential matches.</p>
+          <PrivateBankingSummary values={values} pickers={pickers} onEdit={(s) => go(s)} />
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values["pb-accuracy"] === true}
+              onChange={(e) => setValue("pb-accuracy", e.target.checked)}
+            />
+            <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
+          </label>
+        </>
+      )}
+
+      {page === 40 && !personal && (
         <section className="panel">
           <p className="lead">Review your answers. Edit any section or confirm to find matching institutions.</p>
           {flow
@@ -329,9 +406,9 @@ export function QuestionnaireWizard() {
             .map((n) => (
               <section key={n} className="panel">
                 <header className="flex justify-between items-center gap-3">
-                  <h2>{stepTitle(n)}</h2>
+                  <h2>{stepTitleForRoute(n, personal, applicantKind)}</h2>
                   <button type="button" className="mini" onClick={() => go(n)}>
-                    Edit {stepTitle(n)}
+                    Edit {stepTitleForRoute(n, personal, applicantKind)}
                   </button>
                 </header>
                 <dl className="summary">
@@ -362,26 +439,14 @@ export function QuestionnaireWizard() {
                 </dl>
               </section>
             ))}
-          {!personal && (
-            <label className="checkline">
-              <input
-                type="checkbox"
-                checked={values.accuracy === true}
-                onChange={(e) => setValue("accuracy", e.target.checked)}
-              />
-              <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
-            </label>
-          )}
-          {personal && (
-            <label className="checkline">
-              <input
-                type="checkbox"
-                checked={values["pb-accuracy"] === true}
-                onChange={(e) => setValue("pb-accuracy", e.target.checked)}
-              />
-              <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
-            </label>
-          )}
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values.accuracy === true}
+              onChange={(e) => setValue("accuracy", e.target.checked)}
+            />
+            <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
+          </label>
         </section>
       )}
 
@@ -403,7 +468,7 @@ export function QuestionnaireWizard() {
         )}
         {page === 40 && (
           <button type="button" className="btn btn-primary" onClick={submit}>
-            Confirm & find matching institutions
+            Confirm & find potential matches
           </button>
         )}
       </div>

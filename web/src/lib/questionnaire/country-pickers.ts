@@ -28,7 +28,7 @@ export function countryPickerLabel(id: string): string {
   const labels: Record<string, string> = {
     "pb-nationality": "Nationality / citizenship",
     "pb-tax": "Country(ies) of tax residence",
-    "pb-origin-country": "Country(ies) where funds originate",
+    "pb-origin-country": "Country / countries from which the initial transfer will be sent",
     "pb-incoming": "Countries you expect to receive funds from",
     "pb-outgoing": "Countries you expect to send funds to",
     "fi-client-countries": "Underlying client countries",

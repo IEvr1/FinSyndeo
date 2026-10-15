@@ -19,7 +19,7 @@ export function isPersonalFlow(values: QuestionnaireValues): boolean {
 export function getQuestionnaireFlow(values: QuestionnaireValues): number[] {
   const personal = isPersonalFlow(values);
   if (personal) {
-    return [0, 1, 20, 21, 22, 23, 24, 40];
+    return [0, 1, 20, 21, 22, 23, 40];
   }
 
   const applicant = String(values.applicant ?? "company");

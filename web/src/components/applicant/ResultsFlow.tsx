@@ -33,8 +33,18 @@ const SORTS = [
 ] as const;
 
 function scoreLabel(score: number | null): string {
-  if (score == null) return "Not scored";
+  if (score == null) return "Match score unavailable";
   return `${score}%`;
+}
+
+function providerOptionLabel(index: number): string {
+  return `Provider option ${index + 1}`;
+}
+
+function statusHeadline(status: string): string {
+  if (status === "eligible") return "Meets stated requirements";
+  if (status === "conditional") return "Subject to confirmation";
+  return status;
 }
 
 function fmtFee(requiresPayment: boolean): string {
@@ -93,7 +103,7 @@ export function ResultsFlow() {
 
   const sortedRows = useMemo(() => {
     if (!matches?.matches) return [];
-    const rows = [...matches.matches];
+    const rows = matches.matches.filter((m) => m.status === "eligible" || m.status === "conditional");
     if (sort === "match") {
       rows.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
     } else if (sort === "country") {
@@ -108,7 +118,10 @@ export function ResultsFlow() {
 
   useEffect(() => {
     if (selectedMatch?.institutionLegalName) setInstitution(selectedMatch.institutionLegalName);
-  }, [selectedMatch?.institutionLegalName]);
+    if (selectedMatch && !recipient) {
+      setRecipient("introductions@provider.review.example");
+    }
+  }, [selectedMatch?.institutionLegalName, selectedMatch, recipient]);
 
   const existingForProvider = (pid: string) =>
     requests.find((r) => r.providerId === pid && !["cancelled", "rejected"].includes(r.status));
@@ -197,23 +210,24 @@ export function ResultsFlow() {
         <p className="eyebrow">Results & introductions</p>
         {subnav}
         <h1>My introductions</h1>
-        <p className="lead">Requested introductions reserve a credit. Pre-approval consumes it.</p>
-        <ClientJourneySteps current={4} />
+        <p className="lead">Track your introduction requests and the institution&apos;s response.</p>
         {!requests.length ? (
           <section className="panel">
-            <p className="empty">No introductions requested yet. Choose a potential provider to begin.</p>
+            <p className="empty">No introductions requested yet. Review your potential providers to get started.</p>
             <Link href={id ? `/applicant/results?id=${id}` : "/applicant/assessments"} className="btn btn-primary mt-3">
-              Back to results
+              View potential providers
             </Link>
           </section>
         ) : (
           requests.map((r) => (
             <section key={r.id} className="listitem panel">
-              <h3>
-                {r.providerId.slice(0, 8)} · {r.id.slice(0, 8)}
-              </h3>
-              <p>{r.status}</p>
-              <p className="hint">Payment: {r.paymentStatus}</p>
+              <h3>Introduction {r.id.slice(0, 8).toUpperCase()}</h3>
+              <p>{r.status === "requested" ? "Introduction requested — release checks pending" : r.status}</p>
+              <p className="hint">
+                {r.paymentStatus === "not_required" || r.paymentStatus === "included"
+                  ? "Included in your introduction allowance"
+                  : `Payment: ${r.paymentStatus}`}
+              </p>
               <div className="row-actions flex gap-2 mt-2">
                 {r.status === "awaiting_payment" && (
                   <Link href={`/applicant/results?id=${id}&view=checkout&intro=${r.id}`} className="btn btn-primary">
@@ -296,7 +310,7 @@ export function ResultsFlow() {
           <div className="cards compare-cards">
             {rows.map((r) => (
               <section key={r.provider} className="card panel">
-                <h2>{r.providerCode ?? r.provider}</h2>
+                <h2>{providerOptionLabel(rows.indexOf(r))}</h2>
                 <dl>
                   <dt>FinSyndeo match</dt>
                   <dd>{scoreLabel(r.score)}</dd>
@@ -330,20 +344,19 @@ export function ResultsFlow() {
       <>
         <p className="eyebrow">Results & introductions</p>
         {subnav}
-        <h1>
-          {selectedMatch.providerCode} · {id ? "Assessment" : "Service"}
-        </h1>
-        <p className="lead">Review the introduction terms before requesting this solution.</p>
+        <h1>Review this provider option</h1>
+        <p className="lead">Review eligibility, sharing and introduction terms before requesting an introduction.</p>
         <ClientJourneySteps current={2} />
         {error && <div className="notice notice-error">{error}</div>}
         {message && <div className="notice">{message}</div>}
         <section className="panel">
           <div className="grid">
             <div>
-              <h2>FinSyndeo match {scoreLabel(selectedMatch.score)}</h2>
+              <h2>{statusHeadline(selectedMatch.status)}</h2>
               <p>
-                {selectedMatch.providerCountry} · Coverage: {selectedMatch.coverage}%
+                {selectedMatch.providerCountry} · Match: {scoreLabel(selectedMatch.score)}
               </p>
+              {selectedMatch.reason && <p className="hint">{selectedMatch.reason}</p>}
             </div>
             <div>
               <h2>Introduction fee</h2>
@@ -359,43 +372,42 @@ export function ResultsFlow() {
 
         {!existing && (
           <section className="panel">
-            <h2>Approve an institution introduction</h2>
+            <h2>Sharing approval</h2>
             <p className="lead">
-              Check the named institution and recipient before sharing the current client profile.
+              <button type="button" className="link-btn">Preview the information to be shared</button> — client profile
+              and listed attachments (sample).
             </p>
             <form onSubmit={approveSharing}>
               <label className="field">
                 <span>Institution legal name</span>
-                <input value={institution} onChange={(e) => setInstitution(e.target.value)} required />
+                <input value={institution} readOnly required />
               </label>
               <label className="field">
                 <span>Verified institution recipient</span>
-                <input type="email" value={recipient} onChange={(e) => setRecipient(e.target.value)} required />
+                <input type="email" value={recipient} readOnly required />
               </label>
-              <button type="submit" className="btn btn-primary" disabled={sharingDone}>
-                Confirm sharing for this introduction
+              <label className="checkline">
+                <input type="checkbox" checked={introTerms} onChange={(e) => setIntroTerms(e.target.checked)} />
+                <span>
+                  I authorise SOPHIMA to share the client profile and listed attachments shown above with{" "}
+                  {institution || "the institution"} through the displayed authorised recipient, for this introduction.
+                </span>
+              </label>
+              <button type="submit" className="btn btn-primary" disabled={sharingDone || !introTerms}>
+                Approve sharing & request introduction
               </button>
             </form>
           </section>
         )}
 
-        {!existing && (
+        {!existing && sharingDone && (
           <section className="panel">
-            <label className="checkline">
-              <input type="checkbox" checked={introTerms} onChange={(e) => setIntroTerms(e.target.checked)} />
-              <span>I have reviewed the introduction terms and authorise SOPHIMA to proceed.</span>
-            </label>
             <div className="form-actions flex gap-3 mt-4">
               <Link href={`/applicant/results?id=${id}`} className="btn">
-                Back
+                Back to results
               </Link>
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={!sharingDone}
-                onClick={requestIntro}
-              >
-                {requiresPayment ? "Continue to checkout" : "Request introduction"}
+              <button type="button" className="btn btn-primary" onClick={requestIntro}>
+                {requiresPayment ? "Continue to checkout" : "Complete introduction request"}
               </button>
             </div>
           </section>
@@ -418,16 +430,24 @@ export function ResultsFlow() {
       {subnav}
       <h1>Your potential providers</h1>
       <p className="lead">
-        Compare the matches below, then review a solution to request an introduction. Fit is not a probability of
-        approval.
+        Compare qualifying options, then review a solution. Matching does not guarantee account approval.
       </p>
       <ClientJourneySteps current={1} />
       {error && <div className="notice notice-error">{error}</div>}
       {!id && <div className="notice">Select an assessment from My assessments to view matches.</div>}
-      {matches && (
+      {matches && sortedRows.length === 0 && (
+        <section className="panel">
+          <p>We could not identify a suitable provider based on your current requirements.</p>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <Link href="/applicant/questionnaire" className="btn btn-primary">Review my requirements</Link>
+            <Link href="/applicant/alerts" className="btn">Notify me of future matches</Link>
+          </div>
+        </section>
+      )}
+      {matches && sortedRows.length > 0 && (
         <>
           <div className="toolbar flex flex-wrap gap-4 items-center mb-4">
-            <span>{sortedRows.length} potential providers</span>
+            <span>{sortedRows.length} qualifying provider options</span>
             <label className="field mb-0">
               <span className="sr-only">Sort by</span>
               <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
@@ -443,14 +463,15 @@ export function ResultsFlow() {
             {matches.eligibleCount} eligible · {matches.conditionalCount} conditional
           </div>
           <div className="cards">
-            {sortedRows.map((m) => {
+            {sortedRows.map((m, idx) => {
               const existing = existingForProvider(m.provider);
+              const label = providerOptionLabel(idx);
               return (
                 <article key={m.provider} className="card panel">
                   <div className="card-head flex justify-between">
                     <div>
-                      <h2>{m.providerCode ?? m.provider}</h2>
-                      <span className="pill">{m.status}</span>
+                      <h2>{label}</h2>
+                      <span className="pill">{statusHeadline(m.status)}</span>
                     </div>
                     <div className="fit text-right">
                       {scoreLabel(m.score)}
@@ -472,7 +493,7 @@ export function ResultsFlow() {
                       href={`/applicant/results?id=${id}&view=solution&provider=${encodeURIComponent(m.provider)}`}
                       className="btn btn-primary"
                     >
-                      View details & choose
+                      View solution
                     </Link>
                   )}
                   <label className="checkline compare-choice mt-2">

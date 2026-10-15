@@ -20,6 +20,33 @@ function labelIsEuAgentFollowUp(label: string | undefined): boolean {
 
 export function isFieldVisible(field: ApplicantField, values: QuestionnaireValues): boolean {
   const id = field.id;
+  const applicant = String(values.applicant ?? "");
+
+  if (id === "applicant" || id === "account-type") {
+    return false;
+  }
+
+  if (applicant === "individual") {
+    const entityOnly = new Set([
+      "company-name",
+      "incorporation",
+      "registration",
+      "registration-notissued",
+      "registration-exception-reason",
+      "agent",
+      "agent-subsidiary",
+      "entity-type",
+      "entity-type-other",
+      "account-type",
+    ]);
+    if ((id && entityOnly.has(id)) || labelIsEuAgentFollowUp(field.label)) {
+      return false;
+    }
+  }
+
+  if (applicant === "institution" && id === "account-type") {
+    return false;
+  }
 
   if (id === "registration-exception-reason" || id === "registration-notissued") {
     return bool(values["registration-notissued"]);

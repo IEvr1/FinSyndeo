@@ -2,6 +2,17 @@ import { criteria } from "@/lib/matching";
 import { APPLICANT_ONBOARDING_METHODS, onboardingStorageKey } from "@/lib/onboarding-methods";
 import type { CountryPickers, QuestionnaireValues } from "./types";
 import { apiRouteFromValues, isPersonalFlow } from "./flows";
+import {
+  PB_CURRENCIES,
+  PB_FUND_SOURCES,
+  PB_SERVICES,
+  PB_WEALTH_SOURCES,
+  currKey,
+  fundKey,
+  svcKey,
+  svcLevelKey,
+  wealthKey,
+} from "./private-banking-config";
 
 const C = criteria as {
   version: string;
@@ -190,25 +201,53 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
   }
 
   if (route === "individual") {
+    const capabilities = PB_SERVICES
+      .filter((s) => bool(values, svcKey(s.id)))
+      .flatMap((s) => {
+        const capId = C.capability("private", s.matchLabel);
+        if (!capId) return [];
+        const level = v(values, svcLevelKey(s.id)) === "required" ? "essential" : "preferred";
+        return [req(`private.capability.${capId}`, capId, level as "essential" | "preferred")];
+      });
+
+    const currencySelection = PB_CURRENCIES.filter((c) => c !== "Other" && bool(values, currKey(c)));
+    const lang =
+      v(values, "pb-language") === "Other"
+        ? v(values, "pb-language-other")
+        : v(values, "pb-language");
+
     (base.requirements as Record<string, unknown>).private = {
-      capabilities: cap("private", checkboxList(values, "pb-needs")),
+      capabilities,
       otherCapability: v(values, "pb-needs-text"),
-      currencies: curr("private", checkboxList(values, "pb-currencies"), v(values, "pb-currencies-text")),
+      additionalNotes: v(values, "pb-needs-extra"),
+      currencies: curr("private", currencySelection, v(values, "pb-currencies-text")),
       assets: parseAssetRange(v(values, "pb-assets")),
       placement: n(values, "pb-transfer"),
-      investment: n(values, "pb-investment"),
-      language: v(values, "pb-language") ? req("private.language", v(values, "pb-language"), "preferred") : null,
-      wealthSources: checkboxList(values, "pb-wealth").map(C.source),
-      fundSources: checkboxList(values, "pb-funds").map(C.source),
+      placementCurrency: v(values, "pb-placement-currency") || "EUR",
+      language: lang ? req("private.language", lang, v(values, "pb-language-level") === "required" ? "essential" : "preferred") : null,
+      wealthSources: PB_WEALTH_SOURCES.filter((s) => bool(values, wealthKey(s.id))).map((s) => C.source(s.label)),
+      fundSources: PB_FUND_SOURCES.filter((s) => bool(values, fundKey(s.id))).map((s) => C.source(s.label)),
       ownFunds: v(values, "pb-own-funds"),
       fundOrigin: expandPicker(pickers, "pb-origin-country"),
       incoming: expandPicker(pickers, "pb-incoming"),
       outgoing: expandPicker(pickers, "pb-outgoing"),
-      activity: v(values, "pb-activity"),
+      regularTransfers: v(values, "pb-regular-transfers"),
+      transferDirection: v(values, "pb-transfer-direction"),
+      monthlyIncoming: { count: n(values, "pb-in-count"), amount: n(values, "pb-in-amount") },
+      monthlyOutgoing: { count: n(values, "pb-out-count"), amount: n(values, "pb-out-amount") },
+      reportCurrency: v(values, "pb-report-currency"),
       occupation: v(values, "pb-occupation"),
       background: v(values, "pb-career"),
-      fundExplanation: v(values, "pb-funds-story"),
-      evidence: v(values, "pb-evidence"),
+      linkedIn: v(values, "pb-linkedin"),
+      existingRelationship: v(values, "pb-current-bank"),
+      thirdPartyFunding:
+        v(values, "pb-own-funds") === "No"
+          ? {
+              name: v(values, "pb-third-party-name"),
+              relationship: v(values, "pb-third-party-relationship"),
+              reason: v(values, "pb-third-party-reason"),
+            }
+          : null,
     };
   }
 

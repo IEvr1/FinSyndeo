@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import countries from "@/data/countries.json";
 
 type Props = {
@@ -14,11 +14,20 @@ type Props = {
 export function CountryMultiSelect({ id, label, value, onChange, required }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return countries;
-    return countries.filter((c) => c.toLowerCase().includes(q));
+    if (!q) return countries.slice(0, 80);
+    return countries.filter((c) => c.toLowerCase().includes(q)).slice(0, 80);
   }, [search]);
 
   function toggle(country: string) {
@@ -27,7 +36,7 @@ export function CountryMultiSelect({ id, label, value, onChange, required }: Pro
   }
 
   return (
-    <div className="field">
+    <div className="field country-search" ref={rootRef}>
       <span>
         {label}
         {!required && <small> (optional)</small>}
@@ -40,31 +49,38 @@ export function CountryMultiSelect({ id, label, value, onChange, required }: Pro
         ))}
         {!value.length && <span className="hint">No countries selected.</span>}
       </div>
-      <details className="picker" open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
-        <summary>Select countries</summary>
-        <div className="popover">
-          <input
-            id={`${id}-search`}
-            type="search"
-            placeholder="Search countries"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label={`Search countries for ${label}`}
-          />
-          <div className="country-options">
-            {filtered.map((country) => (
-              <label key={country}>
-                <input
-                  type="checkbox"
-                  checked={value.includes(country)}
-                  onChange={() => toggle(country)}
-                />
-                {country}
-              </label>
-            ))}
-          </div>
-        </div>
-      </details>
+      <input
+        id={`${id}-search`}
+        type="search"
+        placeholder="Search and add countries…"
+        value={search}
+        onFocus={() => setOpen(true)}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setOpen(true);
+        }}
+        aria-label={`Search countries for ${label}`}
+        autoComplete="off"
+      />
+      {open && (
+        <ul className="country-dropdown" role="listbox">
+          {filtered.map((country) => (
+            <li key={country}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={value.includes(country)}
+                onClick={() => {
+                  toggle(country);
+                  setSearch("");
+                }}
+              >
+                {value.includes(country) ? "✓ " : ""}{country}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

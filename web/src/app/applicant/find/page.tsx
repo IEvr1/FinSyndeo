@@ -5,20 +5,20 @@ export default function FindProviderPage() {
     <>
       <p className="eyebrow">Find a provider</p>
       <h1>Tell us about your needs</h1>
-      <p className="lead">Choose how you would like to share them.</p>
+      <p className="lead">Complete your assessment yourself or with AI guidance.</p>
       <div className="tiles">
         <section className="tile">
-          <h2>Questionnaire</h2>
-          <p>Bank, merchant, both, financing, private banking or correspondent accounts.</p>
+          <h2>Complete a questionnaire</h2>
+          <p>Answer a short series of questions at your own pace.</p>
           <Link href="/applicant/questionnaire" className="btn btn-primary">
             Start questionnaire
           </Link>
         </section>
         <section className="tile">
-          <h2>Guided intake</h2>
-          <p>Spoken prompts and typed answers. Voice when configured.</p>
+          <h2>AI-guided assessment</h2>
+          <p>Get help one question at a time with typed guidance.</p>
           <Link href="/applicant/guided" className="btn btn-primary">
-            Start conversation
+            Start with AI guidance
           </Link>
         </section>
       </div>

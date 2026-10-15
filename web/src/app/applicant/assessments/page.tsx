@@ -44,7 +44,7 @@ export default function AssessmentsPage() {
                     <Link href={`/applicant/results?id=${a.id}`} className="btn text-sm py-1 px-2">
                       View results
                     </Link>
-                    <Link href={`/applicant/questionnaire`} className="btn text-sm py-1 px-2 ml-2">
+                    <Link href={`/applicant/questionnaire?applicationId=${a.id}`} className="btn text-sm py-1 px-2 ml-2">
                       Edit assessment
                     </Link>
                   </td>
