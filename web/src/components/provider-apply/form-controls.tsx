@@ -41,6 +41,7 @@ export function FieldInput({
   type = "text",
   required,
   hint,
+  placeholder,
   onChange,
 }: {
   label: string;
@@ -48,6 +49,7 @@ export function FieldInput({
   type?: string;
   required?: boolean;
   hint?: string;
+  placeholder?: string;
   onChange: (v: string) => void;
 }) {
   return (
@@ -60,6 +62,7 @@ export function FieldInput({
         type={type}
         value={value}
         required={required}
+        placeholder={placeholder}
         min={type === "number" ? 0 : undefined}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -72,11 +75,13 @@ export function FieldTextarea({
   label,
   value,
   required,
+  placeholder,
   onChange,
 }: {
   label: string;
   value: string;
   required?: boolean;
+  placeholder?: string;
   onChange: (v: string) => void;
 }) {
   return (
@@ -85,7 +90,12 @@ export function FieldTextarea({
         {label}
         {!required && <small> (optional)</small>}
       </span>
-      <textarea value={value} required={required} onChange={(e) => onChange(e.target.value)} />
+      <textarea
+        value={value}
+        required={required}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </label>
   );
 }

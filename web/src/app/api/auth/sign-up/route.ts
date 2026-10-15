@@ -3,9 +3,15 @@ import { cookies } from "next/headers";
 import { neonAuth, authConfigured } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { eq } from "drizzle-orm";
+import { validatePasswordForRegistration } from "@/lib/password-policy";
 
 export async function POST(request: Request) {
   const { email, password, name, role } = await request.json();
+
+  const pwCheck = await validatePasswordForRegistration(password);
+  if (!pwCheck.ok) {
+    return NextResponse.json({ error: pwCheck.message }, { status: 400 });
+  }
 
   if (!["applicant", "provider"].includes(role)) {
     return NextResponse.json(

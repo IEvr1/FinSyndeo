@@ -392,3 +392,50 @@ export const platformSettings = pgTable("platform_settings", {
   value: jsonb("value").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const providerPlannedItems = pgTable(
+  "provider_planned_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => providers.id, { onDelete: "cascade" }),
+    offerFamily: text("offer_family").notNull(),
+    itemName: text("item_name").notNull(),
+    launchTarget: text("launch_target"),
+    comment: text("comment"),
+    status: text("status").notNull().default("planned"),
+    overdueFlaggedAt: timestamp("overdue_flagged_at", { withTimezone: true }),
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("provider_planned_provider_idx").on(t.providerId)]
+);
+
+export const providerReportSnapshots = pgTable(
+  "provider_report_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => providers.id, { onDelete: "cascade" }),
+    periodLabel: text("period_label").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
+    format: text("format").notNull().default("pdf"),
+    storageKey: text("storage_key"),
+  },
+  (t) => [index("provider_report_provider_idx").on(t.providerId)]
+);
+
+export const privacyDataRequests = pgTable("privacy_data_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  providerId: uuid("provider_id").references(() => providers.id),
+  requestType: text("request_type").notNull(),
+  status: text("status").notNull().default("pending"),
+  payload: jsonb("payload"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+});

@@ -35,6 +35,7 @@ export const EU = [
 export const STATUS_OPTIONS: Array<[string, string]> = [
   ["unknown", "Not confirmed"],
   ["yes", "Supported"],
+  ["edd", "Supported with enhanced due diligence"],
   ["review", "Case-by-case"],
   ["no", "Not supported"],
 ];
@@ -47,61 +48,146 @@ export const FAMILIES: Record<string, string> = {
   correspondent: "Correspondent / payment accounts",
 };
 
+export const FAMILY_ORDER = ["bank", "merchant", "private", "finance", "correspondent"] as const;
+
+export const INSTITUTION_TYPES = [
+  "Commercial bank",
+  "Private bank",
+  "Commercial & private bank",
+  "Electronic money institution (EMI)",
+  "Payment institution",
+  "Payment service provider (PSP)",
+  "Money services business (MSB)",
+  "Crypto-asset service provider (CASP)",
+  "Investment firm",
+  "Lender / financing provider",
+  "Other — please specify",
+];
+
+export const MERCHANT_CRYPTO_SERVICES = [
+  "Fiat-to-crypto purchases (on-ramp)",
+  "Crypto-to-fiat sales (off-ramp)",
+  "Crypto payments accepted from customers",
+  "Settlement to merchants in crypto",
+];
+
 export const SERVICES: Record<string, string[]> = {
   bank: [
-    "Operational activities — customer receipts and business payments",
-    "Diversification of assets",
-    "Backup / reserve account",
-    "Escrow",
-    "Trade finance",
-    "Automated payroll",
-    "Corporate cards",
-    "Currency exchange (FX)",
     "Fixed-term deposits",
+    "Automated payroll / bulk salary payments",
+    "Overdraft facilities",
+    "Foreign exchange (FX)",
+    "Corporate cards",
+    "Trade finance",
+    "Letters of credit (LCs)",
+    "Letters of guarantee (LGs)",
+    "Lombard loans / lending against pledged financial assets",
+    "Other — please specify",
   ],
   merchant: [
-    "Online card acquiring",
+    "Online card payments",
     "In-person card payments / POS",
-    "Online and in-person acquiring",
     "Alternative payment methods (APMs)",
-    "Customers buying crypto with fiat (on-ramp)",
-    "Customers selling crypto for fiat (off-ramp)",
-    "Accepting crypto payments",
-    "Crypto settlement",
+    "Local payment methods in local currencies",
+    ...MERCHANT_CRYPTO_SERVICES,
   ],
   private: [
-    "Safekeeping and diversification",
-    "Savings / term deposits",
-    "Investment advice",
-    "Managed investment portfolio",
-    "Securities custody / trading",
-    "Lending against investments",
+    "Personal banking accounts",
+    "Corporate banking accounts",
+    "Savings / fixed-term deposits",
+    "Foreign exchange (FX)",
+    "Investment advisory services",
+    "Discretionary portfolio management",
+    "Securities custody",
+    "Securities trading / execution",
+    "Lombard loans / lending against pledged financial assets",
+    "Payment cards",
+    "Other — please specify",
   ],
   finance: [
-    "Working capital",
-    "Business expansion",
-    "Equipment or asset purchase",
-    "Property acquisition or development",
+    "Business loans / working-capital finance",
+    "Revolving credit / overdraft facilities",
+    "Equipment finance / leasing",
+    "Property finance",
     "Project finance",
-    "Trade or inventory finance",
-    "Refinancing existing borrowing",
-    "Business acquisition",
+    "Trade finance",
+    "Letters of credit (LCs)",
+    "Letters of guarantee (LGs)",
+    "Invoice finance / factoring",
+    "Acquisition finance",
+    "Refinancing",
+    "Lombard loans / lending against pledged financial assets",
+    "Other — please specify",
   ],
   correspondent: [
-    "Operational account — own funds",
-    "Dedicated client-funds account",
-    "Dedicated virtual IBANs for clients",
-    "Pooled / omnibus collection",
+    "Operational accounts — institution's own funds",
+    "Accounts for receiving and sending payments on behalf of clients",
+    "Accounts for holding client funds",
+    "Accounts specifically for safeguarding the applicant's client funds",
+    "Dedicated virtual IBANs for underlying clients",
     "API connectivity",
-    "SEPA / SEPA Instant",
     "Bulk payments",
-    "FX conversion",
-    "Client-funds safeguarding / segregation",
-    "Collection and payout services",
+    "Collections and payouts",
     "Cross-border payments",
-    "Clearing / settlement",
+    "Foreign exchange (FX)",
+    "Other — please specify",
   ],
 };
+
+export const CURRENCY_OPTIONS = ["EUR", "GBP", "USD", "CHF", "Other"];
+
+export function servicesLegend(family: string): string {
+  switch (family) {
+    case "bank":
+      return "Banking facilities currently available";
+    case "merchant":
+      return "Merchant payment services currently available";
+    case "private":
+      return "Private banking services currently available";
+    case "finance":
+      return "Financing facilities currently available";
+    case "correspondent":
+      return "Services currently available to financial institutions";
+    default:
+      return "Services currently available";
+  }
+}
+
+export function currenciesLegend(family: string): string {
+  switch (family) {
+    case "merchant":
+      return "Payment acceptance currencies";
+    case "finance":
+      return "Financing currencies";
+    case "private":
+      return "Available account currencies";
+    default:
+      return "Available currencies";
+  }
+}
+
+export const ONBOARDING_METHODS = [
+  "Remote — online identity verification",
+  "Remote — recorded video identification",
+  "Remote — live video interview",
+  "In-person onboarding",
+  "Other — please specify",
+];
+
+export const REFERRAL_METHODS = [
+  "Email introduction",
+  "Referral link — applicant completes the application",
+  "Introducer portal — SOPHIMA submits on the applicant's behalf",
+  "Provider pre-approval form",
+  "Other — please specify",
+];
+
+export const REFERRAL_ATTRIBUTION = [
+  "Written acknowledgement by email",
+  "Unique SOPHIMA referral link / code",
+  "Recorded through the introducer portal",
+  "Other — please specify",
+];
 
 export const INDUSTRIES = [
   "Agriculture & food production",
@@ -139,27 +225,10 @@ export const ENTITY_TYPES = [
   "Other legal entity",
 ];
 
-export const INSTITUTION_TYPES = [
-  "Bank",
-  "Electronic money institution (EMI)",
-  "Payment institution / PSP",
-  "Money services business (MSB)",
-  "Crypto-asset service provider (CASP)",
-  "Other",
-];
-
-export const RISK_CATEGORIES = [
-  "Startups with no transaction history",
-  "Holding companies / limited operating substance",
-  "PEPs or connected persons",
-  "Complex / multi-layer ownership",
-  "Legal-entity shareholders",
-  "Listed companies",
-  "Groups seeking several accounts",
-  "Non-EU parent with EU subsidiary / payment agent",
-  "Third-party funds",
-  "Crypto-related funds or customers",
-  "Higher-risk country exposure — where legally permitted",
+export const CORPORATE_ACCOUNT_AVAILABILITY = [
+  "Offered without requiring a UBO personal account",
+  "Offered only if a UBO first opens a personal account",
+  "Case-by-case",
 ];
 
 export const STEP_ORDER = [0, 1, 2, 3, 5, 7, 8] as const;
@@ -179,9 +248,9 @@ export const STEP_TITLES = [
   "Authorisation & operating entities",
   "What can you offer?",
   "Which clients can you support?",
-  "Product capabilities & limits",
+  "Product terms & onboarding",
   "Working with SOPHIMA",
-  "Your provider profile",
+  "Review your provider profile",
 ] as const;
 
 export const STEP_LEADS = [
@@ -190,7 +259,7 @@ export const STEP_LEADS = [
   "Enter common details once. Separate products where eligibility or terms differ.",
   "Record your current acceptance policy for this product.",
   "Only the questions relevant to the selected product appear.",
-  "Define the referral process, benefits and future plans.",
+  "Define the referral process, benefits and confirmations.",
   "Confirm or edit your information before SOPHIMA review.",
 ] as const;
 

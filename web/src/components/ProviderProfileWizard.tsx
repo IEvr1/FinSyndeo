@@ -41,6 +41,7 @@ export function ProviderProfileWizard() {
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     setState(loadState());
@@ -68,7 +69,7 @@ export function ProviderProfileWizard() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function saveDraft() {
+  async function submitProfile() {
     const missing = validateAllProviderSteps(state);
     if (missing.length) {
       setErrors(missing);
@@ -83,21 +84,33 @@ export function ProviderProfileWizard() {
         legalName: state.core.legalName,
         country: state.core.country,
         profileData: providerStateToProfileData(state, { id: "local", code: "local" }),
+        wizardState: state,
       }),
     });
     const data = await res.json();
-    setMessage(
-      res.ok
-        ? "Profile prepared for SOPHIMA review. Submitting does not publish — review is required."
-        : data.error
-    );
+    if (res.ok) {
+      setSubmitted(true);
+      setMessage(
+        "Your profile has been submitted to SOPHIMA for review. It will become available for matching only after approval and verification of a current referral agreement."
+      );
+    } else {
+      setMessage(data.error ?? "Submission failed.");
+    }
   }
 
-  function exportAnswers() {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  async function downloadResponses() {
+    const status = submitted ? "Submitted for review" : "Draft";
+    const res = await fetch("/api/providers/profile/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state, status }),
+    });
+    if (!res.ok) return;
+    const html = await res.text();
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "FinSyndeo-provider-profile.json";
+    a.download = `FinSyndeo-provider-responses.html`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
@@ -105,12 +118,12 @@ export function ProviderProfileWizard() {
   return (
     <div>
       <div className="toolbar flex justify-between items-center mb-4">
-        <span id="saved">Provider profile · interactive draft</span>
-        <button id="export" type="button" className="btn" onClick={exportAnswers}>
-          Export answers
+        <span id="saved">Institution profile · {submitted ? "Submitted for review" : "Draft"}</span>
+        <button id="export" type="button" className="btn" onClick={downloadResponses}>
+          Download my responses
         </button>
       </div>
-      <nav className="step-nav" aria-label="Institution Apply steps">
+      <nav className="step-nav" aria-label="Institution profile steps">
         {STEP_LABELS.map((label, i) => (
           <button
             key={label}
@@ -124,14 +137,14 @@ export function ProviderProfileWizard() {
         ))}
       </nav>
       <p className="eyebrow">
-        Institution Apply · Step {navIndex + 1} of {STEP_LABELS.length}
+        Institution profile · Step {navIndex + 1} of {STEP_LABELS.length}
       </p>
       <h1>{STEP_TITLES[navIndex] ?? STEP_TITLES[0]}</h1>
       <p className="lead">{STEP_LEADS[navIndex] ?? STEP_LEADS[0]}</p>
 
       {errors.length > 0 && (
-        <div className="notice notice-error">
-          <strong>Please complete the following:</strong>
+        <div className="notice notice-error" role="alert">
+          <strong>Your profile is not ready to submit. Please complete the highlighted sections below.</strong>
           <ul>
             {errors.map((e) => (
               <li key={e}>{e}</li>
@@ -140,30 +153,28 @@ export function ProviderProfileWizard() {
         </div>
       )}
 
-      <ProviderApplyContent state={state} setState={setState} />
+      <ProviderApplyContent state={state} setState={setState} onGoToStep={(s) => go(s, false)} />
 
-      <div className="flex gap-3 mt-4 actions">
-        <button type="button" className="btn" disabled={state.step === 0} onClick={() => go(STEP_ORDER[navIndex - 1] ?? 0, false)}>
+      <div className="flex gap-3 actions">
+        <button
+          type="button"
+          className="btn"
+          disabled={state.step === 0}
+          onClick={() => go(STEP_ORDER[navIndex - 1] ?? 0, false)}
+        >
           Back
         </button>
         {!isLast ? (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => go(STEP_ORDER[navIndex + 1] ?? 8)}
-          >
+          <button type="button" className="btn btn-primary" onClick={() => go(STEP_ORDER[navIndex + 1] ?? 8)}>
             Continue
           </button>
         ) : (
-          <button type="button" className="btn btn-primary" onClick={saveDraft}>
-            Prepare profile for review
+          <button type="button" className="btn btn-primary" onClick={submitProfile}>
+            Submit profile to SOPHIMA
           </button>
         )}
       </div>
       {message && <div className="notice">{message}</div>}
-      <p className="preview hint">
-        Design preview. Export creates a local file; preparing for review saves a server draft and does not publish.
-      </p>
     </div>
   );
 }

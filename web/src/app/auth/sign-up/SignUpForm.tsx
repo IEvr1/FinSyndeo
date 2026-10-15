@@ -1,23 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { validatePasswordForRegistration } from "@/lib/password-policy";
 
 export default function SignUpForm() {
   const params = useSearchParams();
+  const router = useRouter();
+  const roleParam = params.get("role");
+  const role: "applicant" | "provider" | null =
+    roleParam === "provider" ? "provider" : roleParam === "applicant" ? "applicant" : null;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"applicant" | "provider">(
-    params.get("role") === "provider" ? "provider" : "applicant"
-  );
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!role) router.replace("/");
+  }, [role, router]);
+
+  if (!role) {
+    return null;
+  }
+
+  const heading = role === "provider" ? "Register as a Provider" : "Register as an Applicant";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const pw = await validatePasswordForRegistration(password);
+    if (!pw.ok) {
+      setError(pw.message);
+      return;
+    }
     const res = await fetch("/api/auth/sign-up", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -39,27 +58,45 @@ export default function SignUpForm() {
         </Link>
       </header>
       <main className="max-w-md mx-auto px-6 py-12 w-full">
-        <h1>Create account</h1>
+        <h1>{heading}</h1>
+        <p className="text-sm text-[var(--muted)] mb-4">
+          <Link href="/">Change registration type</Link>
+        </p>
         <form onSubmit={handleSubmit} className="panel">
           {error && <div className="notice notice-error">{error}</div>}
           <label className="field">
-            <span>Account type</span>
-            <select value={role} onChange={(e) => setRole(e.target.value as "applicant" | "provider")}>
-              <option value="applicant">Applicant</option>
-              <option value="provider">Provider institution</option>
-            </select>
-          </label>
-          <label className="field">
             <span>Name</span>
-            <input type="text" required value={name} onChange={(e) => setName(e.target.value)} />
+            <input type="text" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
           </label>
           <label className="field">
             <span>Email</span>
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </label>
           <label className="field">
             <span>Password</span>
-            <input type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <div className="flex gap-2 items-center">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button type="button" className="btn mini" onClick={() => setShowPassword((v) => !v)}>
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+            <small>
+              At least 8 characters with uppercase, lowercase, a number and a symbol. Password managers and pasting are
+              allowed.
+            </small>
           </label>
           <button type="submit" className="btn btn-primary w-full">
             Register

@@ -43,7 +43,7 @@ export function toggleProductFamily(state: ProviderDraftState, family: string, e
     const id = `offer-${Date.now()}`;
     const offers = [
       ...state.offers,
-      { id, family, data: { name: FAMILIES[family] }, geo: {} },
+      { id, family, data: {}, geo: {} },
     ];
     return { ...state, offers, current: id };
   }

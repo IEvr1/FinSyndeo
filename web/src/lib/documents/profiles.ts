@@ -32,7 +32,7 @@ export function buildClientProfileHtml(input: ClientProfileInput): string {
 body{font-family:"Segoe UI",Arial,sans-serif;background:#faf8f4;color:#17202a;margin:0;padding:24px}
 article{background:#fff;border:1px solid #ddd5ca;border-radius:14px;padding:34px;max-width:900px;margin:auto}
 h1{font-size:36px;color:#233b50}
-.role-label{color:#917957;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.role-label{color:#826a50;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
 table{width:100%;border-collapse:collapse;margin-top:20px}
 th,td{border-bottom:1px solid #ddd5ca;padding:10px;text-align:left;font-size:14px}
 th{background:#faf8f4}

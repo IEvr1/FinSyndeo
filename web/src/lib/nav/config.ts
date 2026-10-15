@@ -13,10 +13,10 @@ export const APPLICANT_NAV: NavItem[] = [
 
 export const PROVIDER_NAV: NavItem[] = [
   { href: "/provider", label: "Dashboard" },
-  { href: "/provider/profile", label: "Institution Apply" },
+  { href: "/provider/profile", label: "Institution profile" },
   { href: "/provider/preferences", label: "Reporting preferences" },
-  { href: "/provider/reports", label: "Case reports" },
-  { href: "/provider/privacy", label: "Account & data" },
+  { href: "/provider/reports", label: "Referred cases & reports" },
+  { href: "/provider/privacy", label: "Sign-in & data settings" },
 ];
 
 /** Unified platform nav; sign-in replaces prototype “Invited sign-in”. */

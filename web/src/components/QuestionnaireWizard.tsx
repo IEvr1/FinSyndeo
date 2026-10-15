@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CountryMultiSelect } from "@/components/questionnaire/CountryMultiSelect";
+import { OnboardingPreferencesPanel } from "@/components/questionnaire/OnboardingPreferencesPanel";
 import { FieldRenderer, RadioGroupField } from "@/components/questionnaire/FieldRenderer";
 import { buildTypedData } from "@/lib/questionnaire/buildTypedData";
 import { buildRenderableStep, fieldStorageKey, getFieldsForStep } from "@/lib/questionnaire/dictionary";
@@ -270,6 +271,10 @@ export function QuestionnaireWizard() {
             onChange={setValue}
           />
         </section>
+      )}
+
+      {(page === 5 || page === 24) && (
+        <OnboardingPreferencesPanel values={values} onChange={setValue} />
       )}
 
       {page !== 0 && page !== 40 && (

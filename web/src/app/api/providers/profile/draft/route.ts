@@ -4,6 +4,9 @@ import { getCurrentUser } from "@/lib/auth/session-server";
 import { loadAuthContext, requireRole } from "@/lib/permissions";
 import { getDb, schema } from "@/lib/db";
 import { fixtureProfile } from "@/lib/matching";
+import { validateCountrySelection } from "@/lib/country-policy";
+import { sendPlannedReminders, syncProviderPlannedItems } from "@/lib/provider-apply/planned-sync";
+import type { ProviderDraftState } from "@/lib/provider-apply/types";
 
 export async function PUT(request: Request) {
   const user = await getCurrentUser();
@@ -17,6 +20,15 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
+  if (body.country) {
+    const check = validateCountrySelection("group1", [body.country]);
+    if (!check.valid) {
+      return NextResponse.json(
+        { error: check.message ?? "Incorporation country is not accepted under the exclusion policy." },
+        { status: 400 }
+      );
+    }
+  }
   const db = getDb();
 
   const [provider] = await db
@@ -75,6 +87,12 @@ export async function PUT(request: Request) {
         country: body.country ?? provider.country,
       })
       .where(eq(schema.providers.id, provider.id));
+  }
+
+  const wizardState = body.wizardState as ProviderDraftState | undefined;
+  if (wizardState) {
+    await syncProviderPlannedItems(membership.providerId, wizardState);
+    await sendPlannedReminders(membership.providerId);
   }
 
   return NextResponse.json({ saved: true, revisionNumber });

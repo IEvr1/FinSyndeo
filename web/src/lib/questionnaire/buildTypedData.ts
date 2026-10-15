@@ -1,4 +1,5 @@
 import { criteria } from "@/lib/matching";
+import { APPLICANT_ONBOARDING_METHODS, onboardingStorageKey } from "@/lib/onboarding-methods";
 import type { CountryPickers, QuestionnaireValues } from "./types";
 import { apiRouteFromValues, isPersonalFlow } from "./flows";
 
@@ -284,7 +285,31 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
     },
   ];
 
+  attachOnboardingPreferences(base, values);
+
   return base;
+}
+
+function readOnboardingMethods(values: QuestionnaireValues): string[] {
+  if (values["onboarding-no-preference"] === true) return ["No preference"];
+  return APPLICANT_ONBOARDING_METHODS.filter(
+    (m) => m !== "No preference" && values[onboardingStorageKey(m)] === true
+  );
+}
+
+function attachOnboardingPreferences(base: Record<string, unknown>, values: QuestionnaireValues) {
+  const methods = readOnboardingMethods(values);
+  const language = v(values, "relationship-manager-language");
+  const languageLevel = v(values, "relationship-manager-language-level") || "preferred";
+  const block = {
+    onboardingMethods: methods,
+    relationshipLanguage: language || null,
+    relationshipLanguageLevel: language ? languageLevel : null,
+  };
+  const reqs = base.requirements as Record<string, Record<string, unknown>>;
+  for (const key of Object.keys(reqs)) {
+    reqs[key] = { ...reqs[key], ...block };
+  }
 }
 
 function bool(values: QuestionnaireValues, id: string): boolean {

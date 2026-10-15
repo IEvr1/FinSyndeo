@@ -8,15 +8,18 @@ import {
   GeoAxisEditor,
   StatusMatrix,
 } from "@/components/provider-apply/form-controls";
+import { ProductOfferFields } from "@/components/provider-apply/product-offer-fields";
+import { ProductTermsFields } from "@/components/provider-apply/product-terms-fields";
 import {
   ENTITY_TYPES,
   FAMILIES,
+  FAMILY_ORDER,
   INDUSTRIES,
   INSTITUTION_TYPES,
-  PROVIDER_COUNTRIES,
-  RISK_CATEGORIES,
-  SERVICES,
+  REFERRAL_ATTRIBUTION,
+  REFERRAL_METHODS,
 } from "@/lib/provider-apply/config";
+import { providerJurisdictionOptions } from "@/lib/provider-apply/countries";
 import { axesForFamily } from "@/lib/provider-apply/geo";
 import { currentOffer, toggleProductFamily } from "@/lib/provider-apply/state";
 import type { ProviderDraftState, ProviderOffer } from "@/lib/provider-apply/types";
@@ -24,6 +27,7 @@ import type { ProviderDraftState, ProviderOffer } from "@/lib/provider-apply/typ
 type Props = {
   state: ProviderDraftState;
   setState: React.Dispatch<React.SetStateAction<ProviderDraftState>>;
+  onGoToStep?: (step: number) => void;
 };
 
 function str(v: unknown): string {
@@ -54,10 +58,20 @@ function patchOfferGeo(state: ProviderDraftState, offerId: string, geo: Provider
   };
 }
 
-export function ProviderApplyContent({ state, setState }: Props) {
+function orderedOffers(state: ProviderDraftState) {
+  return FAMILY_ORDER.flatMap((f) => state.offers.filter((o) => o.family === f));
+}
+
+const JURISDICTION_HINT =
+  "If your authorisation jurisdiction is not listed, we currently do not accept authorisations issued in that jurisdiction.";
+const INCORPORATION_HINT =
+  "If your country is not listed, we currently do not accept providers incorporated in that jurisdiction.";
+
+export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
   const step = state.step;
   const offer = currentOffer(state);
   const o = offer;
+  const jurisdictionOptions = providerJurisdictionOptions();
 
   if (step === 0) {
     return (
@@ -75,13 +89,16 @@ export function ProviderApplyContent({ state, setState }: Props) {
               value={str(state.core.brand)}
               onChange={(v) => setState((s) => patchCore(s, "brand", v))}
             />
-            <FieldSelect
-              label="Country / jurisdiction of incorporation"
-              value={str(state.core.country)}
-              options={PROVIDER_COUNTRIES}
-              required
-              onChange={(v) => setState((s) => patchCore(s, "country", v))}
-            />
+            <div>
+              <FieldSelect
+                label="Country / jurisdiction of incorporation"
+                value={str(state.core.country)}
+                options={jurisdictionOptions}
+                required
+                onChange={(v) => setState((s) => patchCore(s, "country", v))}
+              />
+              <p className="field-hint-block">{INCORPORATION_HINT}</p>
+            </div>
             <FieldInput
               label="Company registration number"
               value={str(state.core.registration)}
@@ -91,10 +108,18 @@ export function ProviderApplyContent({ state, setState }: Props) {
             <FieldSelect
               label="Primary institution type"
               value={str(state.core.type)}
-              options={[...INSTITUTION_TYPES, "Investment firm / private bank", "Lender / financing provider"]}
+              options={INSTITUTION_TYPES}
               required
               onChange={(v) => setState((s) => patchCore(s, "type", v))}
             />
+            {state.core.type === "Other — please specify" && (
+              <FieldInput
+                label="Please specify institution type"
+                value={str(state.core.typeOther)}
+                required
+                onChange={(v) => setState((s) => patchCore(s, "typeOther", v))}
+              />
+            )}
             <FieldInput
               label="Institution website"
               type="url"
@@ -127,7 +152,6 @@ export function ProviderApplyContent({ state, setState }: Props) {
               "In progress",
               "Not yet arranged",
             ]}
-            required
             onChange={(v) => setState((s) => patchCore(s, "agreement", v))}
           />
           <FieldInput
@@ -148,124 +172,131 @@ export function ProviderApplyContent({ state, setState }: Props) {
       <section className="panel">
         <h2>Authorisations</h2>
         <p className="hint">Add each relevant licence, registration or notification.</p>
-        {state.licenses.map((lic) => (
-          <div key={lic.id} className="summary-card">
-            <div className="grid">
-              <FieldSelect
-                label="Regulatory status"
-                value={str(lic.data.status)}
-                options={[
-                  "Authorised / licensed",
-                  "Registered",
-                  "SRO membership",
-                  "Article 60 MiCA notification",
-                  "Application pending",
-                  "No authorisation required — explain",
-                ]}
-                required
-                onChange={(v) =>
-                  setState((s) => ({
-                    ...s,
-                    licenses: s.licenses.map((l) =>
-                      l.id === lic.id ? { ...l, data: { ...l.data, status: v } } : l
-                    ),
-                  }))
-                }
-              />
+        {state.licenses.map((lic) => {
+          const status = str(lic.data.status);
+          const showRegister = status && !["Application pending", "No authorisation required — explain"].includes(status);
+          return (
+            <div key={lic.id} className="summary-card">
+              <div className="grid">
+                <FieldSelect
+                  label="Regulatory status"
+                  value={status}
+                  options={[
+                    "Authorised / licensed",
+                    "Registered",
+                    "SRO membership",
+                    "Article 60 MiCA notification",
+                    "Application pending",
+                    "No authorisation required — explain",
+                  ]}
+                  required
+                  onChange={(v) =>
+                    setState((s) => ({
+                      ...s,
+                      licenses: s.licenses.map((l) =>
+                        l.id === lic.id ? { ...l, data: { ...l.data, status: v } } : l
+                      ),
+                    }))
+                  }
+                />
+                <FieldInput
+                  label="Legal name of licence / registration holder"
+                  value={str(lic.data.holder)}
+                  required
+                  onChange={(v) =>
+                    setState((s) => ({
+                      ...s,
+                      licenses: s.licenses.map((l) =>
+                        l.id === lic.id ? { ...l, data: { ...l.data, holder: v } } : l
+                      ),
+                    }))
+                  }
+                />
+                <FieldInput
+                  label="Regulator / issuing authority"
+                  value={str(lic.data.authority)}
+                  required={status !== "No authorisation required — explain"}
+                  onChange={(v) =>
+                    setState((s) => ({
+                      ...s,
+                      licenses: s.licenses.map((l) =>
+                        l.id === lic.id ? { ...l, data: { ...l.data, authority: v } } : l
+                      ),
+                    }))
+                  }
+                />
+                <div>
+                  <FieldSelect
+                    label="Authorisation jurisdiction"
+                    value={str(lic.data.country)}
+                    options={jurisdictionOptions}
+                    required
+                    onChange={(v) =>
+                      setState((s) => ({
+                        ...s,
+                        licenses: s.licenses.map((l) =>
+                          l.id === lic.id ? { ...l, data: { ...l.data, country: v } } : l
+                        ),
+                      }))
+                    }
+                  />
+                  <p className="field-hint-block">{JURISDICTION_HINT}</p>
+                </div>
+              </div>
               <FieldInput
-                label="Legal name of licence / registration holder"
-                value={str(lic.data.holder)}
+                label="Licence / registration / notification reference"
+                value={str(lic.data.number)}
+                required={!!showRegister}
+                onChange={(v) =>
+                  setState((s) => ({
+                    ...s,
+                    licenses: s.licenses.map((l) =>
+                      l.id === lic.id ? { ...l, data: { ...l.data, number: v } } : l
+                    ),
+                  }))
+                }
+              />
+              {showRegister && (
+                <FieldInput
+                  label="Link to your regulatory register entry (optional)"
+                  value={str(lic.data.register)}
+                  onChange={(v) =>
+                    setState((s) => ({
+                      ...s,
+                      licenses: s.licenses.map((l) =>
+                        l.id === lic.id ? { ...l, data: { ...l.data, register: v } } : l
+                      ),
+                    }))
+                  }
+                />
+              )}
+              <FieldTextarea
+                label="Permitted activities / authorisation scope"
+                value={str(lic.data.scope)}
                 required
                 onChange={(v) =>
                   setState((s) => ({
                     ...s,
                     licenses: s.licenses.map((l) =>
-                      l.id === lic.id ? { ...l, data: { ...l.data, holder: v } } : l
+                      l.id === lic.id ? { ...l, data: { ...l.data, scope: v } } : l
                     ),
                   }))
                 }
               />
-              <FieldInput
-                label="Regulator / issuing authority"
-                value={str(lic.data.authority)}
-                required
-                onChange={(v) =>
-                  setState((s) => ({
-                    ...s,
-                    licenses: s.licenses.map((l) =>
-                      l.id === lic.id ? { ...l, data: { ...l.data, authority: v } } : l
-                    ),
-                  }))
-                }
-              />
-              <FieldSelect
-                label="Authorisation jurisdiction"
-                value={str(lic.data.country)}
-                options={PROVIDER_COUNTRIES}
-                required
-                onChange={(v) =>
-                  setState((s) => ({
-                    ...s,
-                    licenses: s.licenses.map((l) =>
-                      l.id === lic.id ? { ...l, data: { ...l.data, country: v } } : l
-                    ),
-                  }))
-                }
-              />
+              {state.licenses.length > 1 && (
+                <button
+                  type="button"
+                  className="small"
+                  onClick={() =>
+                    setState((s) => ({ ...s, licenses: s.licenses.filter((l) => l.id !== lic.id) }))
+                  }
+                >
+                  Remove authorisation
+                </button>
+              )}
             </div>
-            <FieldInput
-              label="Licence / registration / notification reference"
-              value={str(lic.data.number)}
-              required
-              onChange={(v) =>
-                setState((s) => ({
-                  ...s,
-                  licenses: s.licenses.map((l) =>
-                    l.id === lic.id ? { ...l, data: { ...l.data, number: v } } : l
-                  ),
-                }))
-              }
-            />
-            <FieldInput
-              label="Official register entry"
-              type="url"
-              value={str(lic.data.register)}
-              required
-              onChange={(v) =>
-                setState((s) => ({
-                  ...s,
-                  licenses: s.licenses.map((l) =>
-                    l.id === lic.id ? { ...l, data: { ...l.data, register: v } } : l
-                  ),
-                }))
-              }
-            />
-            <FieldTextarea
-              label="Permitted activities / authorisation scope"
-              value={str(lic.data.scope)}
-              required
-              onChange={(v) =>
-                setState((s) => ({
-                  ...s,
-                  licenses: s.licenses.map((l) =>
-                    l.id === lic.id ? { ...l, data: { ...l.data, scope: v } } : l
-                  ),
-                }))
-              }
-            />
-            {state.licenses.length > 1 && (
-              <button
-                type="button"
-                className="small"
-                onClick={() =>
-                  setState((s) => ({ ...s, licenses: s.licenses.filter((l) => l.id !== lic.id) }))
-                }
-              >
-                Remove authorisation
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
         <button
           type="button"
           id="add-license"
@@ -287,8 +318,8 @@ export function ProviderApplyContent({ state, setState }: Props) {
       <>
         <section className="panel">
           <p className="hint">Select the product families provided directly by your institution.</p>
-          <div className="checks">
-            {Object.entries(FAMILIES).map(([id, label]) => (
+          <div className="product-family-grid">
+            {FAMILY_ORDER.map((id) => (
               <label key={id} className="service-card">
                 <input
                   type="checkbox"
@@ -296,260 +327,170 @@ export function ProviderApplyContent({ state, setState }: Props) {
                   onChange={(e) => setState((s) => toggleProductFamily(s, id, e.target.checked))}
                 />
                 <span>
-                  <b>{label}</b>
+                  <b>{FAMILIES[id]}</b>
                 </span>
               </label>
             ))}
           </div>
         </section>
-        {state.offers.length > 0 && (
-          <div className="offer-switch" aria-label="Product profiles">
-            {state.offers.map((x) => (
-              <button
-                key={x.id}
-                type="button"
-                aria-pressed={x.id === offer?.id}
-                onClick={() => setState((s) => ({ ...s, current: x.id }))}
-              >
-                {str(x.data.name) || FAMILIES[x.family]}
-              </button>
-            ))}
-          </div>
-        )}
-        {o && (
-          <section className="panel">
-            <FieldInput
-              label="Product / account name"
-              value={str(o.data.name)}
-              required
-              onChange={(v) => setState((s) => patchOffer(s, o.id, { name: v }))}
-            />
-            <CheckGroup
-              legend={
-                o.family === "finance"
-                  ? "Financing facilities for:"
-                  : o.family === "merchant"
-                    ? "Acquiring services offered:"
-                    : "Our accounts can be used for, or provide:"
-              }
-              options={SERVICES[o.family] ?? []}
-              values={arr(o.data.services)}
-              onToggle={(value, checked) => {
-                setState((s) => {
-                  const current = arr(currentOffer(s)?.data.services);
-                  const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
-                  return patchOffer(s, o.id, { services: next });
-                });
-              }}
-            />
-            <CheckGroup
-              legend="Available currencies"
-              options={["EUR", "GBP", "USD", "CHF", "Other"]}
-              values={arr(o.data.currencies)}
-              onToggle={(value, checked) => {
-                setState((s) => {
-                  const current = arr(currentOffer(s)?.data.currencies);
-                  const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
-                  return patchOffer(s, o.id, { currencies: next });
-                });
-              }}
-            />
-            {arr(o.data.currencies).includes("Other") && (
-              <FieldInput
-                label="Other currency codes"
-                value={str(o.data.otherCurrencies)}
-                onChange={(v) => setState((s) => patchOffer(s, o.id, { otherCurrencies: v }))}
-              />
-            )}
-            <label className="checkline">
-              <input
-                type="checkbox"
-                checked={o.data.capabilitiesComplete === true}
-                onChange={(e) =>
-                  setState((s) => patchOffer(s, o.id, { capabilitiesComplete: e.target.checked }))
-                }
-              />
-              <span>
-                The selected capabilities are the full current capability list for this product.
-              </span>
-            </label>
-          </section>
-        )}
+        {orderedOffers(state).map((offerRow) => (
+          <ProductOfferFields key={offerRow.id} offer={offerRow} setState={setState} patchOffer={patchOffer} />
+        ))}
       </>
     );
   }
 
-  if (step === 3 && o) {
-    const industries = (o.data.industries as Record<number, string>) ?? {};
-    const entities = (o.data.entities as Record<number, string>) ?? {};
-    const risk = (o.data.risk as Record<number, string>) ?? {};
-    const axis = o.axis ?? axesForFamily(o.family)[0]?.[0] ?? "incorporation";
+  if (step === 3) {
+    const axis = o?.axis ?? axesForFamily(state.offers[0]?.family ?? "bank")[0]?.[0] ?? "incorporation";
 
     return (
       <>
         <section className="panel">
-          <p className="notice">
-            Use the approved two-group country policy editor for production revisions. Below is the profile data
-            editor retained from the Institution Apply prototype.
+          <h2>Upload your country acceptance policy</h2>
+          <p className="hint">
+            Upload PDF, Word, Excel or CSV files describing accepted or prohibited countries and customer acceptance
+            rules. Documents remain confidential to SOPHIMA and are not shared with applicants.
           </p>
+          <label className="field">
+            <span>Policy documents</span>
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv"
+              onChange={async (e) => {
+                const picked = Array.from(e.target.files ?? []);
+                const meta = picked.map((f) => ({
+                  name: f.name,
+                  size: f.size,
+                  uploadedAt: new Date().toISOString(),
+                }));
+                setState((s) => ({ ...s, documents: [...(s.documents ?? []), ...meta] }));
+                const textFile = picked.find((f) => /\.(csv|txt)$/i.test(f.name));
+                if (textFile) {
+                  const text = await textFile.text();
+                  const res = await fetch("/api/providers/policy/extract", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text }),
+                  });
+                  if (res.ok) {
+                    const extracted = await res.json();
+                    setState((s) => {
+                      let next = patchCore(s, "policyExtraction", extracted);
+                      if (extracted.industryHints && s.offers[0]) {
+                        const industries = { ...(s.offers[0].data.industries as Record<number, string>) };
+                        INDUSTRIES.forEach((label, i) => {
+                          if (extracted.industryHints[label]) industries[i] = extracted.industryHints[label];
+                        });
+                        next = patchOffer(next, s.offers[0].id, { industries });
+                      }
+                      return next;
+                    });
+                  }
+                }
+              }}
+            />
+          </label>
+          {state.documents?.length ? (
+            <ul>
+              {state.documents.map((d, i) => (
+                <li key={i}>{str(d.name)}</li>
+              ))}
+            </ul>
+          ) : null}
+          {state.core.policyExtraction != null && (
+            <div className="notice">
+              <strong>Extracted policy summary</strong>
+              <p className="hint">
+                {Number(
+                  (state.core.policyExtraction as { countryRules?: unknown[] })?.countryRules?.length ?? 0
+                )}{" "}
+                country rules proposed. Review below before confirming.
+              </p>
+            </div>
+          )}
+          <button
+            type="button"
+            className="btn"
+            onClick={() => setState((s) => patchCore(s, "acceptancePolicyMode", "manual"))}
+          >
+            Enter policy manually
+          </button>
+          <label className="checkline" style={{ marginTop: 16 }}>
+            <input
+              type="checkbox"
+              checked={state.core.acceptancePolicyConfirmed === true}
+              onChange={(e) => setState((s) => patchCore(s, "acceptancePolicyConfirmed", e.target.checked))}
+            />
+            <span>I have reviewed and confirm the extracted or entered acceptance rules for publication review.</span>
+          </label>
         </section>
-        <GeoAxisEditor
-          family={o.family}
-          offerId={o.id}
-          geo={o.geo ?? {}}
-          axis={axis}
-          onAxis={(nextAxis) =>
-            setState((s) => ({
-              ...s,
-              offers: s.offers.map((x) => (x.id === o.id ? { ...x, axis: nextAxis } : x)),
-            }))
-          }
-          onUpdate={(geo) => setState((s) => patchOfferGeo(s, o.id, geo))}
-        />
-        <StatusMatrix
-          title={o.family === "private" ? "Business / wealth-generating sectors" : "Industry acceptance"}
-          options={INDUSTRIES}
-          values={industries}
-          onChange={(i, status) =>
-            setState((s) => patchOffer(s, o.id, { industries: { ...industries, [i]: status } }))
-          }
-        />
-        {o.family !== "private" && (
-          <StatusMatrix
-            title="Legal entities accepted"
-            options={ENTITY_TYPES}
-            values={entities}
-            onChange={(i, status) =>
-              setState((s) => patchOffer(s, o.id, { entities: { ...entities, [i]: status } }))
-            }
-          />
-        )}
+        {state.offers.map((offerRow) => (
+          <div key={offerRow.id}>
+            <h2>{FAMILIES[offerRow.family]}</h2>
+            <GeoAxisEditor
+              family={offerRow.family}
+              offerId={offerRow.id}
+              geo={offerRow.geo ?? {}}
+              axis={offerRow.axis ?? axis}
+              onAxis={(nextAxis) =>
+                setState((s) => ({
+                  ...s,
+                  offers: s.offers.map((x) => (x.id === offerRow.id ? { ...x, axis: nextAxis } : x)),
+                }))
+              }
+              onUpdate={(geo) => setState((s) => patchOfferGeo(s, offerRow.id, geo))}
+            />
+            <StatusMatrix
+              title={offerRow.family === "private" ? "Business / wealth-generating sectors" : "Industry acceptance"}
+              options={INDUSTRIES}
+              values={(offerRow.data.industries as Record<number, string>) ?? {}}
+              onChange={(i, status) =>
+                setState((s) => {
+                  const ind = (offerRow.data.industries as Record<number, string>) ?? {};
+                  return patchOffer(s, offerRow.id, { industries: { ...ind, [i]: status } });
+                })
+              }
+            />
+            {offerRow.family !== "private" && (
+              <StatusMatrix
+                title="Legal entities accepted"
+                options={ENTITY_TYPES}
+                values={(offerRow.data.entities as Record<number, string>) ?? {}}
+                onChange={(i, status) =>
+                  setState((s) => {
+                    const ent = (offerRow.data.entities as Record<number, string>) ?? {};
+                    return patchOffer(s, offerRow.id, { entities: { ...ent, [i]: status } });
+                  })
+                }
+              />
+            )}
+          </div>
+        ))}
         <section className="panel">
-          <FieldSelect
-            label="Physical operating offices required?"
-            value={str(o.data.officePolicy)}
-            options={["In incorporation country", "In an accepted operating country", "Case-by-case", "Not normally required"]}
-            required
-            onChange={(v) => setState((s) => patchOffer(s, o.id, { officePolicy: v }))}
-          />
-          <FieldSelect
-            label="Must the applicant employ at least one person other than a director?"
-            value={str(o.data.employeeRequired)}
-            options={["Yes", "No", "Case-by-case"]}
-            required
-            onChange={(v) => setState((s) => patchOffer(s, o.id, { employeeRequired: v }))}
+          <FieldTextarea
+            label="Additional acceptance conditions"
+            placeholder="Describe any additional restrictions, exceptions or requirements not covered elsewhere."
+            value={str(state.core.additionalAcceptance)}
+            onChange={(v) => setState((s) => patchCore(s, "additionalAcceptance", v))}
           />
         </section>
-        <StatusMatrix
-          title="Profiles needing specific consideration"
-          options={
-            o.family === "private"
-              ? RISK_CATEGORIES.filter((v) =>
-                  [
-                    "PEPs or connected persons",
-                    "Third-party funds",
-                    "Crypto-related funds or customers",
-                    "Higher-risk country exposure — where legally permitted",
-                  ].includes(v)
-                )
-              : RISK_CATEGORIES
-          }
-          values={risk}
-          onChange={(i, status) =>
-            setState((s) => patchOffer(s, o.id, { risk: { ...risk, [i]: status } }))
-          }
-        />
       </>
     );
   }
 
-  if (step === 5 && o) {
+  if (step === 5) {
     return (
-      <section className="panel">
-        <CheckGroup
-          legend="Client / relationship-manager languages"
-          options={["English", "Greek", "French", "German", "Spanish", "Italian", "Hebrew", "Arabic", "Other"]}
-          values={arr(o.data.languages)}
-          onToggle={(value, checked) => {
-            setState((s) => {
-              const current = arr(currentOffer(s)?.data.languages);
-              const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
-              return patchOffer(s, o.id, { languages: next });
-            });
-          }}
-        />
-        <CheckGroup
-          legend="Available onboarding methods"
-          options={[
-            "Fully remote",
-            "Remote with video identification",
-            "Remote with online identification",
-            "Remote with video interview identification",
-            "In person",
-          ]}
-          values={arr(o.data.onboardingMethods)}
-          onToggle={(value, checked) => {
-            setState((s) => {
-              const current = arr(currentOffer(s)?.data.onboardingMethods);
-              const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
-              return patchOffer(s, o.id, { onboardingMethods: next });
-            });
-          }}
-        />
-        <FieldSelect
-          label="Must legalised documents be presented physically?"
-          value={str(o.data.physicalDocs)}
-          options={["Yes", "No", "Case-by-case"]}
-          required
-          onChange={(v) => setState((s) => patchOffer(s, o.id, { physicalDocs: v }))}
-        />
-        <FieldSelect
-          label="Are all applicable numeric product restrictions recorded?"
-          value={str(o.data.limitDisclosure)}
-          options={[
-            ["unconfirmed", "Not yet complete — blank limits remain unconfirmed"],
-            ["complete", "Complete — any blank numeric limit is unrestricted for this product"],
-          ]}
-          required
-          onChange={(v) => setState((s) => patchOffer(s, o.id, { limitDisclosure: v }))}
-        />
-        {o.family === "bank" || o.family === "correspondent" ? (
-          <div className="grid">
-            <FieldInput
-              label="Maximum incoming amount per month"
-              type="number"
-              value={str(o.data.maxIncoming)}
-              onChange={(v) => setState((s) => patchOffer(s, o.id, { maxIncoming: v }))}
-            />
-            <FieldInput
-              label="Maximum outgoing amount per month"
-              type="number"
-              value={str(o.data.maxOutgoing)}
-              onChange={(v) => setState((s) => patchOffer(s, o.id, { maxOutgoing: v }))}
-            />
-          </div>
-        ) : null}
-        {o.family === "merchant" ? (
-          <div className="grid">
-            <FieldInput
-              label="Minimum monthly processing volume"
-              type="number"
-              value={str(o.data.minProcessing)}
-              onChange={(v) => setState((s) => patchOffer(s, o.id, { minProcessing: v }))}
-            />
-            <FieldInput
-              label="Maximum monthly processing volume"
-              type="number"
-              value={str(o.data.maxProcessing)}
-              onChange={(v) => setState((s) => patchOffer(s, o.id, { maxProcessing: v }))}
-            />
-          </div>
-        ) : null}
-      </section>
+      <>
+        {orderedOffers(state).map((offerRow) => (
+          <ProductTermsFields key={offerRow.id} offer={offerRow} setState={setState} patchOffer={patchOffer} />
+        ))}
+      </>
     );
   }
 
   if (step === 7) {
+    const methods = arr(state.core.referralMethods);
     return (
       <>
         <section className="panel">
@@ -580,28 +521,96 @@ export function ProviderApplyContent({ state, setState }: Props) {
               onChange={(v) => setState((s) => patchCore(s, "contactPhone", v))}
             />
           </div>
+          <CheckGroup
+            legend="Accepted referral methods"
+            options={REFERRAL_METHODS}
+            values={methods}
+            onToggle={(value, checked) => {
+              const current = arr(state.core.referralMethods);
+              const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
+              setState((s) => patchCore(s, "referralMethods", next));
+            }}
+          />
           <FieldInput
-            label="Preferred referral channel / onboarding link"
-            value={str(state.core.referralChannel)}
+            label="Email address for SOPHIMA introductions and referral notifications"
+            type="email"
+            value={str(state.core.referralEmail)}
             required
-            onChange={(v) => setState((s) => patchCore(s, "referralChannel", v))}
+            onChange={(v) => setState((s) => patchCore(s, "referralEmail", v))}
+          />
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => setState((s) => patchCore(s, "referralEmail", str(s.core.contactEmail)))}
+          >
+            Use contact email
+          </button>
+          {methods.includes("Referral link — applicant completes the application") && (
+            <FieldInput
+              label="Referral URL"
+              value={str(state.core.referralUrl)}
+              onChange={(v) => setState((s) => patchCore(s, "referralUrl", v))}
+            />
+          )}
+          {methods.includes("Introducer portal — SOPHIMA submits on the applicant's behalf") && (
+            <>
+              <FieldInput
+                label="Portal URL"
+                value={str(state.core.portalUrl)}
+                onChange={(v) => setState((s) => patchCore(s, "portalUrl", v))}
+              />
+              <p className="hint">This method requires SOPHIMA-assisted submission. Do not enter login credentials.</p>
+            </>
+          )}
+          {methods.includes("Provider pre-approval form") && (
+            <>
+              <label className="field">
+                <span>Provider pre-approval template (optional)</span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) setState((s) => patchCore(s, "preApprovalFileName", f.name));
+                  }}
+                />
+              </label>
+              <FieldSelect
+                label="Can SOPHIMA's standard client profile be accepted instead?"
+                value={str(state.core.sophimaProfileAccepted)}
+                options={["Yes", "No", "Case-by-case"]}
+                onChange={(v) => setState((s) => patchCore(s, "sophimaProfileAccepted", v))}
+              />
+              <button
+                type="button"
+                className="btn"
+                onClick={() => window.open("/api/providers/client-profile-preview?route=bank", "_blank")}
+              >
+                Preview SOPHIMA&apos;s client profile
+              </button>
+            </>
+          )}
+          <CheckGroup
+            legend="How is SOPHIMA's referral attribution confirmed?"
+            options={REFERRAL_ATTRIBUTION}
+            values={arr(state.core.referralAttribution)}
+            onToggle={(value, checked) => {
+              const current = arr(state.core.referralAttribution);
+              const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
+              setState((s) => patchCore(s, "referralAttribution", next));
+            }}
           />
         </section>
         <section className="panel">
-          <h2>Why clients choose you</h2>
+          <h2>Benefits & confirmations</h2>
           <FieldTextarea
             label="Distinctive benefits / strengths"
             value={str(state.core.benefits)}
             onChange={(v) => setState((s) => patchCore(s, "benefits", v))}
           />
-          <FieldTextarea
-            label="What is in your pipeline?"
-            value={str(state.core.pipeline)}
-            onChange={(v) => setState((s) => patchCore(s, "pipeline", v))}
-          />
         </section>
         <section className="panel">
-          <label className="checkline">
+          <label className="confirm-line">
             <input
               type="checkbox"
               checked={state.core.authority === true}
@@ -609,15 +618,15 @@ export function ProviderApplyContent({ state, setState }: Props) {
             />
             <span>I am authorised to provide this information on behalf of the institution.</span>
           </label>
-          <label className="checkline">
+          <label className="confirm-line">
             <input
               type="checkbox"
               checked={state.core.accuracy === true}
               onChange={(e) => setState((s) => patchCore(s, "accuracy", e.target.checked))}
             />
             <span>
-              I confirm the current capabilities and acceptance criteria are accurate and will notify SOPHIMA of
-              material changes.
+              I confirm that the information is accurate and will update the institution&apos;s profile when material
+              changes occur.
             </span>
           </label>
         </section>
@@ -626,26 +635,49 @@ export function ProviderApplyContent({ state, setState }: Props) {
   }
 
   if (step === 8) {
+    const cards = [
+      { title: "Institution details", step: 0, body: str(state.core.legalName) || "Required — please complete" },
+      { title: "Authorisations", step: 1, body: `${state.licenses.length} record(s)` },
+      {
+        title: "Products",
+        step: 2,
+        body: state.offers.map((x) => FAMILIES[x.family]).join(", ") || "Required — please complete",
+      },
+      { title: "Acceptance policies and conditions", step: 3, body: state.documents?.length ? "Policy uploaded" : "Not specified" },
+      { title: "Product terms and onboarding", step: 5, body: `${state.offers.length} product section(s)` },
+      {
+        title: "Contacts, referral methods and benefits",
+        step: 7,
+        body: str(state.core.contactEmail) || "Required — please complete",
+      },
+      {
+        title: "Uploaded documents",
+        step: 3,
+        body: state.documents?.length
+          ? state.documents.map((d) => str(d.name)).join(", ")
+          : "Not specified",
+      },
+    ];
+
     return (
-      <section className="panel">
+      <section className="review-cards">
+        {cards.map((card) => (
+          <article key={card.title} className="review-card">
+            <header>
+              <h2 style={{ margin: 0, fontSize: 18 }}>{card.title}</h2>
+              {onGoToStep && (
+                <button type="button" className="btn mini" onClick={() => onGoToStep(card.step)}>
+                  Edit
+                </button>
+              )}
+            </header>
+            <p style={{ margin: 0 }}>{card.body}</p>
+          </article>
+        ))}
         <div className="notice">
-          SOPHIMA verifies authorisations, agreement status and current product criteria before publication.
+          Your profile will become available for matching only after SOPHIMA approval and verification of a current
+          referral agreement.
         </div>
-        <dl className="summary">
-          <dt>Institution</dt>
-          <dd>{str(state.core.legalName) || "Not provided"}</dd>
-          <dt>Jurisdiction</dt>
-          <dd>{str(state.core.country) || "Not provided"}</dd>
-          <dt>Referral agreement</dt>
-          <dd>{str(state.core.agreement) || "Not provided"}</dd>
-          <dt>Products</dt>
-          <dd>{state.offers.map((x) => str(x.data.name) || FAMILIES[x.family]).join(", ") || "None selected"}</dd>
-          <dt>Contact</dt>
-          <dd>
-            {[state.core.contactName, state.core.contactEmail, state.core.contactRole].filter(Boolean).join(" · ") ||
-              "Not provided"}
-          </dd>
-        </dl>
       </section>
     );
   }
