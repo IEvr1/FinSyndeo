@@ -57,7 +57,7 @@ export function PlatformShell({ role, persona, nav, children }: Props) {
               ? groups.flatMap((group) => [
                   <div
                     key={`g-${group}`}
-                    className="hidden md:block text-xs font-bold uppercase tracking-wide text-[#6c5740] mt-4 mb-1 px-2"
+                    className="hidden md:block text-xs font-bold uppercase tracking-wide text-[var(--brand)] mt-4 mb-1 px-2"
                   >
                     {group}
                   </div>,
