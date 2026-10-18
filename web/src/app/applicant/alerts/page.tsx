@@ -9,7 +9,10 @@ export default function AlertsPage() {
   const [applicationId, setApplicationId] = useState("");
   const [enabled, setEnabled] = useState(false);
   const [threshold, setThreshold] = useState("80");
+  const [email, setEmail] = useState("");
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/applications")
@@ -21,8 +24,42 @@ export default function AlertsPage() {
       });
   }, []);
 
-  function save(e: React.FormEvent) {
+  useEffect(() => {
+    if (!applicationId) return;
+    setSaved(false);
+    fetch(`/api/applicants/match-preferences?applicationId=${encodeURIComponent(applicationId)}`)
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok) return;
+        setEnabled(d.enabled === true);
+        setThreshold(String(d.threshold ?? 80));
+        setEmail(d.email ?? "");
+      })
+      .catch(() => undefined);
+  }, [applicationId]);
+
+  async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (!applicationId) return;
+    setLoading(true);
+    setError("");
+    setSaved(false);
+    const res = await fetch("/api/applicants/match-preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        applicationId,
+        enabled,
+        threshold: Number(threshold),
+      }),
+    });
+    const data = await res.json();
+    setLoading(false);
+    if (!res.ok) {
+      setError(data.error ?? "Could not save preferences.");
+      return;
+    }
+    setEmail(data.email ?? email);
     setSaved(true);
   }
 
@@ -34,10 +71,16 @@ export default function AlertsPage() {
       <h1>Match notifications</h1>
       <p className="lead">Receive an email when a new provider matches your saved requirements.</p>
       <form className="panel" onSubmit={save}>
+        {apps.length === 0 && (
+          <p className="empty">Save an assessment first, then choose notification preferences for it.</p>
+        )}
         {apps.length > 1 && (
           <label className="field">
             <span>Assessment</span>
-            <select value={applicationId} onChange={(e) => setApplicationId(e.target.value)}>
+            <select
+              value={applicationId}
+              onChange={(e) => setApplicationId(e.target.value)}
+            >
               {apps.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.route} · {new Date(a.updatedAt).toLocaleDateString()}
@@ -74,8 +117,17 @@ export default function AlertsPage() {
           All essential requirements must be met. The score reflects your preferences, not the likelihood of account
           approval.
         </p>
-        <button type="submit" className="btn btn-primary">Save preferences</button>
-        {saved && <p className="notice mt-3">Preferences saved. Notifications will be sent to your verified sign-in email.</p>}
+        <button type="submit" className="btn btn-primary" disabled={!applicationId || loading}>
+          Save preferences
+        </button>
+        {error && <p className="notice notice-error mt-3">{error}</p>}
+        {saved && (
+          <p className="notice mt-3">
+            Preferences saved
+            {email ? `. Notifications will be sent to ${email}.` : "."} Disabling alerts does not delete this
+            assessment.
+          </p>
+        )}
       </form>
     </>
   );
