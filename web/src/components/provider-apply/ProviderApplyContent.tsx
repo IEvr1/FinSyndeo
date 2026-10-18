@@ -21,7 +21,7 @@ import {
 } from "@/lib/provider-apply/config";
 import { providerJurisdictionOptions } from "@/lib/provider-apply/countries";
 import { axesForFamily } from "@/lib/provider-apply/geo";
-import { currentOffer, toggleProductFamily } from "@/lib/provider-apply/state";
+import { activeOffers, currentOffer, isOfferActive, toggleProductFamily } from "@/lib/provider-apply/state";
 import type { ProviderDraftState, ProviderOffer } from "@/lib/provider-apply/types";
 
 type Props = {
@@ -59,7 +59,7 @@ function patchOfferGeo(state: ProviderDraftState, offerId: string, geo: Provider
 }
 
 function orderedOffers(state: ProviderDraftState) {
-  return FAMILY_ORDER.flatMap((f) => state.offers.filter((o) => o.family === f));
+  return FAMILY_ORDER.flatMap((f) => activeOffers(state).filter((o) => o.family === f));
 }
 
 const JURISDICTION_HINT =
@@ -323,7 +323,7 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
               <label key={id} className="service-card">
                 <input
                   type="checkbox"
-                  checked={state.offers.some((x) => x.family === id)}
+                  checked={state.offers.some((x) => x.family === id && isOfferActive(x))}
                   onChange={(e) => setState((s) => toggleProductFamily(s, id, e.target.checked))}
                 />
                 <span>
@@ -341,7 +341,8 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
   }
 
   if (step === 3) {
-    const axis = o?.axis ?? axesForFamily(state.offers[0]?.family ?? "bank")[0]?.[0] ?? "incorporation";
+    const axis =
+      o?.axis ?? axesForFamily(activeOffers(state)[0]?.family ?? "bank")[0]?.[0] ?? "incorporation";
 
     return (
       <>
@@ -425,7 +426,7 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
             <span>I have reviewed and confirm the extracted or entered acceptance rules for publication review.</span>
           </label>
         </section>
-        {state.offers.map((offerRow) => (
+        {orderedOffers(state).map((offerRow) => (
           <div key={offerRow.id}>
             <h2>{FAMILIES[offerRow.family]}</h2>
             <GeoAxisEditor
@@ -641,10 +642,13 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
       {
         title: "Products",
         step: 2,
-        body: state.offers.map((x) => FAMILIES[x.family]).join(", ") || "Required — please complete",
+        body:
+          activeOffers(state)
+            .map((x) => FAMILIES[x.family])
+            .join(", ") || "Required — please complete",
       },
       { title: "Acceptance policies and conditions", step: 3, body: state.documents?.length ? "Policy uploaded" : "Not specified" },
-      { title: "Product terms and onboarding", step: 5, body: `${state.offers.length} product section(s)` },
+      { title: "Product terms and onboarding", step: 5, body: `${activeOffers(state).length} product section(s)` },
       {
         title: "Contacts, referral methods and benefits",
         step: 7,

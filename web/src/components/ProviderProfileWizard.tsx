@@ -12,7 +12,11 @@ import {
 import { providerStateToProfileData } from "@/lib/provider-apply/profile-mapper";
 import { createInitialProviderState, ensureOfferArrays } from "@/lib/provider-apply/state";
 import type { ProviderDraftState } from "@/lib/provider-apply/types";
-import { validateAllProviderSteps, validateCurrentStep } from "@/lib/provider-apply/validation";
+import {
+  validateAllProviderStepsGrouped,
+  validateCurrentStep,
+  type StepValidationGroup,
+} from "@/lib/provider-apply/validation";
 
 function loadState(): ProviderDraftState {
   try {
@@ -40,6 +44,7 @@ export function ProviderProfileWizard() {
   const [state, setState] = useState<ProviderDraftState>(createInitialProviderState);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
+  const [errorGroups, setErrorGroups] = useState<StepValidationGroup[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -61,18 +66,27 @@ export function ProviderProfileWizard() {
       const missing = validateCurrentStep(state);
       if (missing.length) {
         setErrors(missing);
+        setErrorGroups([]);
         return;
       }
     }
     setErrors([]);
+    setErrorGroups([]);
     setState((s) => ({ ...s, step }));
     window.scrollTo({ top: 0, behavior: "smooth" });
+    requestAnimationFrame(() => {
+      const firstInvalid = document.querySelector<HTMLElement>(
+        "input:invalid, select:invalid, textarea:invalid"
+      );
+      firstInvalid?.focus();
+    });
   }
 
   async function submitProfile() {
-    const missing = validateAllProviderSteps(state);
-    if (missing.length) {
-      setErrors(missing);
+    const groups = validateAllProviderStepsGrouped(state);
+    if (groups.length) {
+      setErrorGroups(groups);
+      setErrors(groups.flatMap((g) => g.missing));
       setMessage("");
       return;
     }
@@ -85,11 +99,14 @@ export function ProviderProfileWizard() {
         country: state.core.country,
         profileData: providerStateToProfileData(state, { id: "local", code: "local" }),
         wizardState: state,
+        submitForReview: true,
       }),
     });
     const data = await res.json();
     if (res.ok) {
       setSubmitted(true);
+      setErrorGroups([]);
+      setErrors([]);
       setMessage(
         "Your profile has been submitted to SOPHIMA for review. It will become available for matching only after approval and verification of a current referral agreement."
       );
@@ -142,14 +159,28 @@ export function ProviderProfileWizard() {
       <h1>{STEP_TITLES[navIndex] ?? STEP_TITLES[0]}</h1>
       <p className="lead">{STEP_LEADS[navIndex] ?? STEP_LEADS[0]}</p>
 
-      {errors.length > 0 && (
+      {(errorGroups.length > 0 || errors.length > 0) && (
         <div className="notice notice-error" role="alert">
           <strong>Your profile is not ready to submit. Please complete the highlighted sections below.</strong>
-          <ul>
-            {errors.map((e) => (
-              <li key={e}>{e}</li>
-            ))}
-          </ul>
+          {errorGroups.length > 0 ? (
+            <ul>
+              {errorGroups.map((g) => (
+                <li key={g.step}>
+                  <strong>{g.label}</strong> — {g.missing.length} item{g.missing.length === 1 ? "" : "s"}
+                  {" · "}
+                  <button type="button" className="btn mini" onClick={() => go(g.step, false)}>
+                    Complete this section
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <ul>
+              {errors.map((e) => (
+                <li key={e}>{e}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

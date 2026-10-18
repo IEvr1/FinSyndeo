@@ -2,7 +2,14 @@ import { createHash } from "crypto";
 
 export type PasswordValidation = { ok: true } | { ok: false; message: string };
 
-/** Business rules: min 8 chars, upper, lower, digit, symbol. No truncation. */
+/**
+ * Business password floor (registration, change, reset): min 8 chars with upper,
+ * lower, digit and symbol. No truncation. Enforce on UI and server.
+ *
+ * Security design note: this floor is not a security certification. Admin access
+ * must use MFA (`users.mfaEnabled`); login attempts are rate-limited; compromised
+ * passwords are blocked via HIBP when available.
+ */
 export function validatePassword(password: string): PasswordValidation {
   if (typeof password !== "string") {
     return { ok: false, message: "Password is required." };

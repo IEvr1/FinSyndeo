@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { PasswordField } from "@/components/PasswordField";
+import { validatePassword } from "@/lib/password-policy";
 
 export default function ApplicantPrivacyPage() {
   const [message, setMessage] = useState("");
@@ -30,6 +32,11 @@ export default function ApplicantPrivacyPage() {
   }
 
   async function changePassword() {
+    const pw = validatePassword(passwordForm.next);
+    if (!pw.ok) {
+      setMessage(pw.message);
+      return;
+    }
     const res = await fetch("/api/auth/change-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -53,24 +60,21 @@ export default function ApplicantPrivacyPage() {
       <section className="panel">
         <h2>Your sign-in</h2>
         <p className="text-sm text-[var(--muted)]">Registered name and verified sign-in email are shown in your account profile.</p>
-        <label className="field">
-          <span>Current password</span>
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={passwordForm.current}
-            onChange={(e) => setPasswordForm((p) => ({ ...p, current: e.target.value }))}
-          />
-        </label>
-        <label className="field">
-          <span>New password</span>
-          <input
-            type="password"
-            autoComplete="new-password"
-            value={passwordForm.next}
-            onChange={(e) => setPasswordForm((p) => ({ ...p, next: e.target.value }))}
-          />
-        </label>
+        <PasswordField
+          label="Current password"
+          value={passwordForm.current}
+          onChange={(v) => setPasswordForm((p) => ({ ...p, current: v }))}
+          autoComplete="current-password"
+          required={false}
+        />
+        <PasswordField
+          label="New password"
+          value={passwordForm.next}
+          onChange={(v) => setPasswordForm((p) => ({ ...p, next: v }))}
+          autoComplete="new-password"
+          required={false}
+          showHint
+        />
         <div className="flex flex-wrap gap-3 mt-2">
           <button type="button" className="btn" onClick={changePassword}>Change password</button>
           <button type="button" className="btn" onClick={signOutAll}>Sign out of all sessions</button>

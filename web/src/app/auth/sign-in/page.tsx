@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { PasswordField } from "@/components/PasswordField";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -39,17 +40,27 @@ export default function SignInPage() {
           {error && <div className="notice notice-error">{error}</div>}
           <label className="field">
             <span>Email</span>
-            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </label>
-          <label className="field">
-            <span>Password</span>
-            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-          </label>
+          <PasswordField
+            label="Password"
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+          />
           <button type="submit" className="btn btn-primary w-full">
             Sign in
           </button>
         </form>
         <p className="text-sm text-[var(--muted)] mt-4">
+          <Link href="/auth/forgot-password">Forgot password?</Link>
+          {" · "}
           No account? <Link href="/auth/sign-up">Register</Link>
         </p>
       </main>

@@ -1,7 +1,8 @@
 import type { ProviderDraftState } from "./types";
-import { FAMILIES } from "./config";
+import { FAMILIES, STEP_LABELS, STEP_ORDER } from "./config";
 import { providerJurisdictionOptions } from "./countries";
-import { validateCountrySelection } from "@/lib/country-policy";
+import { getActiveCountryPolicy, validateCountrySelection } from "@/lib/country-policy";
+import { activeOffers } from "./state";
 
 function need(missing: string[], label: string, value: unknown) {
   if (value === undefined || value === null || String(value).trim() === "") {
@@ -13,10 +14,17 @@ function offerLabel(o: { family: string; data: Record<string, unknown> }) {
   return FAMILIES[o.family] ?? o.family;
 }
 
+export type StepValidationGroup = {
+  step: number;
+  label: string;
+  missing: string[];
+};
+
 export function validateProviderStep(state: ProviderDraftState, step: number): string[] {
   const missing: string[] = [];
   const c = state.core;
   const allowedCountries = new Set(providerJurisdictionOptions());
+  const offers = activeOffers(state);
 
   if (step === 0) {
     need(missing, "Registered institution name", c.legalName);
@@ -56,12 +64,12 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
     });
   }
 
-  if (step >= 2 && step <= 5 && !state.offers.length) {
+  if (step >= 2 && step <= 5 && !offers.length) {
     missing.push("Select at least one product family.");
   }
 
   if (step === 2) {
-    state.offers.forEach((o) => {
+    offers.forEach((o) => {
       const label = offerLabel(o);
       if (!(o.data.services as string[] | undefined)?.length) {
         missing.push(`${label}: select currently available services or facilities.`);
@@ -83,7 +91,7 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
     const policyConfirmed = state.core.acceptancePolicyConfirmed === true;
     const hasUpload = (state.documents?.length ?? 0) > 0;
     if (!policyConfirmed && !hasUpload) {
-      const manualComplete = state.offers.some((o) => {
+      const manualComplete = offers.some((o) => {
         const industries = o.data.industries as Record<number, string> | undefined;
         return industries && Object.values(industries).some((v) => v !== "unknown");
       });
@@ -94,7 +102,7 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
   }
 
   if (step === 5) {
-    state.offers.forEach((o) => {
+    offers.forEach((o) => {
       const label = offerLabel(o);
       if (!(o.data.onboardingMethods as string[] | undefined)?.length) {
         missing.push(`${label}: select an onboarding method.`);
@@ -123,8 +131,22 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
   return missing;
 }
 
+const VALIDATE_STEPS = [0, 1, 2, 3, 5, 7] as const;
+
 export function validateAllProviderSteps(state: ProviderDraftState): string[] {
-  return [0, 1, 2, 3, 5, 7].flatMap((s) => validateProviderStep(state, s));
+  return VALIDATE_STEPS.flatMap((s) => validateProviderStep(state, s));
+}
+
+/** Group missing fields by questionnaire step for “Complete this section” links. */
+export function validateAllProviderStepsGrouped(state: ProviderDraftState): StepValidationGroup[] {
+  return VALIDATE_STEPS.map((step) => {
+    const idx = STEP_ORDER.indexOf(step as (typeof STEP_ORDER)[number]);
+    return {
+      step,
+      label: STEP_LABELS[idx] ?? `Step ${step}`,
+      missing: validateProviderStep(state, step),
+    };
+  }).filter((g) => g.missing.length > 0);
 }
 
 export function validateCurrentStep(state: ProviderDraftState): string[] {
@@ -133,6 +155,12 @@ export function validateCurrentStep(state: ProviderDraftState): string[] {
 
 export function validateIncorporationCountry(country: string) {
   return validateCountrySelection("group1", country ? [country] : []);
+}
+
+/** Recheck draft when the platform exclusion policy version advances. */
+export function exclusionPolicyNeedsRecheck(state: ProviderDraftState): boolean {
+  const current = getActiveCountryPolicy().version;
+  return typeof state.exclusionPolicyVersion === "number" && state.exclusionPolicyVersion < current;
 }
 
 export function stepIndex(step: number): number {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { PROVIDER_COUNTRIES, STATUS_OPTIONS } from "@/lib/provider-apply/config";
 import { axesForFamily } from "@/lib/provider-apply/geo";
 
@@ -141,16 +142,66 @@ export function StatusMatrix({
   values: Record<number, string>;
   onChange: (index: number, status: string) => void;
 }) {
+  const [query, setQuery] = useState("");
+  const [bulk, setBulk] = useState("unknown");
+  const [prohibitedOnly, setProhibitedOnly] = useState(false);
+
+  const filtered = options
+    .map((label, index) => ({ label, index, status: values[index] ?? "unknown" }))
+    .filter(({ label, status }) => {
+      if (prohibitedOnly && status !== "no") return false;
+      if (!query.trim()) return true;
+      return label.toLowerCase().includes(query.trim().toLowerCase());
+    });
+
+  function applyBulk() {
+    filtered.forEach(({ index }) => onChange(index, bulk));
+  }
+
   return (
     <section className="panel">
       <h2>{title}</h2>
-      {options.map((label, i) => (
+      <div className="grid" style={{ marginBottom: 12 }}>
+        <label className="field">
+          <span>Search activities</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter by activity name"
+          />
+        </label>
+        <label className="field">
+          <span>Bulk status assignment</span>
+          <div className="flex gap-2 items-center">
+            <select value={bulk} onChange={(e) => setBulk(e.target.value)} style={{ flex: 1 }}>
+              {STATUS_OPTIONS.map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="btn mini" onClick={applyBulk}>
+              Apply to visible
+            </button>
+          </div>
+        </label>
+      </div>
+      <label className="checkline" style={{ marginBottom: 12 }}>
+        <input
+          type="checkbox"
+          checked={prohibitedOnly}
+          onChange={(e) => setProhibitedOnly(e.target.checked)}
+        />
+        <span>Prohibited activities (Not supported)</span>
+      </label>
+      {filtered.map(({ label, index, status }) => (
         <div key={label} className="status-row">
           <span>{label}</span>
           <select
             aria-label={`${label} acceptance`}
-            value={values[i] ?? "unknown"}
-            onChange={(e) => onChange(i, e.target.value)}
+            value={status}
+            onChange={(e) => onChange(index, e.target.value)}
           >
             {STATUS_OPTIONS.map(([v, l]) => (
               <option key={v} value={v}>
@@ -160,6 +211,7 @@ export function StatusMatrix({
           </select>
         </div>
       ))}
+      {filtered.length === 0 && <p className="hint">No activities match this filter.</p>}
     </section>
   );
 }
