@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { validatePasswordForRegistration } from "@/lib/password-policy";
+import { PasswordField } from "@/components/PasswordField";
+import { validatePassword } from "@/lib/password-policy";
 
 export default function SignUpForm() {
   const params = useSearchParams();
@@ -15,7 +16,6 @@ export default function SignUpForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
@@ -32,7 +32,7 @@ export default function SignUpForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    const pw = await validatePasswordForRegistration(password);
+    const pw = validatePassword(password);
     if (!pw.ok) {
       setError(pw.message);
       return;
@@ -78,26 +78,13 @@ export default function SignUpForm() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
-          <label className="field">
-            <span>Password</span>
-            <div className="flex gap-2 items-center">
-              <input
-                type={showPassword ? "text" : "password"}
-                required
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ flex: 1 }}
-              />
-              <button type="button" className="btn mini" onClick={() => setShowPassword((v) => !v)}>
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            <small>
-              At least 8 characters with uppercase, lowercase, a number and a symbol. Password managers and pasting are
-              allowed.
-            </small>
-          </label>
+          <PasswordField
+            label="Password"
+            value={password}
+            onChange={setPassword}
+            autoComplete="new-password"
+            showHint
+          />
           <button type="submit" className="btn btn-primary w-full">
             Register
           </button>

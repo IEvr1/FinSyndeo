@@ -46,12 +46,17 @@ export async function PUT(request: Request) {
   if (!membership?.providerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
+  const periods = (body.periods as string[]) ?? ["Monthly"];
+  const scheduled = body.scheduled !== false;
+  const next = new Date();
+  next.setMonth(next.getMonth() + (periods.includes("Monthly") ? 1 : 3));
   const payload = {
-    periods: body.periods ?? ["Monthly"],
-    scheduled: body.scheduled !== false,
+    periods,
+    scheduled,
     email: body.email ?? user.email,
     reportingEnabled: true,
-    nextDelivery: body.nextDelivery ?? null,
+    nextDelivery: scheduled ? next.toISOString().slice(0, 10) : null,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     updatedAt: new Date().toISOString(),
   };
 
@@ -77,4 +82,37 @@ export async function PUT(request: Request) {
   }
 
   return NextResponse.json({ saved: true, ...payload });
+}
+
+export async function POST(request: Request) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const ctx = await loadAuthContext(user);
+  requireRole(ctx, "provider");
+  const membership = ctx.memberships.find((m) => m.role === "provider");
+  if (!membership?.providerId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const body = await request.json();
+  if (!body.from || !body.to) {
+    return NextResponse.json({ error: "Date range required." }, { status: 400 });
+  }
+
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({ requested: true, from: body.from, to: body.to });
+  }
+
+  const db = getDb();
+  const key = `provider_adhoc_report:${membership.providerId}:${body.from}:${body.to}`;
+  await db.insert(schema.platformSettings).values({
+    key,
+    value: {
+      from: body.from,
+      to: body.to,
+      requestedAt: new Date().toISOString(),
+      requestedBy: user.email,
+      status: "queued",
+    },
+  });
+
+  return NextResponse.json({ requested: true });
 }

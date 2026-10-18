@@ -32,12 +32,22 @@ const checks = [
   {
     id: "password-ui",
     name: "Password rules on registration form",
-    ok: hasAll("app/auth/sign-up/SignUpForm.tsx", ["validatePassword", "uppercase"]),
+    ok:
+      hasAll("app/auth/sign-up/SignUpForm.tsx", ["validatePassword", "PasswordField"]) &&
+      hasAll("components/PasswordField.tsx", ["uppercase", "Show", "password managers"]),
   },
   {
     id: "password-api",
     name: "Password rules on sign-up API",
     ok: hasAll("app/api/auth/sign-up/route.ts", ["validatePassword"]),
+  },
+  {
+    id: "password-change-reset",
+    name: "Password change and reset enforce the same rules",
+    ok:
+      hasAll("app/api/auth/change-password/route.ts", ["validatePasswordForRegistration"]) &&
+      hasAll("app/api/auth/reset-password/route.ts", ["validatePasswordForRegistration"]) &&
+      hasAll("app/auth/forgot-password/page.tsx", ["Send reset link"]),
   },
   {
     id: "password-compromised",
@@ -52,7 +62,19 @@ const checks = [
   {
     id: "institution-types",
     name: "Primary institution type ordered list",
-    ok: hasAll("lib/provider-apply/config.ts", ["Commercial bank", "Commercial & private bank", "Lender / financing provider"]),
+    ok: hasAll("lib/provider-apply/config.ts", [
+      "Commercial bank",
+      "Private bank",
+      "Commercial & private bank",
+      "Electronic money institution (EMI)",
+      "Payment institution",
+      "Payment service provider (PSP)",
+      "Money services business (MSB)",
+      "Crypto-asset service provider (CASP)",
+      "Investment firm",
+      "Lender / financing provider",
+      "Other — please specify",
+    ]),
   },
   {
     id: "jurisdiction-hint",
