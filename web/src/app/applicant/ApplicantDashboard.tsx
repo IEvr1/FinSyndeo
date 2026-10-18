@@ -44,7 +44,7 @@ export function ApplicantDashboard() {
         <section className="panel dashboard-continue">
           <h2>Continue your assessment</h2>
           <p>
-            {draft.route} · Last saved {savedLabel}
+            Assessment · {draft.route} · Last saved {savedLabel}
           </p>
           <div className="flex flex-wrap gap-3 mt-3">
             <Link href={`/applicant/questionnaire?applicationId=${draft.id}`} className="btn btn-primary">

@@ -93,6 +93,10 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
     const tax = pickers["pb-tax"] ?? [];
     const residence = String(values["pb-residence"] ?? "");
     const singleNat = nationalities.length === 1 ? nationalities[0] : "";
+    const liveShortcutCountry = String(values["pb-shortcut-live-country"] ?? "");
+    const taxShortcutCountry = String(values["pb-shortcut-tax-country"] ?? "");
+    const liveShortcutActive = liveShortcutCountry !== "" && residence === liveShortcutCountry;
+    const taxShortcutActive = taxShortcutCountry !== "" && tax.includes(taxShortcutCountry);
 
     return (
       <>
@@ -121,16 +125,27 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
           label="Nationality / nationalities"
           required
           value={nationalities}
-          onChange={(next) => onPickerChange("pb-nationality", next)}
+          onChange={(next) => {
+            onPickerChange("pb-nationality", next);
+            if (liveShortcutCountry && (next.length !== 1 || next[0] !== liveShortcutCountry)) {
+              if (residence === liveShortcutCountry) onChange("pb-residence", "");
+              onChange("pb-shortcut-live-country", "");
+            }
+          }}
         />
         {singleNat && (
           <label className="checkline">
             <input
               type="checkbox"
-              checked={residence === singleNat}
+              checked={liveShortcutActive && singleNat === liveShortcutCountry}
               onChange={(e) => {
-                if (e.target.checked) onChange("pb-residence", singleNat);
-                else if (residence === singleNat) onChange("pb-residence", "");
+                if (e.target.checked) {
+                  onChange("pb-residence", singleNat);
+                  onChange("pb-shortcut-live-country", singleNat);
+                } else {
+                  if (residence === liveShortcutCountry) onChange("pb-residence", "");
+                  onChange("pb-shortcut-live-country", "");
+                }
               }}
             />
             <span>I also live in {singleNat}.</span>
@@ -141,18 +156,38 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
           label="Country of residence"
           required
           value={residence}
-          onChange={(v) => onChange("pb-residence", v)}
+          onChange={(v) => {
+            onChange("pb-residence", v);
+            if (liveShortcutCountry && v !== liveShortcutCountry) {
+              onChange("pb-shortcut-live-country", "");
+            }
+            if (taxShortcutCountry && taxShortcutCountry !== v) {
+              if (tax.includes(taxShortcutCountry)) {
+                onPickerChange(
+                  "pb-tax",
+                  tax.filter((c) => c !== taxShortcutCountry)
+                );
+              }
+              onChange("pb-shortcut-tax-country", "");
+            }
+          }}
         />
         {residence && (
           <label className="checkline">
             <input
               type="checkbox"
-              checked={tax.includes(residence)}
+              checked={taxShortcutActive && taxShortcutCountry === residence}
               onChange={(e) => {
-                const next = e.target.checked
-                  ? [...new Set([...tax, residence])].sort()
-                  : tax.filter((c) => c !== residence);
-                onPickerChange("pb-tax", next);
+                if (e.target.checked) {
+                  onPickerChange("pb-tax", [...new Set([...tax, residence])].sort());
+                  onChange("pb-shortcut-tax-country", residence);
+                } else {
+                  onPickerChange(
+                    "pb-tax",
+                    tax.filter((c) => c !== taxShortcutCountry)
+                  );
+                  onChange("pb-shortcut-tax-country", "");
+                }
               }}
             />
             <span>I am also tax resident in {residence}.</span>
@@ -163,7 +198,12 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
           label="Country / countries of tax residence"
           required
           value={tax}
-          onChange={(next) => onPickerChange("pb-tax", next)}
+          onChange={(next) => {
+            onPickerChange("pb-tax", next);
+            if (taxShortcutCountry && !next.includes(taxShortcutCountry)) {
+              onChange("pb-shortcut-tax-country", "");
+            }
+          }}
         />
         <p className="text-sm text-[var(--muted)]">Select all countries where you are tax resident.</p>
       </>
@@ -200,7 +240,7 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="field">
-            <span>Amount you expect to place with the bank</span>
+            <span>Amount you expect to place with the bank — EUR equivalent</span>
             <input
               type="number"
               min={0}
@@ -228,7 +268,7 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
                   <input type="checkbox" checked={on} onChange={(e) => onChange(currKey(code), e.target.checked)} />
                   <span>{code}</span>
                 </label>
-                {on && code !== "Other" && (
+                {on && (
                   <LevelToggle
                     name={`curr-${code}`}
                     value={String(values[currLevelKey(code)] ?? "preferred")}
@@ -247,12 +287,17 @@ export function PrivateBankingSteps({ step, values, pickers, onChange, onPickerC
         )}
         <label className="field">
           <span>Preferred relationship-manager language <small>(optional)</small></span>
-          <select value={lang} onChange={(e) => onChange("pb-language", e.target.value)}>
-            <option value="">Select…</option>
+          <input
+            list="pb-language-list"
+            value={lang}
+            onChange={(e) => onChange("pb-language", e.target.value)}
+            placeholder="Search languages…"
+          />
+          <datalist id="pb-language-list">
             {PB_LANGUAGES.map((l) => (
-              <option key={l} value={l}>{l}</option>
+              <option key={l} value={l} />
             ))}
-          </select>
+          </datalist>
         </label>
         {lang && (
           <LevelToggle

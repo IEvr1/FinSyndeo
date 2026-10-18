@@ -40,7 +40,7 @@ export async function patchDraft(
   const hash = createHash("sha256").update(JSON.stringify(typedData)).digest("hex");
   await db
     .update(schema.assessmentRevisions)
-    .set({ typedData })
+    .set({ typedData, contentHash: hash })
     .where(eq(schema.assessmentRevisions.id, current.id));
 
   await db

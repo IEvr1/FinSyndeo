@@ -3,9 +3,11 @@ import {
   PB_SERVICES,
   PB_WEALTH_SOURCES,
   PB_FUND_SOURCES,
+  PB_TRANSFER_PURPOSES,
   svcKey,
   wealthKey,
   fundKey,
+  purposeKey,
 } from "./private-banking-config";
 import type { CountryPickers, QuestionnaireValues } from "./types";
 
@@ -99,19 +101,24 @@ export function validatePrivateBankingStep(
     if (regular === "Yes") {
       const dir = str(values["pb-transfer-direction"]);
       if (!dir) return "Please select incoming, outgoing or both.";
-      if (dir.includes("incoming") || dir === "Both") {
+      if (dir === "Incoming" || dir === "Both") {
         if (!(pickers["pb-incoming"]?.length ?? 0)) return "Please select incoming countries.";
         if (!str(values["pb-in-count"]) || !str(values["pb-in-amount"])) {
           return "Please enter expected incoming transactions and amount per month.";
         }
       }
-      if (dir.includes("outgoing") || dir === "Both") {
+      if (dir === "Outgoing" || dir === "Both") {
         if (!(pickers["pb-outgoing"]?.length ?? 0)) return "Please select outgoing countries.";
         if (!str(values["pb-out-count"]) || !str(values["pb-out-amount"])) {
           return "Please enter expected outgoing transactions and amount per month.";
         }
       }
       if (!str(values["pb-report-currency"])) return "Please select the reporting currency for monthly amounts.";
+      const anyPurpose = PB_TRANSFER_PURPOSES.some((p) => bool(values[purposeKey(p)]));
+      if (!anyPurpose) return "Please select at least one purpose of regular transfers.";
+      if (bool(values[purposeKey("Other")]) && !str(values["pb-purpose-other"])) {
+        return "Please specify the other purpose of regular transfers.";
+      }
     }
     return null;
   }

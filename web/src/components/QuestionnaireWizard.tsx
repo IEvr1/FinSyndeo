@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ApplicantRouteSelector } from "@/components/questionnaire/ApplicantRouteSelector";
 import { PrivateBankingSteps } from "@/components/questionnaire/private-banking/PrivateBankingSteps";
 import { PrivateBankingSummary } from "@/components/questionnaire/private-banking/PrivateBankingSummary";
@@ -29,9 +29,10 @@ type Draft = {
   page: number;
   values: QuestionnaireValues;
   pickers: CountryPickers;
+  applicationId?: string;
 };
 
-function loadDraft(): Draft | null {
+function loadLocalDraft(): Draft | null {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return null;
@@ -42,12 +43,18 @@ function loadDraft(): Draft | null {
   }
 }
 
-function saveDraft(draft: Draft) {
+function saveLocalDraft(draft: Draft) {
   try {
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   } catch {
     /* ignore */
   }
+}
+
+function wizardPayload(page: number, values: QuestionnaireValues, pickers: CountryPickers) {
+  return {
+    wizardDraft: { version: 1 as const, page, values, pickers },
+  };
 }
 
 function contactValid(values: QuestionnaireValues, personal: boolean): string | null {
@@ -125,34 +132,157 @@ function validateStepFields(
   return null;
 }
 
-type WizardProps = { showPageHeader?: boolean };
+type WizardProps = { showPageHeader?: boolean; guidedMode?: boolean };
 
-export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
+export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlAppId = searchParams.get("applicationId");
   const [page, setPage] = useState(0);
   const [values, setValues] = useState<QuestionnaireValues>({});
   const [pickers, setPickers] = useState<CountryPickers>({});
   const [error, setError] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [applicationId, setApplicationId] = useState<string | null>(urlAppId);
+  const [contentHash, setContentHash] = useState<string | undefined>();
+  const [serverSaved, setServerSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const creatingRef = useRef(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const draft = loadDraft();
-    if (draft) {
-      setPage(draft.page);
-      setValues(draft.values);
-      setPickers(draft.pickers);
+    let cancelled = false;
+    async function hydrate() {
+      if (urlAppId) {
+        try {
+          const res = await fetch(`/api/applications/${urlAppId}`);
+          const data = await res.json();
+          if (res.ok && data.revision?.typedData?.wizardDraft) {
+            const wd = data.revision.typedData.wizardDraft as Draft;
+            if (!cancelled) {
+              setPage(wd.page ?? 0);
+              setValues(wd.values ?? {});
+              setPickers(wd.pickers ?? {});
+              setApplicationId(urlAppId);
+              setContentHash(data.revision.contentHash);
+              setServerSaved(true);
+              setHydrated(true);
+              return;
+            }
+          }
+        } catch {
+          /* fall through to local */
+        }
+      }
+      const draft = loadLocalDraft();
+      if (!cancelled && draft) {
+        setPage(draft.page);
+        setValues(draft.values);
+        setPickers(draft.pickers);
+        if (draft.applicationId) setApplicationId(draft.applicationId);
+      }
+      if (!cancelled) {
+        // Prefill contact email from session when empty
+        try {
+          const me = await fetch("/api/auth/session");
+          if (me.ok) {
+            const session = await me.json();
+            if (session?.user?.email) {
+              setValues((prev) =>
+                prev["pb-email"] ? prev : { ...prev, "pb-email": session.user.email }
+              );
+            }
+          }
+        } catch {
+          /* optional */
+        }
+        setHydrated(true);
+      }
     }
-    setHydrated(true);
-  }, []);
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [urlAppId]);
 
   const flow = useMemo(() => getQuestionnaireFlow(values), [values]);
   const route = useMemo(() => resolveDictionaryRoute(values), [values]);
   const personal = isPersonalFlow(values);
 
+  const persistServer = useCallback(
+    async (draft: Draft, appId: string, hash?: string) => {
+      const res = await fetch(`/api/applications/${appId}/draft`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          typedData: wizardPayload(draft.page, draft.values, draft.pickers),
+          contentHash: hash,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveError(data.error ?? "Could not save progress.");
+        setServerSaved(false);
+        return;
+      }
+      setContentHash(data.contentHash);
+      setServerSaved(true);
+      setSaveError("");
+    },
+    []
+  );
+
+  const ensureApplication = useCallback(
+    async (draft: Draft): Promise<string | null> => {
+      if (applicationId) return applicationId;
+      if (creatingRef.current) return null;
+      creatingRef.current = true;
+      try {
+        const res = await fetch("/api/applications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            route: apiRouteFromValues(draft.values) || "bank",
+            typedData: wizardPayload(draft.page, draft.values, draft.pickers),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setSaveError(data.error ?? "Could not create draft assessment.");
+          return null;
+        }
+        const id = data.application.id as string;
+        setApplicationId(id);
+        setContentHash(data.revision?.contentHash);
+        setServerSaved(true);
+        if (typeof window !== "undefined") {
+          const url = new URL(window.location.href);
+          url.searchParams.set("applicationId", id);
+          window.history.replaceState({}, "", url.toString());
+        }
+        return id;
+      } finally {
+        creatingRef.current = false;
+      }
+    },
+    [applicationId]
+  );
+
   useEffect(() => {
-    if (!hydrated) return;
-    saveDraft({ version: 1, page, values, pickers });
-  }, [hydrated, page, values, pickers]);
+    if (!hydrated || page === 0) return;
+    const draft: Draft = { version: 1, page, values, pickers, applicationId: applicationId ?? undefined };
+    saveLocalDraft(draft);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      void (async () => {
+        const id = await ensureApplication(draft);
+        if (id) await persistServer(draft, id, contentHash);
+      })();
+    }, 600);
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [hydrated, page, values, pickers, applicationId, contentHash, ensureApplication, persistServer]);
 
   useEffect(() => {
     if (!flow.includes(page)) {
@@ -163,6 +293,17 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
   const setValue = useCallback((key: string, value: FieldValue) => {
     setValues((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+  function changeApplicantType() {
+    setValues((prev) => {
+      const next = { ...prev };
+      delete next.applicant;
+      delete next["account-type"];
+      return next;
+    });
+    setPage(1);
+    setServerSaved(false);
+  }
 
   const pos = flow.indexOf(page);
   const prevPage = pos > 0 ? flow[pos - 1] : null;
@@ -206,16 +347,31 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
 
     const typedData = buildTypedData(values, pickers);
     const apiRoute = apiRouteFromValues(values);
+    let appId = applicationId;
 
-    const res = await fetch("/api/applications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ route: apiRoute, typedData }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error ?? "Failed to save.");
-      return;
+    if (appId) {
+      const patchRes = await fetch(`/api/applications/${appId}/draft`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ typedData, contentHash }),
+      });
+      if (!patchRes.ok) {
+        const data = await patchRes.json();
+        setError(data.error ?? "Failed to save.");
+        return;
+      }
+    } else {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ route: apiRoute, typedData }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Failed to save.");
+        return;
+      }
+      appId = data.application.id as string;
     }
 
     try {
@@ -224,14 +380,14 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
       /* ignore */
     }
 
-    const confirmRes = await fetch(`/api/applications/${data.application.id}/revisions`, {
+    const confirmRes = await fetch(`/api/applications/${appId}/revisions`, {
       method: "POST",
     });
     if (!confirmRes.ok) {
       router.push("/applicant/assessments");
       return;
     }
-    router.push(`/applicant/results?id=${data.application.id}`);
+    router.push(`/applicant/results?id=${appId}`);
   }
 
   const renderables = page === 40 ? [] : buildRenderableStep(route, page);
@@ -239,7 +395,7 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
   function clearDraft() {
     if (
       !confirm(
-        "Discard this draft? Answers for this assessment will be deleted from this device. Other assessments and your profile are not affected."
+        "Discard this draft? Answers for this assessment will be deleted. Other assessments and your profile are not affected."
       )
     ) {
       return;
@@ -253,6 +409,14 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
     setPickers({});
     setPage(0);
     setError("");
+    setApplicationId(null);
+    setContentHash(undefined);
+    setServerSaved(false);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("applicationId");
+      window.history.replaceState({}, "", url.toString());
+    }
   }
 
   const applicantKind = String(values.applicant ?? "");
@@ -262,14 +426,20 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
     <div>
       {showPageHeader && page === 0 && (
         <>
-          <p className="eyebrow">Questionnaire</p>
+          <p className="eyebrow">{guidedMode ? "AI-guided assessment" : "Questionnaire"}</p>
           <h1>Start your assessment</h1>
           <p className="lead">Tell us what you need. You can save your progress and return later.</p>
+          {guidedMode && (
+            <p className="text-sm text-[var(--muted)]">
+              Typed guidance: answer one step at a time. The same questions, validation and saved assessment are used
+              as the questionnaire route.
+            </p>
+          )}
         </>
       )}
       {hydrated && page > 0 && (
         <div className="draft-state mb-4 text-sm text-[var(--muted)]">
-          Progress saved.{" "}
+          {serverSaved ? "Progress saved. " : saveError ? `${saveError} ` : "Saving progress… "}
           <button type="button" className="link-btn" onClick={clearDraft}>
             Discard this draft
           </button>
@@ -312,7 +482,7 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
             />
             <span>
               I have read the{" "}
-              <Link href="/applicant/privacy" target="_blank" rel="noopener noreferrer">
+              <Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">
                 Privacy Notice
               </Link>
               .
@@ -332,13 +502,20 @@ export function QuestionnaireWizard({ showPageHeader }: WizardProps = {}) {
             />
           )}
           {personal && [20, 21, 22, 23].includes(page) && (
-            <PrivateBankingSteps
-              step={page}
-              values={values}
-              pickers={pickers}
-              onChange={setValue}
-              onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
-            />
+            <>
+              <PrivateBankingSteps
+                step={page}
+                values={values}
+                pickers={pickers}
+                onChange={setValue}
+                onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
+              />
+              <p className="text-sm text-[var(--muted)] mt-4">
+                <button type="button" className="link-btn" onClick={changeApplicantType}>
+                  Change applicant type
+                </button>
+              </p>
+            </>
           )}
           {!(personal && [1, 20, 21, 22, 23].includes(page)) &&
             renderables
