@@ -34,11 +34,37 @@ export const EU = [
 
 export const STATUS_OPTIONS: Array<[string, string]> = [
   ["unknown", "Not confirmed"],
-  ["yes", "Supported"],
-  ["edd", "Supported with enhanced due diligence"],
-  ["review", "Case-by-case"],
-  ["no", "Not supported"],
+  ["yes", "Accepted"],
+  ["review", "Restricted / conditional"],
+  ["edd", "Restricted / conditional (enhanced due diligence)"],
+  ["no", "Prohibited"],
 ];
+
+/** Stable payment-route catalogue (currency + rail). Currency alone does not imply a route. */
+export const PAYMENT_ROUTES: Array<{ id: string; currency: string; label: string }> = [
+  { id: "eur_sepa", currency: "EUR", label: "EUR SEPA credit transfers" },
+  { id: "eur_sepa_instant", currency: "EUR", label: "EUR SEPA Instant" },
+  { id: "eur_swift", currency: "EUR", label: "EUR international transfers via SWIFT" },
+  { id: "eur_target", currency: "EUR", label: "EUR payments through TARGET / T2" },
+  { id: "gbp_fps", currency: "GBP", label: "GBP Faster Payments (FPS)" },
+  { id: "gbp_chaps", currency: "GBP", label: "GBP CHAPS" },
+  { id: "gbp_swift", currency: "GBP", label: "GBP SWIFT" },
+  { id: "usd_ach", currency: "USD", label: "USD ACH" },
+  { id: "usd_fedwire", currency: "USD", label: "USD Fedwire" },
+  { id: "usd_swift", currency: "USD", label: "USD SWIFT" },
+];
+
+export const BANK_ACCOUNT_OFFERINGS = [
+  "Operating / commercial bank accounts",
+  "Dedicated client-funds / safeguarding accounts",
+] as const;
+
+export const AGREEMENT_STATUS_OPTIONS = [
+  "Signed and current",
+  "Signed — status needs confirmation",
+  "In progress",
+  "Not yet arranged",
+] as const;
 
 export const FAMILIES: Record<string, string> = {
   bank: "Business bank accounts",
@@ -73,6 +99,8 @@ export const MERCHANT_CRYPTO_SERVICES = [
 
 export const SERVICES: Record<string, string[]> = {
   bank: [
+    "Operating / commercial bank accounts",
+    "Dedicated client-funds / safeguarding accounts",
     "Fixed-term deposits",
     "Automated payroll / bulk salary payments",
     "Overdraft facilities",
@@ -110,6 +138,7 @@ export const SERVICES: Record<string, string[]> = {
     "Equipment finance / leasing",
     "Property finance",
     "Project finance",
+    "Maritime / vessel finance",
     "Trade finance",
     "Letters of credit (LCs)",
     "Letters of guarantee (LGs)",
@@ -124,6 +153,7 @@ export const SERVICES: Record<string, string[]> = {
     "Accounts for receiving and sending payments on behalf of clients",
     "Accounts for holding client funds",
     "Accounts specifically for safeguarding the applicant's client funds",
+    "Banking as a Service (BaaS)",
     "Dedicated virtual IBANs for underlying clients",
     "API connectivity",
     "Bulk payments",
@@ -133,6 +163,9 @@ export const SERVICES: Record<string, string[]> = {
     "Other — please specify",
   ],
 };
+
+export const BAAS_DESCRIPTION =
+  "Banking or payment capabilities supplied to other businesses through an integration or platform. BaaS is not synonymous with a correspondent account and does not automatically include SWIFT, SEPA, cards or third-party fund holding.";
 
 export const CURRENCY_OPTIONS = ["EUR", "GBP", "USD", "CHF", "Other"];
 
@@ -238,7 +271,7 @@ export const STEP_LABELS = [
   "Authorisation",
   "Products",
   "Eligibility",
-  "Product terms",
+  "Payments & onboarding",
   "Partnership",
   "Review",
 ] as const;
@@ -248,7 +281,7 @@ export const STEP_TITLES = [
   "Authorisation & operating entities",
   "What can you offer?",
   "Which clients can you support?",
-  "Product terms & onboarding",
+  "Payments, limits & onboarding",
   "Working with SOPHIMA",
   "Review your provider profile",
 ] as const;
@@ -257,8 +290,8 @@ export const STEP_LEADS = [
   "Help SOPHIMA understand your institution and verify the referral relationship.",
   "Identify the current authorisations supporting your products.",
   "Enter common details once. Separate products where eligibility or terms differ.",
-  "Record your current acceptance policy for this product.",
-  "Only the questions relevant to the selected product appear.",
+  "Record one shared industry and country acceptance policy for the selected services.",
+  "Enter common onboarding and payment limits once across selected account services.",
   "Define the referral process, benefits and confirmations.",
   "Confirm or edit your information before SOPHIMA review.",
 ] as const;

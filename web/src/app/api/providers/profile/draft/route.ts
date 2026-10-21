@@ -62,6 +62,18 @@ export async function PUT(request: Request) {
   if (!provider) return NextResponse.json({ error: "Provider not found." }, { status: 404 });
 
   const submitForReview = body.submitForReview === true;
+  if (submitForReview && !provider.agreementSigned) {
+    const wizardAgreementVerified = wizardState?.core?.agreementVerifiedBySophima === true;
+    if (!wizardAgreementVerified) {
+      return NextResponse.json(
+        {
+          error:
+            "Submission requires a current referral agreement verified by SOPHIMA. Self-declared agreement status is not sufficient.",
+        },
+        { status: 400 }
+      );
+    }
+  }
   const mergedProfile = body.profileData
     ? {
         ...body.profileData,
