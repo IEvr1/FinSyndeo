@@ -96,6 +96,9 @@ export async function POST(request: Request) {
   if (!body.from || !body.to) {
     return NextResponse.json({ error: "Date range required." }, { status: 400 });
   }
+  if (String(body.from) > String(body.to)) {
+    return NextResponse.json({ error: "The from date must be on or before the to date." }, { status: 400 });
+  }
 
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ requested: true, from: body.from, to: body.to });

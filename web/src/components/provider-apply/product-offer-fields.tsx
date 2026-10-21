@@ -7,6 +7,7 @@ import {
   FieldTextarea,
 } from "@/components/provider-apply/form-controls";
 import {
+  BAAS_DESCRIPTION,
   CORPORATE_ACCOUNT_AVAILABILITY,
   CURRENCY_OPTIONS,
   FAMILIES,
@@ -114,6 +115,24 @@ export function ProductOfferFields({ offer: o, setState, patchOffer }: Props) {
           onChange={(v) => setState((s) => patchOffer(s, o.id, { servicesOther: v }))}
         />
       )}
+
+      {o.family === "correspondent" && services.includes("Banking as a Service (BaaS)") && (
+        <div className="notice">
+          <strong>Banking as a Service (BaaS)</strong>
+          <p className="hint" style={{ marginBottom: 0 }}>
+            {BAAS_DESCRIPTION}
+          </p>
+        </div>
+      )}
+
+      {o.family === "bank" &&
+        services.includes("Dedicated client-funds / safeguarding accounts") &&
+        !services.includes("Operating / commercial bank accounts") && (
+          <p className="hint">
+            Dedicated client-funds support is declared separately from operating accounts and is not implied by
+            operating-account acceptance.
+          </p>
+        )}
 
       {showCorporateUbo && (
         <>

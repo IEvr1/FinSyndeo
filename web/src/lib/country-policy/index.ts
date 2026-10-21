@@ -30,8 +30,11 @@ export function getAllCountries(): string[] {
   return countries as string[];
 }
 
+/** Pseudo-regions removed from the country catalogue (P01). */
+const NON_COUNTRY_LABELS = new Set(["Caribbean", "World"]);
+
 export function getSelectableCountries(group: CountryPolicyGroup): string[] {
-  const all = getAllCountries();
+  const all = getAllCountries().filter((c) => !NON_COUNTRY_LABELS.has(c));
   if (group === "group2") {
     return all;
   }

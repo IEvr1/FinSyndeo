@@ -62,6 +62,10 @@ export default function ProviderPreferencesPage() {
       setAdHocMessage("Select a from and to date.");
       return;
     }
+    if (adHocFrom > adHocTo) {
+      setAdHocMessage("The from date must be on or before the to date.");
+      return;
+    }
     const res = await fetch("/api/providers/reporting-preferences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -89,7 +89,14 @@ export default function ProviderPrivacyPage() {
       <section className="panel">
         <h2>Privacy &amp; personal data</h2>
         <p>
-          <Link href="/provider/privacy">Privacy Notice</Link> and retention policy.
+          <Link href="/legal/privacy" target="_blank" rel="noopener noreferrer">
+            Privacy Notice
+          </Link>
+          {" and "}
+          <Link href="/legal/retention" target="_blank" rel="noopener noreferrer">
+            retention policy
+          </Link>
+          .
         </p>
         <div className="flex flex-wrap gap-3 mt-3">
           <button type="button" className="btn" onClick={() => submitRequest("export_personal_data")}>

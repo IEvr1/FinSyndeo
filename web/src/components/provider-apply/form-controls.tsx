@@ -193,7 +193,7 @@ export function StatusMatrix({
           checked={prohibitedOnly}
           onChange={(e) => setProhibitedOnly(e.target.checked)}
         />
-        <span>Prohibited activities (Not supported)</span>
+        <span>Prohibited activities</span>
       </label>
       {filtered.map(({ label, index, status }) => (
         <div key={label} className="status-row">

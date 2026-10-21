@@ -43,24 +43,28 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
     if (c.founded && (!Number.isInteger(year) || year < 1800 || year > new Date().getFullYear())) {
       missing.push("Enter a valid operating year.");
     }
+    need(missing, "Referral agreement status", c.agreement);
+    if (!isAgreementVerified(state)) {
+      missing.push(
+        "Continue, submission and matching require a current referral agreement verified by SOPHIMA. Self-declared “Signed and current” is not verification."
+      );
+    }
   }
 
   if (step === 1) {
     state.licenses.forEach((l, i) => {
       const d = l.data;
       need(missing, `Authorisation ${i + 1}: regulatory status`, d.status);
-      need(missing, `Authorisation ${i + 1}: legal holder`, d.holder);
+      need(missing, `Authorisation ${i + 1}: licence / registration type`, d.licenceType);
       need(missing, `Authorisation ${i + 1}: jurisdiction`, d.country);
       if (d.country && !allowedCountries.has(String(d.country))) {
         missing.push(`Authorisation ${i + 1}: jurisdiction is not accepted.`);
       }
-      need(missing, `Authorisation ${i + 1}: permitted activities`, d.scope);
+      // Permitted activities / scope remain OPTIONAL (P03).
       if (d.status !== "No authorisation required — explain") {
         need(missing, `Authorisation ${i + 1}: regulator`, d.authority);
       }
-      if (!["No authorisation required — explain", "Application pending"].includes(String(d.status))) {
-        need(missing, `Authorisation ${i + 1}: reference number`, d.number);
-      }
+      // Licence / registration reference removed from active validation (P03).
     });
   }
 
@@ -102,17 +106,19 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
   }
 
   if (step === 5) {
-    offers.forEach((o) => {
-      const label = offerLabel(o);
-      if (!(o.data.onboardingMethods as string[] | undefined)?.length) {
-        missing.push(`${label}: select an onboarding method.`);
+    if (!offers.length) {
+      missing.push("Select your services in Products to complete this section.");
+    } else {
+      const sharedMethods = c.sharedOnboardingMethods as string[] | undefined;
+      if (!sharedMethods?.length) {
+        missing.push("Select at least one common onboarding method.");
       }
-      const inc = o.data.maxIncoming;
-      const out = o.data.maxOutgoing;
-      if ((inc || out) && !o.data.limitCurrency) {
-        missing.push(`${label}: currency for monthly amount limits.`);
+      const inc = c.sharedMaxIncoming;
+      const out = c.sharedMaxOutgoing;
+      if ((inc || out) && !c.sharedLimitCurrency) {
+        missing.push("Currency for shared monthly amount limits.");
       }
-    });
+    }
   }
 
   if (step === 7) {
@@ -123,6 +129,13 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
     const methods = c.referralMethods as string[] | undefined;
     if (!methods?.length) {
       missing.push("Accepted referral methods.");
+    }
+    if (methods?.includes("Provider pre-approval form")) {
+      const hasFile = Boolean(c.preApprovalFileName);
+      const hasLink = Boolean(String(c.preApprovalFormLink ?? "").trim());
+      if (!hasFile && !hasLink) {
+        missing.push("Upload the provider pre-approval form or provide the authorised form link.");
+      }
     }
     if (!c.authority) missing.push("Confirm your authority to act.");
     if (!c.accuracy) missing.push("Confirm accuracy and policy updates.");
@@ -161,6 +174,28 @@ export function validateIncorporationCountry(country: string) {
 export function exclusionPolicyNeedsRecheck(state: ProviderDraftState): boolean {
   const current = getActiveCountryPolicy().version;
   return typeof state.exclusionPolicyVersion === "number" && state.exclusionPolicyVersion < current;
+}
+
+/** P02: self-declared agreement status is not verification. */
+export function isAgreementVerified(state: ProviderDraftState): boolean {
+  return state.core.agreementVerifiedBySophima === true;
+}
+
+export function agreementGateMessage(state: ProviderDraftState): string {
+  if (isAgreementVerified(state)) {
+    return "Referral agreement verified by SOPHIMA — you may continue.";
+  }
+  const status = String(state.core.agreement ?? "");
+  if (!status || status === "Not yet arranged") {
+    return "Missing agreement: arrange a referral agreement with SOPHIMA. Draft answers on this step can be saved, but Continue, submission, publication and matching stay blocked until verification.";
+  }
+  if (status === "In progress") {
+    return "Agreement in progress: SOPHIMA must complete verification before you can continue beyond Institution.";
+  }
+  if (status === "Signed — status needs confirmation" || status === "Signed and current") {
+    return "Unverified agreement: selecting “Signed and current” is not verification. SOPHIMA must confirm a current signed agreement before Continue, submission or matching.";
+  }
+  return "Referral agreement not verified by SOPHIMA.";
 }
 
 export function stepIndex(step: number): number {

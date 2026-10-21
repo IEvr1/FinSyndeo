@@ -11,11 +11,13 @@ import {
 import { ProductOfferFields } from "@/components/provider-apply/product-offer-fields";
 import { ProductTermsFields } from "@/components/provider-apply/product-terms-fields";
 import {
+  AGREEMENT_STATUS_OPTIONS,
   ENTITY_TYPES,
   FAMILIES,
   FAMILY_ORDER,
   INDUSTRIES,
   INSTITUTION_TYPES,
+  PAYMENT_ROUTES,
   REFERRAL_ATTRIBUTION,
   REFERRAL_METHODS,
 } from "@/lib/provider-apply/config";
@@ -23,6 +25,8 @@ import { providerJurisdictionOptions } from "@/lib/provider-apply/countries";
 import { axesForFamily } from "@/lib/provider-apply/geo";
 import { activeOffers, currentOffer, isOfferActive, toggleProductFamily } from "@/lib/provider-apply/state";
 import type { ProviderDraftState, ProviderOffer } from "@/lib/provider-apply/types";
+import { agreementGateMessage, isAgreementVerified } from "@/lib/provider-apply/validation";
+import Link from "next/link";
 
 type Props = {
   state: ProviderDraftState;
@@ -63,9 +67,9 @@ function orderedOffers(state: ProviderDraftState) {
 }
 
 const JURISDICTION_HINT =
-  "If your authorisation jurisdiction is not listed, we currently do not accept authorisations issued in that jurisdiction.";
+  "If your jurisdiction is not listed, FinSyndeo cannot currently accept a provider from that jurisdiction.";
 const INCORPORATION_HINT =
-  "If your country is not listed, we currently do not accept providers incorporated in that jurisdiction.";
+  "If your jurisdiction is not listed, FinSyndeo cannot currently accept a provider from that jurisdiction.";
 
 export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
   const step = state.step;
@@ -146,22 +150,22 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
           <FieldSelect
             label="Referral agreement with SOPHIMA"
             value={str(state.core.agreement)}
-            options={[
-              "Signed and current",
-              "Signed — status needs confirmation",
-              "In progress",
-              "Not yet arranged",
-            ]}
+            options={[...AGREEMENT_STATUS_OPTIONS]}
+            required
             onChange={(v) => setState((s) => patchCore(s, "agreement", v))}
           />
           <FieldInput
-            label="Agreement reference or date, if known"
+            label="Agreement reference or date (optional)"
             value={str(state.core.agreementRef)}
             onChange={(v) => setState((s) => patchCore(s, "agreementRef", v))}
           />
-          <p className="hint">
-            You can prepare your profile now. Listing requires a current signed referral agreement verified by SOPHIMA.
-          </p>
+          <div className={`notice ${isAgreementVerified(state) ? "" : "notice-error"}`} role="status">
+            <strong>Verification status: </strong>
+            {isAgreementVerified(state) ? "Verified by SOPHIMA" : "Not verified"}
+            <p className="hint" style={{ marginBottom: 0 }}>
+              {agreementGateMessage(state)}
+            </p>
+          </div>
         </section>
       </>
     );
@@ -200,14 +204,15 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                   }
                 />
                 <FieldInput
-                  label="Legal name of licence / registration holder"
-                  value={str(lic.data.holder)}
+                  label="Licence / registration type"
+                  value={str(lic.data.licenceType)}
                   required
+                  placeholder="e.g. banking licence, EMI authorisation, MSB registration"
                   onChange={(v) =>
                     setState((s) => ({
                       ...s,
                       licenses: s.licenses.map((l) =>
-                        l.id === lic.id ? { ...l, data: { ...l.data, holder: v } } : l
+                        l.id === lic.id ? { ...l, data: { ...l.data, licenceType: v } } : l
                       ),
                     }))
                   }
@@ -243,19 +248,10 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                   <p className="field-hint-block">{JURISDICTION_HINT}</p>
                 </div>
               </div>
-              <FieldInput
-                label="Licence / registration / notification reference"
-                value={str(lic.data.number)}
-                required={!!showRegister}
-                onChange={(v) =>
-                  setState((s) => ({
-                    ...s,
-                    licenses: s.licenses.map((l) =>
-                      l.id === lic.id ? { ...l, data: { ...l.data, number: v } } : l
-                    ),
-                  }))
-                }
-              />
+              <p className="hint">
+                Proposed licence holder: <strong>{str(state.core.legalName) || "institution legal name"}</strong>. If
+                another entity holds the authorisation, SOPHIMA must resolve that relationship before approval.
+              </p>
               {showRegister && (
                 <FieldInput
                   label="Link to your regulatory register entry (optional)"
@@ -271,9 +267,8 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                 />
               )}
               <FieldTextarea
-                label="Permitted activities / authorisation scope"
+                label="Permitted activities / authorisation scope (optional)"
                 value={str(lic.data.scope)}
-                required
                 onChange={(v) =>
                   setState((s) => ({
                     ...s,
@@ -341,16 +336,56 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
   }
 
   if (step === 3) {
-    const axis =
-      o?.axis ?? axesForFamily(activeOffers(state)[0]?.family ?? "bank")[0]?.[0] ?? "incorporation";
+    const sharedIndustries =
+      (state.core.sharedIndustries as Record<number, string> | undefined) ??
+      (activeOffers(state)[0]?.data.industries as Record<number, string> | undefined) ??
+      {};
+    const sharedEntities =
+      (state.core.sharedEntities as Record<number, string> | undefined) ??
+      (activeOffers(state).find((x) => x.family !== "private")?.data.entities as
+        | Record<number, string>
+        | undefined) ??
+      {};
+    const sharedGeo =
+      (state.core.sharedGeo as ProviderOffer["geo"]) ??
+      activeOffers(state)[0]?.geo ??
+      {};
+    const sharedAxis =
+      str(state.core.sharedGeoAxis) ||
+      o?.axis ||
+      axesForFamily(activeOffers(state)[0]?.family ?? "bank")[0]?.[0] ||
+      "incorporation";
+    const familyNames = orderedOffers(state)
+      .map((x) => FAMILIES[x.family])
+      .join(", ");
+
+    function setSharedIndustries(next: Record<number, string>) {
+      setState((s) => {
+        let nextState = patchCore(s, "sharedIndustries", next);
+        for (const offerRow of activeOffers(nextState)) {
+          nextState = patchOffer(nextState, offerRow.id, { industries: next });
+        }
+        return nextState;
+      });
+    }
+
+    function setSharedEntities(next: Record<number, string>) {
+      setState((s) => {
+        let nextState = patchCore(s, "sharedEntities", next);
+        for (const offerRow of activeOffers(nextState).filter((x) => x.family !== "private")) {
+          nextState = patchOffer(nextState, offerRow.id, { entities: next });
+        }
+        return nextState;
+      });
+    }
 
     return (
       <>
         <section className="panel">
           <h2>Upload your country acceptance policy</h2>
           <p className="hint">
-            Upload PDF, Word, Excel or CSV files describing accepted or prohibited countries and customer acceptance
-            rules. Documents remain confidential to SOPHIMA and are not shared with applicants.
+            One shared country and industry policy applies to {familyNames || "your selected services"}. Upload PDF,
+            Word, Excel or CSV files, or enter rules manually. Documents remain confidential to SOPHIMA.
           </p>
           <label className="field">
             <span>Policy documents</span>
@@ -378,12 +413,17 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                     const extracted = await res.json();
                     setState((s) => {
                       let next = patchCore(s, "policyExtraction", extracted);
-                      if (extracted.industryHints && s.offers[0]) {
-                        const industries = { ...(s.offers[0].data.industries as Record<number, string>) };
+                      if (extracted.industryHints) {
+                        const industries = {
+                          ...((s.core.sharedIndustries as Record<number, string>) ?? {}),
+                        };
                         INDUSTRIES.forEach((label, i) => {
                           if (extracted.industryHints[label]) industries[i] = extracted.industryHints[label];
                         });
-                        next = patchOffer(next, s.offers[0].id, { industries });
+                        next = patchCore(next, "sharedIndustries", industries);
+                        for (const offerRow of activeOffers(next)) {
+                          next = patchOffer(next, offerRow.id, { industries });
+                        }
                       }
                       return next;
                     });
@@ -406,7 +446,8 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                 {Number(
                   (state.core.policyExtraction as { countryRules?: unknown[] })?.countryRules?.length ?? 0
                 )}{" "}
-                country rules proposed. Review below before confirming.
+                country rules proposed. Review below before confirming. Unreadable or conflicting rules stay
+                unconfirmed until you confirm.
               </p>
             </div>
           )}
@@ -417,61 +458,65 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
           >
             Enter policy manually
           </button>
-          <label className="checkline" style={{ marginTop: 16 }}>
+          <label className="checkline confirm-line" style={{ marginTop: 20, display: "flex" }}>
             <input
               type="checkbox"
               checked={state.core.acceptancePolicyConfirmed === true}
               onChange={(e) => setState((s) => patchCore(s, "acceptancePolicyConfirmed", e.target.checked))}
             />
-            <span>I have reviewed and confirm the extracted or entered acceptance rules for publication review.</span>
+            <span>
+              I confirm this shared policy&apos;s completeness and scope for publication review. Omitted countries are
+              not assumed accepted unless I confirm that interpretation.
+            </span>
           </label>
         </section>
-        {orderedOffers(state).map((offerRow) => (
-          <div key={offerRow.id}>
-            <h2>{FAMILIES[offerRow.family]}</h2>
-            <GeoAxisEditor
-              family={offerRow.family}
-              offerId={offerRow.id}
-              geo={offerRow.geo ?? {}}
-              axis={offerRow.axis ?? axis}
-              onAxis={(nextAxis) =>
-                setState((s) => ({
-                  ...s,
-                  offers: s.offers.map((x) => (x.id === offerRow.id ? { ...x, axis: nextAxis } : x)),
-                }))
-              }
-              onUpdate={(geo) => setState((s) => patchOfferGeo(s, offerRow.id, geo))}
-            />
-            <StatusMatrix
-              title={offerRow.family === "private" ? "Business / wealth-generating sectors" : "Industry acceptance"}
-              options={INDUSTRIES}
-              values={(offerRow.data.industries as Record<number, string>) ?? {}}
-              onChange={(i, status) =>
-                setState((s) => {
-                  const ind = (offerRow.data.industries as Record<number, string>) ?? {};
-                  return patchOffer(s, offerRow.id, { industries: { ...ind, [i]: status } });
-                })
-              }
-            />
-            {offerRow.family !== "private" && (
-              <StatusMatrix
-                title="Legal entities accepted"
-                options={ENTITY_TYPES}
-                values={(offerRow.data.entities as Record<number, string>) ?? {}}
-                onChange={(i, status) =>
-                  setState((s) => {
-                    const ent = (offerRow.data.entities as Record<number, string>) ?? {};
-                    return patchOffer(s, offerRow.id, { entities: { ...ent, [i]: status } });
-                  })
+
+        <section className="panel">
+          <h2>Country acceptance policy</h2>
+          <p className="hint">
+            One editor for all selected services. Provider choices cannot override platform exclusions. High-risk is
+            not automatically Accepted or Prohibited.
+          </p>
+          <GeoAxisEditor
+            family={activeOffers(state)[0]?.family ?? "bank"}
+            offerId="shared"
+            geo={sharedGeo ?? {}}
+            axis={sharedAxis}
+            onAxis={(nextAxis) => setState((s) => patchCore(s, "sharedGeoAxis", nextAxis))}
+            onUpdate={(geo) =>
+              setState((s) => {
+                let next = patchCore(s, "sharedGeo", geo);
+                for (const offerRow of activeOffers(next)) {
+                  next = patchOfferGeo(next, offerRow.id, geo);
                 }
-              />
-            )}
-          </div>
-        ))}
+                return next;
+              })
+            }
+          />
+        </section>
+
+        <StatusMatrix
+          title="Industry and activity acceptance"
+          options={INDUSTRIES}
+          values={sharedIndustries}
+          onChange={(i, status) => setSharedIndustries({ ...sharedIndustries, [i]: status })}
+        />
+        <p className="hint">
+          This confirmed common policy applies to {familyNames || "selected services"}. Unanswered activities are not
+          accepted.
+        </p>
+
+        <StatusMatrix
+          title="Legal entities accepted"
+          options={ENTITY_TYPES}
+          values={sharedEntities}
+          onChange={(i, status) => setSharedEntities({ ...sharedEntities, [i]: status })}
+        />
+
         <section className="panel">
           <FieldTextarea
-            label="Additional acceptance conditions"
-            placeholder="Describe any additional restrictions, exceptions or requirements not covered elsewhere."
+            label="Specific conditions or exceptions (optional)"
+            placeholder="e.g. residence outside disputed territories, licence-restricted activities, service-specific exceptions awaiting reconciliation."
             value={str(state.core.additionalAcceptance)}
             onChange={(v) => setState((s) => patchCore(s, "additionalAcceptance", v))}
           />
@@ -481,11 +526,159 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
   }
 
   if (step === 5) {
+    const offers = orderedOffers(state);
+    if (!offers.length) {
+      return (
+        <section className="panel">
+          <p>
+            Select your services in{" "}
+            <button type="button" className="btn mini" onClick={() => onGoToStep?.(2)}>
+              Products
+            </button>{" "}
+            to complete this section.
+          </p>
+        </section>
+      );
+    }
+
+    const paymentFamilies = offers.filter((x) => ["bank", "private", "correspondent"].includes(x.family));
+    const routes = (state.core.paymentRoutes as Record<string, { incoming?: string; outgoing?: string }>) ?? {};
+    const sharedMethods = arr(state.core.sharedOnboardingMethods);
+
     return (
       <>
-        {orderedOffers(state).map((offerRow) => (
-          <ProductTermsFields key={offerRow.id} offer={offerRow} setState={setState} patchOffer={patchOffer} />
-        ))}
+        <section className="panel">
+          <h2>Payments, limits &amp; onboarding</h2>
+          <p className="hint">
+            Common onboarding and applicable payment settings are entered once for{" "}
+            {offers.map((x) => FAMILIES[x.family]).join(", ")}. Financing-only profiles do not require payment rails.
+            Blank limits mean unknown — not unlimited or zero.
+          </p>
+          <CheckGroup
+            legend="Available onboarding methods (common)"
+            options={[
+              "Remote — online identity verification",
+              "Remote — recorded video identification",
+              "Remote — live video interview",
+              "In-person onboarding",
+              "Other — please specify",
+            ]}
+            values={sharedMethods}
+            onToggle={(value, checked) => {
+              const next = checked
+                ? [...new Set([...sharedMethods, value])]
+                : sharedMethods.filter((x) => x !== value);
+              setState((s) => {
+                let nextState = patchCore(s, "sharedOnboardingMethods", next);
+                for (const offerRow of activeOffers(nextState)) {
+                  nextState = patchOffer(nextState, offerRow.id, { onboardingMethods: next });
+                }
+                return nextState;
+              });
+            }}
+          />
+          {sharedMethods.includes("Other — please specify") && (
+            <FieldInput
+              label="Other onboarding method"
+              value={str(state.core.sharedOnboardingOther)}
+              onChange={(v) => setState((s) => patchCore(s, "sharedOnboardingOther", v))}
+            />
+          )}
+        </section>
+
+        {paymentFamilies.length > 0 && (
+          <section className="panel">
+            <h2>Shared payment capabilities</h2>
+            <p className="hint">
+              Currency support alone does not imply every route. Selecting EUR or BaaS does not tick routes
+              automatically. Record incoming and outgoing separately.
+            </p>
+            <div className="payment-route-matrix">
+              {PAYMENT_ROUTES.map((route) => {
+                const row = routes[route.id] ?? {};
+                return (
+                  <div key={route.id} className="status-row" style={{ alignItems: "flex-start" }}>
+                    <span>{route.label}</span>
+                    <div className="grid" style={{ flex: 1, minWidth: 200 }}>
+                      <FieldSelect
+                        label="Incoming"
+                        value={str(row.incoming)}
+                        options={["Supported", "Not supported", "Not confirmed"]}
+                        onChange={(v) =>
+                          setState((s) =>
+                            patchCore(s, "paymentRoutes", {
+                              ...((s.core.paymentRoutes as object) ?? {}),
+                              [route.id]: { ...row, incoming: v },
+                            })
+                          )
+                        }
+                      />
+                      <FieldSelect
+                        label="Outgoing"
+                        value={str(row.outgoing)}
+                        options={["Supported", "Not supported", "Not confirmed"]}
+                        onChange={(v) =>
+                          setState((s) =>
+                            patchCore(s, "paymentRoutes", {
+                              ...((s.core.paymentRoutes as object) ?? {}),
+                              [route.id]: { ...row, outgoing: v },
+                            })
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <CheckGroup
+              legend="Account offerings these payment capabilities apply to"
+              options={paymentFamilies.map((x) => FAMILIES[x.family])}
+              values={arr(state.core.paymentRouteApplicability)}
+              onToggle={(value, checked) => {
+                const current = arr(state.core.paymentRouteApplicability);
+                const next = checked ? [...new Set([...current, value])] : current.filter((x) => x !== value);
+                setState((s) => patchCore(s, "paymentRouteApplicability", next));
+              }}
+            />
+            <h3>Common monthly limits (optional)</h3>
+            <div className="grid">
+              <FieldInput
+                label="Maximum incoming amount per month"
+                type="number"
+                value={str(state.core.sharedMaxIncoming)}
+                onChange={(v) => setState((s) => patchCore(s, "sharedMaxIncoming", v))}
+              />
+              <FieldInput
+                label="Maximum outgoing amount per month"
+                type="number"
+                value={str(state.core.sharedMaxOutgoing)}
+                onChange={(v) => setState((s) => patchCore(s, "sharedMaxOutgoing", v))}
+              />
+            </div>
+            {(str(state.core.sharedMaxIncoming) || str(state.core.sharedMaxOutgoing)) && (
+              <FieldSelect
+                label="Currency for the monthly amount limits"
+                value={str(state.core.sharedLimitCurrency)}
+                options={["EUR", "GBP", "USD"]}
+                required
+                onChange={(v) => setState((s) => patchCore(s, "sharedLimitCurrency", v))}
+              />
+            )}
+          </section>
+        )}
+
+        {offers
+          .filter((x) => x.family === "merchant" || x.family === "finance")
+          .map((offerRow) => (
+            <ProductTermsFields
+              key={offerRow.id}
+              offer={offerRow}
+              setState={setState}
+              patchOffer={patchOffer}
+              familySpecificOnly
+            />
+          ))}
       </>
     );
   }
@@ -565,8 +758,11 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
           )}
           {methods.includes("Provider pre-approval form") && (
             <>
+              <p className="hint">
+                Upload the form or provide the authorised form link. Previewing does not send applicant information.
+              </p>
               <label className="field">
-                <span>Provider pre-approval template (optional)</span>
+                <span>Upload the form</span>
                 <input
                   type="file"
                   accept=".pdf,.doc,.docx"
@@ -576,6 +772,21 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                   }}
                 />
               </label>
+              {str(state.core.preApprovalFileName) && (
+                <p className="hint">Uploaded: {str(state.core.preApprovalFileName)}</p>
+              )}
+              <FieldInput
+                label="Provide the authorised form link"
+                type="url"
+                value={str(state.core.preApprovalFormLink)}
+                onChange={(v) => setState((s) => patchCore(s, "preApprovalFormLink", v))}
+              />
+              <FieldSelect
+                label="Who completes the form?"
+                value={str(state.core.preApprovalCompletedBy)}
+                options={["SOPHIMA", "Applicant", "Either"]}
+                onChange={(v) => setState((s) => patchCore(s, "preApprovalCompletedBy", v))}
+              />
               <FieldSelect
                 label="Can SOPHIMA's standard client profile be accepted instead?"
                 value={str(state.core.sophimaProfileAccepted)}
@@ -587,7 +798,7 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
                 className="btn"
                 onClick={() => window.open("/api/providers/client-profile-preview?route=bank", "_blank")}
               >
-                Preview SOPHIMA&apos;s client profile
+                Preview configured route (sample — no applicant data)
               </button>
             </>
           )}
@@ -647,12 +858,37 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
             .map((x) => FAMILIES[x.family])
             .join(", ") || "Required — please complete",
       },
-      { title: "Acceptance policies and conditions", step: 3, body: state.documents?.length ? "Policy uploaded" : "Not specified" },
-      { title: "Product terms and onboarding", step: 5, body: `${activeOffers(state).length} product section(s)` },
+      {
+        title: "Shared country and industry policy",
+        step: 3,
+        body: state.core.acceptancePolicyConfirmed
+          ? "Shared policy confirmed"
+          : state.documents?.length
+            ? "Policy uploaded — confirmation pending"
+            : "Required — please complete",
+      },
+      {
+        title: "Payments, limits & onboarding",
+        step: 5,
+        body: arr(state.core.sharedOnboardingMethods).length
+          ? "Common onboarding recorded"
+          : activeOffers(state).length
+            ? "Required — please complete"
+            : "Select services in Products first",
+      },
       {
         title: "Contacts, referral methods and benefits",
         step: 7,
         body: str(state.core.contactEmail) || "Required — please complete",
+      },
+      {
+        title: "Referral agreement",
+        step: 0,
+        body: isAgreementVerified(state)
+          ? "Verified by SOPHIMA"
+          : str(state.core.agreement)
+            ? `Declared: ${str(state.core.agreement)} — not verified`
+            : "Required — please complete",
       },
       {
         title: "Uploaded documents",
