@@ -22,7 +22,7 @@ Next.js application implementing the FinSyndeo guidelines (Revision 2). The [`Fi
 - `npm run build` — production build
 - `npm run test` — Vitest unit tests
 - `npm run db:push` — apply Drizzle schema to Postgres
-- `npm run db:seed` — seed providers and unresolved particulars register
+- `npm run db:seed` — seed 80 sample institutions, 80 sample customers, and the unresolved particulars register
 
 ## Visual format
 
