@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { AuthChrome } from "@/components/AuthChrome";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -33,36 +33,29 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)] flex flex-col">
-      <header className="px-6 py-5 bg-white border-b border-[var(--line)]">
-        <Link href="/">
-          <Image src="/assets/FinSyndeo-logo.png" alt="FinSyndeo" width={180} height={48} />
-        </Link>
-      </header>
-      <main className="max-w-md mx-auto px-6 py-12 w-full">
-        <h1>Reset password</h1>
-        <p className="lead">Enter your account email. We will send reset instructions if the account exists.</p>
-        <form onSubmit={handleSubmit} className="panel">
-          {error && <div className="notice notice-error">{error}</div>}
-          {message && <div className="notice">{message}</div>}
-          <label className="field">
-            <span>Email</span>
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-          <button type="submit" className="btn btn-primary w-full" disabled={busy}>
-            Send reset link
-          </button>
-        </form>
-        <p className="text-sm text-[var(--muted)] mt-4">
-          <Link href="/auth/sign-in">Back to sign in</Link>
-        </p>
-      </main>
-    </div>
+    <AuthChrome>
+      <h1>Reset password</h1>
+      <p className="lead">Enter your account email. We will send reset instructions if the account exists.</p>
+      <form onSubmit={handleSubmit} className="panel">
+        {error && <div className="notice notice-error">{error}</div>}
+        {message && <div className="notice">{message}</div>}
+        <label className="field">
+          <span>Email</span>
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <button type="submit" className="btn btn-primary w-full" disabled={busy}>
+          Send reset link
+        </button>
+      </form>
+      <p className="text-sm text-[var(--muted)] mt-4">
+        <Link href="/auth/sign-in">Back to sign in</Link>
+      </p>
+    </AuthChrome>
   );
 }

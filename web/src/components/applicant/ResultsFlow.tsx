@@ -16,6 +16,8 @@ type MatchRow = {
   essential?: boolean;
   conditional?: boolean;
   reason?: string;
+  coverageStatus?: string;
+  coverageNote?: string;
 };
 
 type IntroRequest = {
@@ -27,7 +29,7 @@ type IntroRequest = {
 };
 
 const SORTS = [
-  ["match", "Highest FinSyndeo match"],
+  ["match", "Highest SOPHIMA AI match"],
   ["country", "Jurisdiction"],
   ["status", "Eligibility"],
 ] as const;
@@ -41,10 +43,17 @@ function providerOptionLabel(index: number): string {
   return `Provider option ${index + 1}`;
 }
 
-function statusHeadline(status: string): string {
-  if (status === "eligible") return "Meets stated requirements";
-  if (status === "conditional") return "Subject to confirmation";
-  return status;
+/** Contract coverage labels (M03): Complete potential fit / Partial coverage / Needs clarification. */
+function statusHeadline(row: { status: string; coverageStatus?: string }): string {
+  const { status, coverageStatus } = row;
+  if (coverageStatus === "Partial coverage") return "Partial coverage";
+  if (status === "eligible") return "Complete potential fit";
+  if (status === "conditional") return coverageStatus || "Needs clarification";
+  return coverageStatus || status;
+}
+
+function isShownMatch(row: { status: string; coverageStatus?: string }): boolean {
+  return row.status === "eligible" || row.status === "conditional" || row.coverageStatus === "Partial coverage";
 }
 
 function fmtFee(requiresPayment: boolean): string {
@@ -86,6 +95,7 @@ export function ResultsFlow() {
     matches: MatchRow[];
     eligibleCount: number;
     conditionalCount: number;
+    partialCount?: number;
   } | null>(null);
   const [requests, setRequests] = useState<IntroRequest[]>([]);
   const [sort, setSort] = useState<(typeof SORTS)[number][0]>("match");
@@ -126,7 +136,7 @@ export function ResultsFlow() {
 
   const sortedRows = useMemo(() => {
     if (!matches?.matches) return [];
-    const rows = matches.matches.filter((m) => m.status === "eligible" || m.status === "conditional");
+    const rows = matches.matches.filter(isShownMatch);
     if (sort === "match") {
       rows.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
     } else if (sort === "country") {
@@ -455,8 +465,8 @@ export function ResultsFlow() {
                 <h2>{providerOptionLabel(idx)}</h2>
                 <dl>
                   <dt>Eligibility</dt>
-                  <dd>{statusHeadline(r.status)}</dd>
-                  <dt>FinSyndeo match</dt>
+                  <dd>{statusHeadline(r)}</dd>
+                  <dt>SOPHIMA AI match</dt>
                   <dd>{scoreLabel(r.score)}</dd>
                   <dt>Jurisdiction</dt>
                   <dd>{r.providerCountry || "—"}</dd>
@@ -502,7 +512,7 @@ export function ResultsFlow() {
         <section className="panel">
           <div className="grid">
             <div>
-              <h2>{statusHeadline(selectedMatch.status)}</h2>
+              <h2>{statusHeadline(selectedMatch)}</h2>
               <p>
                 {selectedMatch.providerCountry} · Match: {scoreLabel(selectedMatch.score)}
               </p>
@@ -593,7 +603,12 @@ export function ResultsFlow() {
             >
               Review my requirements
             </Link>
-            <Link href="/applicant/alerts" className="btn">Notify me of future matches</Link>
+            <Link
+              href={id ? `/applicant/alerts?applicationId=${encodeURIComponent(id)}` : "/applicant/alerts"}
+              className="btn"
+            >
+              Notify me of future matches
+            </Link>
           </div>
         </section>
       )}
@@ -616,7 +631,8 @@ export function ResultsFlow() {
             </label>
           </div>
           <div className="notice">
-            {matches.eligibleCount} eligible · {matches.conditionalCount} conditional
+            {matches.eligibleCount} complete potential fit · {matches.conditionalCount} needs clarification
+            {matches.partialCount ? ` · ${matches.partialCount} partial coverage` : ""}
           </div>
           <div className="cards">
             {sortedRows.map((m, idx) => {
@@ -627,11 +643,11 @@ export function ResultsFlow() {
                   <div className="card-head flex justify-between">
                     <div>
                       <h2>{label}</h2>
-                      <span className="pill">{statusHeadline(m.status)}</span>
+                      <span className="pill">{statusHeadline(m)}</span>
                     </div>
                     <div className="fit text-right">
                       {scoreLabel(m.score)}
-                      <div style={{ fontSize: 11, fontWeight: 400 }}>FinSyndeo match</div>
+                      <div style={{ fontSize: 11, fontWeight: 400 }}>SOPHIMA AI match</div>
                     </div>
                   </div>
                   <dl>

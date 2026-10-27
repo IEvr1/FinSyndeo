@@ -11,18 +11,50 @@ type Props = {
   required?: boolean;
 };
 
+/** Only one country multi-select dropdown open at a time (CO03 / shared screening UX). */
+let openCountryPickerId: string | null = null;
+const openListeners = new Set<(id: string | null) => void>();
+
+function setOpenPicker(id: string | null) {
+  openCountryPickerId = id;
+  openListeners.forEach((fn) => fn(id));
+}
+
 export function CountryMultiSelect({ id, label, value, onChange, required }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    function onPeer(peerId: string | null) {
+      if (peerId !== id) setOpen(false);
+    }
+    openListeners.add(onPeer);
+    return () => {
+      openListeners.delete(onPeer);
+    };
+  }, [id]);
+
+  useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      if (!rootRef.current?.contains(e.target as Node)) {
+        setOpen(false);
+        if (openCountryPickerId === id) setOpenPicker(null);
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && open) {
+        setOpen(false);
+        if (openCountryPickerId === id) setOpenPicker(null);
+      }
     }
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, []);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [id, open]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -35,8 +67,19 @@ export function CountryMultiSelect({ id, label, value, onChange, required }: Pro
     else onChange([...value, country].sort());
   }
 
+  function openDropdown() {
+    setOpenPicker(id);
+    setOpen(true);
+  }
+
+  function done() {
+    setOpen(false);
+    if (openCountryPickerId === id) setOpenPicker(null);
+    setSearch("");
+  }
+
   return (
-    <div className="field country-search" ref={rootRef}>
+    <div className="field country-search" ref={rootRef} data-field={id}>
       <span>
         {label}
         {!required && <small> (optional)</small>}
@@ -54,32 +97,40 @@ export function CountryMultiSelect({ id, label, value, onChange, required }: Pro
         type="search"
         placeholder="Search and add countries…"
         value={search}
-        onFocus={() => setOpen(true)}
+        onFocus={openDropdown}
         onChange={(e) => {
           setSearch(e.target.value);
-          setOpen(true);
+          openDropdown();
         }}
         aria-label={`Search countries for ${label}`}
         autoComplete="off"
       />
       {open && (
-        <ul className="country-dropdown" role="listbox">
-          {filtered.map((country) => (
-            <li key={country}>
-              <button
-                type="button"
-                role="option"
-                aria-selected={value.includes(country)}
-                onClick={() => {
-                  toggle(country);
-                  setSearch("");
-                }}
-              >
-                {value.includes(country) ? "✓ " : ""}{country}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <div className="country-dropdown-panel">
+          <ul className="country-dropdown" role="listbox">
+            {filtered.map((country) => (
+              <li key={country}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={value.includes(country)}
+                  onClick={() => {
+                    toggle(country);
+                    setSearch("");
+                  }}
+                >
+                  {value.includes(country) ? "✓ " : ""}
+                  {country}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="country-dropdown-actions">
+            <button type="button" className="btn mini" onClick={done}>
+              Done
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

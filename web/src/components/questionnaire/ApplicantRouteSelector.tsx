@@ -5,6 +5,8 @@ import type { QuestionnaireValues } from "@/lib/questionnaire/types";
 type Props = {
   values: QuestionnaireValues;
   onChange: (key: string, value: string) => void;
+  /** FN01: hide on financing steps so applicants cannot relabel route mid-flow. */
+  hideChangeApplicantType?: boolean;
 };
 
 const APPLICANT_TYPES = [
@@ -32,9 +34,11 @@ const LEGAL_ENTITY_SERVICES = [
   { value: "financing", label: "Financing" },
 ] as const;
 
-export function ApplicantRouteSelector({ values, onChange }: Props) {
+export function ApplicantRouteSelector({ values, onChange, hideChangeApplicantType }: Props) {
   const applicant = String(values.applicant ?? "");
   const accountType = String(values["account-type"] ?? "");
+  // FN01: never show Change applicant type on the financing route.
+  const hideChange = hideChangeApplicantType || accountType === "financing";
 
   return (
     <div className="applicant-route-select">
@@ -71,16 +75,31 @@ export function ApplicantRouteSelector({ values, onChange }: Props) {
                   name="account-type"
                   value={s.value}
                   checked={accountType === s.value}
-                  onChange={() => onChange("account-type", s.value)}
+                  onChange={() => {
+                    onChange("account-type", s.value);
+                    if (s.value === "both") {
+                      onChange("bank-entry", "start");
+                      onChange("find-bank", "Yes");
+                    }
+                    if (s.value === "merchant") {
+                      onChange("find-bank", "No");
+                      onChange("bank-entry", "");
+                    }
+                  }}
                 />
                 <span className="service-card-title">{s.label}</span>
               </label>
             ))}
           </div>
+          {accountType === "both" && (
+            <p className="hint mt-3" data-field="service-scope-summary">
+              Selected services: Bank account + Merchant account
+            </p>
+          )}
         </>
       )}
 
-      {applicant && (
+      {applicant && !hideChange && (
         <p className="text-sm text-[var(--muted)] mt-4">
           <button
             type="button"

@@ -7,17 +7,17 @@ export const EMAIL_TEMPLATES = {
   E01: {
     id: "E01",
     name: "Account email verification",
-    subject: "Verify your FinSyndeo email address",
+    subject: "Verify your SOPHIMA AI email address",
   },
   E02: {
     id: "E02",
     name: "Application saved or submitted",
-    subject: "Your FinSyndeo application [case reference]",
+    subject: "Your SOPHIMA AI application [case reference]",
   },
   E03: {
     id: "E03",
     name: "Clarification needed",
-    subject: "Information needed for your FinSyndeo request [case reference]",
+    subject: "Information needed for your SOPHIMA AI request [case reference]",
   },
   E04: {
     id: "E04",
@@ -27,12 +27,12 @@ export const EMAIL_TEMPLATES = {
   E05: {
     id: "E05",
     name: "No current provider found",
-    subject: "Update on your FinSyndeo request [case reference]",
+    subject: "Update on your SOPHIMA AI request [case reference]",
   },
   E06: {
     id: "E06",
     name: "Eligibility review or policy exclusion",
-    subject: "Update on your FinSyndeo request [case reference]",
+    subject: "Update on your SOPHIMA AI request [case reference]",
   },
   E07: {
     id: "E07",
@@ -62,22 +62,22 @@ export const EMAIL_TEMPLATES = {
   E12: {
     id: "E12",
     name: "New suitable provider alert",
-    subject: "A new potential provider for your FinSyndeo request",
+    subject: "A new potential provider for your SOPHIMA AI request",
   },
   E13: {
     id: "E13",
     name: "Provider invitation and application",
-    subject: "Complete your FinSyndeo provider profile",
+    subject: "Complete your SOPHIMA AI provider profile",
   },
   E14: {
     id: "E14",
     name: "Provider profile decision or material update",
-    subject: "Your FinSyndeo provider profile [reference]",
+    subject: "Your SOPHIMA AI provider profile [reference]",
   },
   E15: {
     id: "E15",
     name: "Provider case report available",
-    subject: "Your FinSyndeo case report for [period]",
+    subject: "Your SOPHIMA AI case report for [period]",
   },
   E16: {
     id: "E16",
@@ -87,12 +87,12 @@ export const EMAIL_TEMPLATES = {
   E17: {
     id: "E17",
     name: "Introducer invitation and agreement",
-    subject: "Your FinSyndeo introducer invitation",
+    subject: "Your SOPHIMA AI introducer invitation",
   },
   E18: {
     id: "E18",
     name: "Introducer rate change",
-    subject: "Your FinSyndeo commission schedule update",
+    subject: "Your SOPHIMA AI commission schedule update",
   },
   E19: {
     id: "E19",
@@ -107,12 +107,12 @@ export const EMAIL_TEMPLATES = {
   E21: {
     id: "E21",
     name: "Deletion request acknowledgement and outcome",
-    subject: "Your FinSyndeo data request [request reference]",
+    subject: "Your SOPHIMA AI data request [request reference]",
   },
   E22: {
     id: "E22",
     name: "Admin exceptions",
-    subject: "FinSyndeo action required [case or incident reference]",
+    subject: "SOPHIMA AI action required [case or incident reference]",
   },
 } as const;
 
@@ -144,11 +144,17 @@ export function renderEmailHtml(
   const template = EMAIL_TEMPLATES[templateId];
   const rendered = bodyOverride ? substitute(bodyOverride, vars) : renderTemplateBody(templateId, vars);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  return `<!doctype html><html lang="en"><body style="font-family:'Segoe UI',Arial,sans-serif;background:#faf8f4;color:#17202a;padding:24px">
-<div style="max-width:600px;margin:auto;background:#fff;border:1px solid #ddd5ca;border-radius:14px;padding:34px">
-<img src="${appUrl}/assets/FinSyndeo-logo.png" alt="FinSyndeo" width="180" style="margin-bottom:20px"/>
-<h2 style="color:#233b50;font-size:25px">${template.name}</h2>
+  return `<!doctype html><html lang="en"><body style="font-family:'Segoe UI',Arial,sans-serif;background:#faf8f5;color:#191919;padding:24px">
+<div style="max-width:600px;margin:auto;background:#ffffff;border:1px solid #e5ded5;border-radius:14px;padding:34px">
+<img src="${appUrl}/assets/sophima-ai-logo.png" alt="SOPHIMA AI" width="200" style="margin-bottom:20px"/>
+<h2 style="color:#191919;font-size:25px">${template.name}</h2>
 ${rendered}
-<p style="font-size:13px;color:#536071;margin-top:24px">FinSyndeo by SOPHIMA</p>
+<p style="font-size:13px;color:#5c5c5c;margin-top:24px;line-height:1.6">
+<strong style="color:#191919">SOPHIMA AI</strong><br/>
+Matching and introductions<br/>
+Operated by SOPHIMA LTD<br/>
+<a href="mailto:introductions@sophima.ai" style="color:#826a50">introductions@sophima.ai</a><br/>
+<a href="https://sophima.ai" style="color:#826a50">sophima.ai</a>
+</p>
 </div></body></html>`;
 }

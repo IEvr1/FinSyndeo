@@ -1,15 +1,40 @@
 (function(root){'use strict';
 const industries=['Agriculture & food production','Construction & engineering','Consulting & professional services','Crypto-asset services — exchange, custody or brokerage','E-commerce & retail','Education & training','Energy & utilities','Financial services & fintech','Forex brokerage & CFD dealing','Healthcare & pharmaceuticals','Holding & investment companies','Hospitality & tourism','Import, export & wholesale trade','Manufacturing','Marketing, media & entertainment','Gambling & betting — real-money wagering','Real estate','Shipping, transport & logistics','Software, IT & telecommunications','Video games & esports — no gambling or wagering','Blockchain / crypto software development — no customer asset services','Other','Adult industry'];
 const entities=['Private limited company (Ltd / LLC or equivalent)','Public limited company (PLC or equivalent)','Partnership','Limited liability partnership (LLP)','Association','Foundation','Other legal entity'];
-const institutionTypes=['Bank','Electronic money institution (EMI)','Payment institution / PSP','Money services business (MSB)','Crypto-asset service provider (CASP)','Other'];
+const institutionTypes=['Bank','Payment institution','Electronic money institution','Money services business','Crypto asset service provider'];
 const sources=['Employment earnings / savings','Business earnings / dividends','Investment income / sale proceeds','Property sale','Business sale','Inheritance','Gift','Other'];
 const EU=['Austria','Belgium','Bulgaria','Croatia','Cyprus','Czechia','Denmark','Estonia','Finland','France','Germany','Greece','Hungary','Ireland','Italy','Latvia','Lithuania','Luxembourg','Malta','Netherlands','Poland','Portugal','Romania','Slovakia','Slovenia','Spain','Sweden'];
 const capabilities={
 bank:{operational:['Operational activities — customer receipts and business payments','Support operational activities — customer receipts and business payments'],diversification:['Diversification of assets','Diversify assets across financial institutions'],reserve:['Backup / reserve account','Establish a backup or reserve account'],escrow:['Escrow'],trade_finance:['Trade finance'],payroll:['Automated payroll'],cards:['Corporate cards'],fx:['Currency exchange (FX)','FX','FX / currency conversion'],term_deposit:['Fixed-term deposits','Term deposits / investments']},
 merchant:{online:['Online card acquiring','Online payments'],pos:['In-person card payments / POS','In-person card payments'],online_pos:['Online and in-person acquiring'],apm:['Alternative payment methods (APMs)'],crypto_onramp:['Customers buying crypto with fiat (on-ramp)'],crypto_offramp:['Customers selling crypto for fiat (off-ramp)'],crypto_payment:['Accepting crypto payments'],crypto_settlement:['Crypto settlement']},
 private:{preservation:['Safekeeping and diversification'],term_deposit:['Savings / term deposits'],advice:['Investment advice'],managed_portfolio:['Managed investment portfolio'],custody:['Securities custody / trading'],lombard:['Lending against investments']},
-finance:{working_capital:['Working capital'],expansion:['Business expansion'],equipment:['Equipment or asset purchase'],property:['Property acquisition or development'],project:['Project finance'],trade:['Trade or inventory finance'],refinancing:['Refinancing existing borrowing'],acquisition:['Business acquisition']},
-correspondent:{operational:['Operational account — own funds','Own operating account'],client_funds:['Dedicated client-funds account','Client-funds safeguarding / segregation'],viban:['Dedicated virtual IBANs for clients'],omnibus:['Pooled / omnibus collection'],api:['API connectivity'],sepa:['SEPA / SEPA Instant','SEPA'],sepa_instant:['SEPA / SEPA Instant','SEPA Instant'],bulk:['Bulk payments'],fx:['FX conversion'],collection:['Collection and payout services'],cross_border:['Cross-border payments'],clearing:['Clearing / settlement']}
+finance:{working_capital:['Working capital'],expansion:['Business expansion'],equipment:['Equipment or asset purchase'],property:['Property acquisition or development'],project:['Project finance'],maritime_vessel_finance:['Maritime / vessel finance','Shipping finance'],trade:['Trade or inventory finance'],refinancing:['Refinancing','Refinancing existing borrowing'],acquisition:['Business acquisition'],other:['Other']},
+correspondent:{
+api_connectivity:['API connectivity'],
+bulk_payments:['Bulk payments'],
+currency_conversion:['Currency conversion and FX','FX conversion','Foreign exchange (FX)'],
+cross_border_collection_payouts:['Cross border collection and payouts','Collection and payout services','Collections and payouts','Cross-border payments'],
+payment_clearing_settlement:['Payment clearing and settlement','Clearing / settlement'],
+baas:['Banking as a Service (BaaS)','Banking as a Service BaaS'],
+white_label:['White Label'],
+card_issuing:['Card issuing'],
+crypto_on_ramp:['Crypto on ramp (fiat to crypto)','Crypto on ramp fiat to crypto'],
+crypto_off_ramp:['Crypto off ramp (crypto to fiat)','Crypto off ramp crypto to fiat'],
+client_funds_safeguarding:['Safeguarding of client funds','Accounts specifically for safeguarding the applicant\'s client funds','Client-funds safeguarding / segregation'],
+own_funds_fixed_deposits:['Fixed term deposits (institution own funds)','Fixed term deposits institution own funds'],
+other:['Other','Other — please specify'],
+/* legacy aliases retained for migration — do not invent new combined SEPA/crypto meanings */
+operational:['Operational account — own funds','Own operating account','Operational accounts — institution\'s own funds'],
+client_funds:['Dedicated client-funds account','Accounts for holding client funds'],
+viban:['Dedicated virtual IBANs for clients','Dedicated virtual accounts or wallets for clients'],
+omnibus:['Pooled / omnibus collection','Pooled omnibus account'],
+api:['API connectivity'],
+bulk:['Bulk payments'],
+fx:['FX conversion','Currency conversion and FX'],
+collection:['Collection and payout services'],
+cross_border:['Cross-border payments'],
+clearing:['Clearing / settlement','Payment clearing and settlement']
+}
 };
 const risk=['Startups with no transaction history','Holding companies / limited operating substance','PEPs or connected persons','Complex / multi-layer ownership','Legal-entity shareholders','Listed companies','Groups seeking several accounts','Non-EU parent with EU subsidiary / payment agent','Third-party funds','Crypto-related funds or customers','Higher-risk country exposure — where legally permitted'];
 const normalize=s=>String(s??'').normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();

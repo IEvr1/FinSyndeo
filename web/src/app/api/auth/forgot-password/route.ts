@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     const resetUrl = `${redirectTo}?token=${encodeURIComponent(token)}`;
     await sendEmail({
       to: [user.email],
-      subject: "Reset your FinSyndeo password",
+      subject: "Reset your SOPHIMA AI password",
       html: `<p>Use this link to reset your password (valid for 1 hour):</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
       idempotencyKey: `password-reset:${user.id}:${Date.now()}`,
     });

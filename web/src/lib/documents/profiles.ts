@@ -27,7 +27,7 @@ export function buildClientProfileHtml(input: ClientProfileInput): string {
     )
     .join("");
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>FinSyndeo Client Profile</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>SOPHIMA AI Client Profile</title>
 <style>
 body{font-family:"Segoe UI",Arial,sans-serif;background:#faf8f4;color:#17202a;margin:0;padding:24px}
 article{background:#fff;border:1px solid #ddd5ca;border-radius:14px;padding:34px;max-width:900px;margin:auto}
@@ -39,7 +39,7 @@ th{background:#faf8f4}
 .footer{margin-top:24px;font-size:12px;color:#536071}
 </style></head><body><article>
 <span class="role-label">External client profile</span>
-<h1>FinSyndeo Client Profile</h1>
+<h1>SOPHIMA AI Client Profile</h1>
 <p><strong>Case:</strong> ${escapeHtml(input.caseId)} | <strong>Applicant:</strong> ${escapeHtml(input.applicantName)} | <strong>Service:</strong> ${escapeHtml(input.service)} | <strong>Revision:</strong> ${input.revision}</p>
 <p><strong>Approved recipient:</strong> ${escapeHtml(input.recipientEmail)} at ${escapeHtml(input.institutionLegalName)}</p>
 <table><thead><tr><th>Field</th><th>Applicant declared information</th></tr></thead><tbody>${rows}</tbody></table>

@@ -150,7 +150,7 @@ export async function aiExtractField(params: {
         {
           role: "system",
           content:
-            "You are a FinSyndeo intake assistant. Extract one typed field value. Respond with JSON only: {value, confidence}. Never activate rules or approve identity.",
+            "You are a SOPHIMA AI intake assistant. Extract one typed field value. Respond with JSON only: {value, confidence}. Never activate rules or approve identity.",
         },
         { role: "user", content: `${params.prompt}\nSchema: ${JSON.stringify(params.fieldSchema)}` },
       ],

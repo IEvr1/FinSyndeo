@@ -33,9 +33,9 @@ export default function ProviderDashboard() {
 
   return (
     <>
-      <p className="eyebrow">Provider workspace</p>
-      <h1>Your provider dashboard</h1>
-      <p className="lead">Manage your institution&apos;s profile, referrals and reporting.</p>
+      <p className="eyebrow">Financial institutions</p>
+      <h1>Your Provider Dashboard</h1>
+      <p className="lead">Manage your institution profile and referred cases.</p>
       {info.legalName && <p className="hint">{info.legalName}</p>}
       <p className="hint">
         <strong>Profile status:</strong> {status}
@@ -58,34 +58,30 @@ export default function ProviderDashboard() {
       )}
       <div className="tiles">
         <section className="tile">
-          <h2>Institution profile</h2>
-          <p>Update services, acceptance policies and product terms.</p>
+          <h2>Institution Profile</h2>
+          <p>Maintain your institution details, services and eligibility criteria.</p>
           <Link href="/provider/profile" className="btn btn-primary">
-            Manage profile
+            Manage Profile
           </Link>
         </section>
         <section className="tile">
-          <h2>Reporting preferences</h2>
-          <p>Choose scheduled reports and request an ad hoc report.</p>
-          <Link href="/provider/preferences" className="btn btn-primary">
-            Manage preferences
-          </Link>
-        </section>
-        <section className="tile">
-          <h2>Referred cases &amp; reports</h2>
-          <p>View your institution&apos;s referred cases and available reports.</p>
+          <h2>Referred Cases &amp; Reports</h2>
+          <p>Review authorised case information and institution reports.</p>
           <Link href="/provider/reports" className="btn btn-primary">
-            View cases &amp; reports
+            View Cases &amp; Reports
           </Link>
         </section>
         <section className="tile">
-          <h2>Sign-in &amp; data settings</h2>
-          <p>Manage sign-in details and data requests.</p>
-          <Link href="/provider/privacy" className="btn btn-primary">
-            Open settings
+          <h2>Reporting Preferences</h2>
+          <p>Manage report delivery and approved recipients.</p>
+          <Link href="/provider/preferences" className="btn btn-primary">
+            Manage Preferences
           </Link>
         </section>
       </div>
+      <p className="text-sm text-[var(--muted)] mt-6">
+        Profile updates follow the existing review and publication process.
+      </p>
     </>
   );
 }

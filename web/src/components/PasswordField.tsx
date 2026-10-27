@@ -11,6 +11,7 @@ type Props = {
   id?: string;
   showHint?: boolean;
   name?: string;
+  placeholder?: string;
 };
 
 export const PASSWORD_RULE_HINT =
@@ -26,6 +27,7 @@ export function PasswordField({
   id,
   showHint = false,
   name,
+  placeholder,
 }: Props) {
   const [visible, setVisible] = useState(false);
 
@@ -39,6 +41,7 @@ export function PasswordField({
           type={visible ? "text" : "password"}
           required={required}
           autoComplete={autoComplete}
+          placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           style={{ flex: 1 }}

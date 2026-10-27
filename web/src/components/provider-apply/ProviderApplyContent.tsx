@@ -67,9 +67,9 @@ function orderedOffers(state: ProviderDraftState) {
 }
 
 const JURISDICTION_HINT =
-  "If your jurisdiction is not listed, FinSyndeo cannot currently accept a provider from that jurisdiction.";
+  "If your jurisdiction is not listed, SOPHIMA AI cannot currently accept a provider from that jurisdiction.";
 const INCORPORATION_HINT =
-  "If your jurisdiction is not listed, FinSyndeo cannot currently accept a provider from that jurisdiction.";
+  "If your jurisdiction is not listed, SOPHIMA AI cannot currently accept a provider from that jurisdiction.";
 
 export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
   const step = state.step;

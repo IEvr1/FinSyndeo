@@ -4,6 +4,14 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ApplicantRouteSelector } from "@/components/questionnaire/ApplicantRouteSelector";
+import { CorrespondentSteps } from "@/components/questionnaire/correspondent/CorrespondentSteps";
+import { CorrespondentSummary } from "@/components/questionnaire/correspondent/CorrespondentSummary";
+import { FinancingSteps } from "@/components/questionnaire/financing/FinancingSteps";
+import { FinancingSummary } from "@/components/questionnaire/financing/FinancingSummary";
+import { LegalEntityBankSteps } from "@/components/questionnaire/legal-entity-bank/LegalEntityBankSteps";
+import { LegalEntityBankSummary } from "@/components/questionnaire/legal-entity-bank/LegalEntityBankSummary";
+import { MerchantSteps } from "@/components/questionnaire/merchant/MerchantSteps";
+import { MerchantSummary } from "@/components/questionnaire/merchant/MerchantSummary";
 import { PrivateBankingSteps } from "@/components/questionnaire/private-banking/PrivateBankingSteps";
 import { PrivateBankingSummary } from "@/components/questionnaire/private-banking/PrivateBankingSummary";
 import { CountryMultiSelect } from "@/components/questionnaire/CountryMultiSelect";
@@ -14,13 +22,61 @@ import { buildRenderableStep, fieldStorageKey, getFieldsForStep } from "@/lib/qu
 import {
   apiRouteFromValues,
   getQuestionnaireFlow,
+  isLegalEntityBankFlow,
+  isMerchantFlow,
   isPersonalFlow,
   resolveDictionaryRoute,
 } from "@/lib/questionnaire/flows";
 import { stepEyebrow, stepTitleForRoute } from "@/lib/questionnaire/step-meta";
-import { validatePrivateBankingStep } from "@/lib/questionnaire/validate-private-banking";
+import {
+  validateCorrespondentFields,
+  validateCorrespondentStep,
+} from "@/lib/questionnaire/validate-correspondent";
+import {
+  validateFinancingFields,
+  validateFinancingStep,
+} from "@/lib/questionnaire/validate-financing";
+import {
+  isLegalEntityBankStep,
+  validateLegalEntityBankAll,
+  validateLegalEntityBankFields,
+  validateLegalEntityBankStep,
+} from "@/lib/questionnaire/validate-legal-entity-bank";
+import {
+  validateMerchantFields,
+  validateMerchantStep,
+} from "@/lib/questionnaire/validate-merchant";
+import {
+  validatePrivateBankingFields,
+  validatePrivateBankingStep,
+} from "@/lib/questionnaire/validate-private-banking";
 import type { CountryPickers, FieldValue, QuestionnaireValues } from "@/lib/questionnaire/types";
 import { isFieldVisible, isRenderableVisible } from "@/lib/questionnaire/visibility";
+
+function isFinancingFlow(values: QuestionnaireValues): boolean {
+  return String(values.applicant ?? "") === "company" && String(values["account-type"] ?? "") === "financing";
+}
+
+function isCorrespondentFlow(values: QuestionnaireValues): boolean {
+  return String(values.applicant ?? "") === "institution";
+}
+
+const CO_CUSTOM_STEPS = [1, 30, 31, 32, 33, 39, 4] as const;
+/** Merchant custom UI steps (entity step 1 still uses dictionary + FieldRenderer filters). */
+const MERCHANT_CUSTOM_STEPS = [2, 3, 4, 7, 8, 9, 10, 11] as const;
+
+function focusFirstFieldError(fieldId?: string) {
+  if (!fieldId || typeof document === "undefined") return;
+  const el =
+    document.querySelector(`[data-field="${fieldId}"]`) ||
+    document.getElementById(fieldId) ||
+    document.querySelector(`#${CSS.escape(fieldId)}`);
+  if (el && "scrollIntoView" in el) {
+    (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "center" });
+    const focusable = (el as HTMLElement).querySelector("input, select, textarea, button");
+    if (focusable && focusable instanceof HTMLElement) focusable.focus();
+  }
+}
 
 const DRAFT_KEY = "finsyndeo-questionnaire-draft-v1";
 
@@ -104,12 +160,27 @@ function validateStepFields(
   if (isPersonalFlow(values) && step >= 20 && step <= 23) {
     return validatePrivateBankingStep(step, values, pickers);
   }
-  if (step === 1 && !isPersonalFlow(values)) {
+  if (isLegalEntityBankFlow(values) && isLegalEntityBankStep(step)) {
+    return validateLegalEntityBankStep(step, values, pickers);
+  }
+  if (isCorrespondentFlow(values) && (CO_CUSTOM_STEPS as readonly number[]).includes(step)) {
+    return validateCorrespondentStep(step, values, pickers);
+  }
+  if (isFinancingFlow(values) && [1, 2, 4, 5, 12, 13, 14, 39].includes(step)) {
+    return validateFinancingStep(step, values, pickers);
+  }
+  if (isMerchantFlow(values) && [1, 2, 3, 4, 5, 7, 8, 9, 10, 11].includes(step)) {
+    return validateMerchantStep(step, values, pickers);
+  }
+  if (step === 1 && !isPersonalFlow(values) && !isCorrespondentFlow(values) && !isMerchantFlow(values)) {
     if (!String(values["registration"] ?? "").trim() && values["registration-notissued"] !== true) {
       return "Please enter the company registration number or mark the identifier exception.";
     }
   }
   if (isPersonalFlow(values) && (step === 1 || (step >= 20 && step <= 23))) {
+    return null;
+  }
+  if (isCorrespondentFlow(values) && (CO_CUSTOM_STEPS as readonly number[]).includes(step)) {
     return null;
   }
   const fields = getFieldsForStep(route, step).filter((f) => isFieldVisible(f, values));
@@ -147,8 +218,13 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
   const [contentHash, setContentHash] = useState<string | undefined>();
   const [serverSaved, setServerSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [revisionConflict, setRevisionConflict] = useState(false);
   const creatingRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingAnswersRef = useRef<{ values: QuestionnaireValues; pickers: CountryPickers; page: number } | null>(
+    null
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -221,13 +297,24 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
       });
       const data = await res.json();
       if (!res.ok) {
-        setSaveError(data.error ?? "Could not save progress.");
+        const msg = data.error ?? "Could not save progress.";
+        setSaveError(msg);
         setServerSaved(false);
+        if (res.status === 409 || /revision conflict/i.test(msg)) {
+          pendingAnswersRef.current = {
+            values: draft.values,
+            pickers: draft.pickers,
+            page: draft.page,
+          };
+          setRevisionConflict(true);
+        }
         return;
       }
       setContentHash(data.contentHash);
       setServerSaved(true);
       setSaveError("");
+      setRevisionConflict(false);
+      pendingAnswersRef.current = null;
     },
     []
   );
@@ -294,28 +381,60 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
     setValues((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  function changeApplicantType() {
-    setValues((prev) => {
-      const next = { ...prev };
-      delete next.applicant;
-      delete next["account-type"];
-      return next;
-    });
-    setPage(1);
-    setServerSaved(false);
-  }
-
   const pos = flow.indexOf(page);
   const prevPage = pos > 0 ? flow[pos - 1] : null;
   const nextPage = pos >= 0 && pos < flow.length - 1 ? flow[pos + 1] : null;
 
   function go(target: number) {
     setError("");
+    setFieldErrors({});
     if (flow.indexOf(target) > flow.indexOf(page)) {
-      const msg = validateStepFields(route, page, values, pickers);
-      if (msg) {
-        setError(msg);
-        return;
+      if (personal && page >= 20 && page <= 23) {
+        const result = validatePrivateBankingFields(page, values, pickers);
+        if (result) {
+          setError(result.message);
+          setFieldErrors(result.fields);
+          focusFirstFieldError(result.firstField);
+          return;
+        }
+      } else if (isLegalEntityBankFlow(values) && isLegalEntityBankStep(page)) {
+        const result = validateLegalEntityBankFields(page, values, pickers);
+        if (result) {
+          setError(result.message);
+          setFieldErrors(result.fields);
+          focusFirstFieldError(result.firstField);
+          return;
+        }
+      } else if (isCorrespondentFlow(values) && (CO_CUSTOM_STEPS as readonly number[]).includes(page)) {
+        const result = validateCorrespondentFields(page, values, pickers);
+        if (result) {
+          setError(result.message);
+          setFieldErrors(result.fields);
+          focusFirstFieldError(result.firstField);
+          return;
+        }
+      } else if (isFinancingFlow(values) && [1, 2, 4, 5, 12, 13, 14, 39].includes(page)) {
+        const result = validateFinancingFields(page, values, pickers);
+        if (result) {
+          setError(result.message);
+          setFieldErrors(result.fields);
+          focusFirstFieldError(result.firstField);
+          return;
+        }
+      } else if (isMerchantFlow(values) && [1, 2, 3, 4, 5, 7, 8, 9, 10, 11].includes(page)) {
+        const result = validateMerchantFields(page, values, pickers);
+        if (result) {
+          setError(result.message);
+          setFieldErrors(result.fields);
+          focusFirstFieldError(result.firstField);
+          return;
+        }
+      } else {
+        const msg = validateStepFields(route, page, values, pickers);
+        if (msg) {
+          setError(msg);
+          return;
+        }
       }
       if ((target === 40 || target === 5) && page !== 40) {
         const contact = contactValid(values, personal);
@@ -329,8 +448,59 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
     window.scrollTo(0, 0);
   }
 
+  async function keepLocalAnswersAndRetrySave() {
+    if (!applicationId || !pendingAnswersRef.current) return;
+    const pending = pendingAnswersRef.current;
+    const res = await fetch(`/api/applications/${applicationId}`);
+    const data = await res.json();
+    if (!res.ok) {
+      setSaveError(data.error ?? "Could not load the latest saved revision.");
+      return;
+    }
+    const serverHash = data.revision?.contentHash as string | undefined;
+    setContentHash(serverHash);
+    const draft: Draft = {
+      version: 1,
+      page: pending.page,
+      values: pending.values,
+      pickers: pending.pickers,
+      applicationId,
+    };
+    await persistServer(draft, applicationId, serverHash);
+  }
+
+  async function loadServerRevisionKeepingNothing() {
+    if (!applicationId) return;
+    const res = await fetch(`/api/applications/${applicationId}`);
+    const data = await res.json();
+    if (!res.ok || !data.revision?.typedData?.wizardDraft) {
+      setSaveError(data.error ?? "Could not load the server revision.");
+      return;
+    }
+    const wd = data.revision.typedData.wizardDraft as Draft;
+    setPage(wd.page ?? page);
+    setValues(wd.values ?? {});
+    setPickers(wd.pickers ?? {});
+    setContentHash(data.revision.contentHash);
+    setServerSaved(true);
+    setSaveError("");
+    setRevisionConflict(false);
+    pendingAnswersRef.current = null;
+  }
+
   async function submit() {
     setError("");
+    if (isLegalEntityBankFlow(values)) {
+      // LE19: validate every active step before saving the final assessment.
+      const failing = validateLegalEntityBankAll(values, pickers);
+      if (failing) {
+        setError(failing.result.message);
+        setFieldErrors(failing.result.fields);
+        setPage(failing.step);
+        window.scrollTo(0, 0);
+        return;
+      }
+    }
     const contact = contactValid(values, personal);
     if (contact) {
       setError(contact);
@@ -420,7 +590,11 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
   }
 
   const applicantKind = String(values.applicant ?? "");
-  const title = stepTitleForRoute(page, personal, applicantKind);
+  const correspondent = isCorrespondentFlow(values);
+  const leBank = isLegalEntityBankFlow(values);
+  const merchant = isMerchantFlow(values);
+  const accountKind = String(values["account-type"] ?? "");
+  const title = stepTitleForRoute(page, personal, applicantKind, accountKind);
 
   return (
     <div>
@@ -445,6 +619,22 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
           </button>
         </div>
       )}
+      {revisionConflict && (
+        <div className="notice notice-error mb-4">
+          <p>
+            Your latest changes have not been confirmed saved because another revision was saved meanwhile. Your
+            current answers are still here.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <button type="button" className="btn btn-primary" onClick={() => void keepLocalAnswersAndRetrySave()}>
+              Keep my answers and save again
+            </button>
+            <button type="button" className="btn" onClick={() => void loadServerRevisionKeepingNothing()}>
+              Load the latest saved version
+            </button>
+          </div>
+        </div>
+      )}
       {error && <div className="notice notice-error">{error}</div>}
 
       {page !== 0 && page !== 40 && (
@@ -459,7 +649,7 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
                 aria-current={n === page ? "step" : undefined}
                 onClick={() => go(n)}
               >
-                {i + 1} · {stepTitleForRoute(n, personal, applicantKind)}
+                {i + 1} · {stepTitleForRoute(n, personal, applicantKind, accountKind)}
               </button>
             ))}
         </nav>
@@ -467,7 +657,7 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
 
       {page !== 0 && (
         <>
-          <p className="eyebrow">{stepEyebrow(page, personal)}</p>
+          <p className="eyebrow">{stepEyebrow(page, personal, leBank)}</p>
           <h1>{title}</h1>
         </>
       )}
@@ -491,7 +681,42 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
         </section>
       )}
 
-      {page === 5 && <OnboardingPreferencesPanel values={values} onChange={setValue} />}
+      {page === 5 && !isFinancingFlow(values) && (
+        <OnboardingPreferencesPanel
+          values={values}
+          onChange={setValue}
+          hideOtherMethod={correspondent || leBank || merchant}
+        />
+      )}
+      {page === 5 && isFinancingFlow(values) && (
+        <section className="panel">
+          <label className="field">
+            <span>Preferred relationship-manager language</span>
+            <select
+              value={String(values["relationship-manager-language"] ?? "")}
+              onChange={(e) => setValue("relationship-manager-language", e.target.value)}
+            >
+              <option value="">Not specified</option>
+              {["English", "Greek", "French", "German", "Spanish", "Italian", "Hebrew", "Arabic", "Other"].map(
+                (l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                )
+              )}
+            </select>
+          </label>
+          {String(values["relationship-manager-language"]) === "Other" && (
+            <label className="field" data-field="relationship-manager-language-other">
+              <span>Please specify the language</span>
+              <input
+                value={String(values["relationship-manager-language-other"] ?? "")}
+                onChange={(e) => setValue("relationship-manager-language-other", e.target.value)}
+              />
+            </label>
+          )}
+        </section>
+      )}
 
       {page !== 0 && page !== 40 && (
         <section className="panel">
@@ -499,25 +724,171 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
             <ApplicantRouteSelector
               values={values}
               onChange={(key, value) => setValue(key, value)}
+              hideChangeApplicantType={isFinancingFlow(values) || correspondent || merchant}
             />
           )}
           {personal && [20, 21, 22, 23].includes(page) && (
+            <PrivateBankingSteps
+              step={page}
+              values={values}
+              pickers={pickers}
+              onChange={setValue}
+              onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
+              fieldErrors={fieldErrors}
+            />
+          )}
+          {leBank && isLegalEntityBankStep(page) && (
+            <LegalEntityBankSteps
+              step={page}
+              values={values}
+              pickers={pickers}
+              onChange={setValue}
+              onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
+              fieldErrors={fieldErrors}
+            />
+          )}
+          {merchant && (MERCHANT_CUSTOM_STEPS as readonly number[]).includes(page) && (
+            <MerchantSteps
+              step={page}
+              values={values}
+              pickers={pickers}
+              onChange={setValue}
+              onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
+              fieldErrors={fieldErrors}
+            />
+          )}
+          {correspondent && (CO_CUSTOM_STEPS as readonly number[]).includes(page) && (
+            <CorrespondentSteps
+              step={page}
+              values={values}
+              pickers={pickers}
+              onChange={setValue}
+              onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
+              fieldErrors={fieldErrors}
+            />
+          )}
+          {isFinancingFlow(values) && page === 4 && (
+            <p className="hint mb-4">
+              {String(values["entity-type"] ?? "").includes("Partnership") ||
+              String(values["entity-type"] ?? "").includes("LLP")
+                ? "For partnerships and LLPs, describe partner/member and ultimate-controller facts. Fixed economic interests may use percentages; otherwise use managing/control roles without inventing share percentages. No personal beneficial-owner names or identity documents are requested at this stage."
+                : "Record natural-person beneficial ownership of the applicant company with nationality and residence. Aim for at least 75% initial-assessment coverage, or explain if unavailable. No personal names or identity documents are requested at this stage. A corporate shareholder is not the UBO."}
+            </p>
+          )}
+          {isFinancingFlow(values) && page === 2 && (
             <>
-              <PrivateBankingSteps
-                step={page}
-                values={values}
-                pickers={pickers}
-                onChange={setValue}
-                onPickerChange={(id, list) => setPickers((p) => ({ ...p, [id]: list }))}
-              />
-              <p className="text-sm text-[var(--muted)] mt-4">
-                <button type="button" className="link-btn" onClick={changeApplicantType}>
-                  Change applicant type
-                </button>
+              <label className="field" data-field="finance-website-status">
+                <span>Company website</span>
+                <select
+                  value={String(values["finance-website-status"] ?? "")}
+                  onChange={(e) => setValue("finance-website-status", e.target.value)}
+                >
+                  <option value="">Select…</option>
+                  <option value="available">Website available</option>
+                  <option value="under_development">Under development</option>
+                  <option value="not_applicable">Not applicable</option>
+                </select>
+              </label>
+              {String(values["finance-website-status"]) === "available" && (
+                <label className="field" data-field="website">
+                  <span>Website URL</span>
+                  <input
+                    type="url"
+                    value={String(values.website ?? "")}
+                    onChange={(e) => setValue("website", e.target.value)}
+                    placeholder="https://"
+                  />
+                </label>
+              )}
+              {String(values.licence) === "Yes" && (
+                <div className="mt-4">
+                  <label className="field" data-field="finance-licence-name">
+                    <span>Licence or authorisation name</span>
+                    <input
+                      value={String(values["finance-licence-name"] ?? "")}
+                      onChange={(e) => setValue("finance-licence-name", e.target.value)}
+                    />
+                  </label>
+                  <label className="field" data-field="finance-licence-number">
+                    <span>Reference / number</span>
+                    <input
+                      value={String(values["finance-licence-number"] ?? "")}
+                      onChange={(e) => setValue("finance-licence-number", e.target.value)}
+                    />
+                  </label>
+                  <label className="field" data-field="finance-licence-authority">
+                    <span>Issuing authority</span>
+                    <input
+                      value={String(values["finance-licence-authority"] ?? "")}
+                      onChange={(e) => setValue("finance-licence-authority", e.target.value)}
+                    />
+                  </label>
+                  <label className="field" data-field="finance-licence-jurisdiction">
+                    <span>Jurisdiction</span>
+                    <input
+                      value={String(values["finance-licence-jurisdiction"] ?? "")}
+                      onChange={(e) => setValue("finance-licence-jurisdiction", e.target.value)}
+                    />
+                  </label>
+                </div>
+              )}
+              <p className="hint mb-4">
+                Without a usable website, describe products/services, customers and revenue model in the activity
+                field. Shipping industry and financing purpose are separate facts.
               </p>
             </>
           )}
+          {isFinancingFlow(values) && [12, 13, 14].includes(page) && (
+            <FinancingSteps step={page} values={values} onChange={setValue} fieldErrors={fieldErrors} />
+          )}
+          {isFinancingFlow(values) && page === 39 && (
+            <>
+              <label className="field" data-field="finance-existing-banking">
+                <span>Does the company have an existing banking relationship?</span>
+                <select
+                  value={String(values["finance-existing-banking"] ?? values["existing-banking"] ?? "")}
+                  onChange={(e) => {
+                    setValue("finance-existing-banking", e.target.value);
+                    setValue("existing-banking", e.target.value);
+                  }}
+                >
+                  <option value="">Select…</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                  <option value="Previously held now closed">Previously held now closed</option>
+                </select>
+              </label>
+              {(String(values["finance-existing-banking"] ?? values["existing-banking"] ?? "") === "Yes" ||
+                String(values["finance-existing-banking"] ?? values["existing-banking"] ?? "") ===
+                  "Previously held now closed") && (
+                <>
+                  <label className="field" data-field="bank-name">
+                    <span>Bank name</span>
+                    <input
+                      value={String(values["bank-name"] ?? "")}
+                      onChange={(e) => setValue("bank-name", e.target.value)}
+                    />
+                  </label>
+                  <label className="field" data-field="bank-country">
+                    <span>Bank country</span>
+                    <input
+                      value={String(values["bank-country"] ?? "")}
+                      onChange={(e) => setValue("bank-country", e.target.value)}
+                      list="finance-bank-countries"
+                    />
+                    <datalist id="finance-bank-countries">
+                      {/* filled via FieldRenderer countries elsewhere; free text accepted */}
+                    </datalist>
+                  </label>
+                </>
+              )}
+            </>
+          )}
           {!(personal && [1, 20, 21, 22, 23].includes(page)) &&
+            !(leBank && isLegalEntityBankStep(page)) &&
+            !(merchant && (MERCHANT_CUSTOM_STEPS as readonly number[]).includes(page)) &&
+            !(correspondent && (CO_CUSTOM_STEPS as readonly number[]).includes(page)) &&
+            !(isFinancingFlow(values) && [12, 13, 14, 39].includes(page)) &&
             renderables
             .filter((item) => isRenderableVisible(item, values))
             .map((item) => {
@@ -538,7 +909,11 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
                   <RadioGroupField
                     key={item.name}
                     name={item.name}
-                    legend={item.legend}
+                    legend={
+                      isFinancingFlow(values) && item.name === "licence"
+                        ? "Does this activity require a licence or authorisation?"
+                        : item.legend
+                    }
                     options={item.options}
                     values={values}
                     onChange={setValue}
@@ -547,13 +922,18 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
                 );
               }
               if (!isFieldVisible(item.field, values)) return null;
+              const field =
+                isFinancingFlow(values) && item.field.label === "Group name"
+                  ? { ...item.field, required: false, label: "Group name" }
+                  : item.field;
               return (
                 <FieldRenderer
                   key={item.field.key}
-                  field={item.field}
+                  field={field}
                   values={values}
                   onChange={setValue}
                   step={page}
+                  hideOptionalMarker={isFinancingFlow(values)}
                 />
               );
             })}
@@ -575,7 +955,66 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
         </>
       )}
 
-      {page === 40 && !personal && (
+      {page === 40 && !personal && isFinancingFlow(values) && (
+        <section className="panel">
+          <FinancingSummary values={values} pickers={pickers} onEdit={(s) => go(s)} />
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values.accuracy === true}
+              onChange={(e) => setValue("accuracy", e.target.checked)}
+            />
+            <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
+          </label>
+        </section>
+      )}
+
+      {page === 40 && !personal && correspondent && (
+        <section className="panel">
+          <p className="lead">Review your answers before finding potential matches.</p>
+          <CorrespondentSummary values={values} pickers={pickers} onEdit={(s) => go(s)} />
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values.accuracy === true}
+              onChange={(e) => setValue("accuracy", e.target.checked)}
+            />
+            <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
+          </label>
+        </section>
+      )}
+
+      {page === 40 && !personal && leBank && (
+        <>
+          <p className="lead">Review your answers. Edit any section or confirm to find matching institutions.</p>
+          <LegalEntityBankSummary values={values} pickers={pickers} onEdit={(s) => go(s)} />
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values.accuracy === true}
+              onChange={(e) => setValue("accuracy", e.target.checked)}
+            />
+            <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
+          </label>
+        </>
+      )}
+
+      {page === 40 && !personal && merchant && (
+        <section className="panel">
+          <p className="lead">Review your answers. Edit any section or confirm to find matching institutions.</p>
+          <MerchantSummary values={values} pickers={pickers} onEdit={(s) => go(s)} />
+          <label className="checkline">
+            <input
+              type="checkbox"
+              checked={values.accuracy === true}
+              onChange={(e) => setValue("accuracy", e.target.checked)}
+            />
+            <span>I confirm that the information I have provided is accurate to the best of my knowledge.</span>
+          </label>
+        </section>
+      )}
+
+      {page === 40 && !personal && !isFinancingFlow(values) && !correspondent && !leBank && !merchant && (
         <section className="panel">
           <p className="lead">Review your answers. Edit any section or confirm to find matching institutions.</p>
           {flow
@@ -583,9 +1022,9 @@ export function QuestionnaireWizard({ showPageHeader, guidedMode }: WizardProps 
             .map((n) => (
               <section key={n} className="panel">
                 <header className="flex justify-between items-center gap-3">
-                  <h2>{stepTitleForRoute(n, personal, applicantKind)}</h2>
+                  <h2>{stepTitleForRoute(n, personal, applicantKind, accountKind)}</h2>
                   <button type="button" className="mini" onClick={() => go(n)}>
-                    Edit {stepTitleForRoute(n, personal, applicantKind)}
+                    Edit {stepTitleForRoute(n, personal, applicantKind, accountKind)}
                   </button>
                 </header>
                 <dl className="summary">

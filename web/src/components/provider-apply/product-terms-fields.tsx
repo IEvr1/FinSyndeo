@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckGroup, FieldInput, FieldSelect } from "@/components/provider-apply/form-controls";
-import { FAMILIES, ONBOARDING_METHODS } from "@/lib/provider-apply/config";
+import { CURRENCY_OPTIONS, FAMILIES, ONBOARDING_METHODS } from "@/lib/provider-apply/config";
 import type { ProviderDraftState, ProviderOffer } from "@/lib/provider-apply/types";
 
 function str(v: unknown): string {
@@ -99,7 +99,7 @@ export function ProductTermsFields({ offer: o, setState, patchOffer, familySpeci
             <FieldSelect
               label="Currency for the monthly amount limits"
               value={str(o.data.limitCurrency)}
-              options={["EUR", "GBP", "USD", "CHF"]}
+              options={[...CURRENCY_OPTIONS, ...(str(o.data.limitCurrency) === "CHF" ? ["CHF"] : [])]}
               required
               onChange={(v) => setState((s) => patchOffer(s, o.id, { limitCurrency: v }))}
             />

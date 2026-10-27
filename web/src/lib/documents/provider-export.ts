@@ -42,7 +42,7 @@ export function buildProviderResponsesHtml(
     sections.push(`</table>`);
   }
 
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>FinSyndeo provider responses</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>SOPHIMA AI provider responses</title>
 <style>
 body{font-family:"Segoe UI",Arial,sans-serif;background:#faf8f4;color:#17202a;margin:0;padding:24px}
 article{background:#fff;border:1px solid #ddd5ca;border-radius:14px;padding:34px;max-width:900px;margin:auto}
