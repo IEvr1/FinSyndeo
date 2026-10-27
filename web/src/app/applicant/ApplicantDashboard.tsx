@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { formatAssessmentRoute } from "@/lib/questionnaire/private-banking-config";
 
 type App = {
   id: string;
@@ -36,57 +37,46 @@ export function ApplicantDashboard() {
 
   return (
     <>
-      <p className="eyebrow">Applicant workspace</p>
-      <h1>Your FinSyndeo dashboard</h1>
-      <p className="lead">Find suitable providers and manage your applications.</p>
-
-      {draft && (
-        <section className="panel dashboard-continue">
-          <h2>Continue your assessment</h2>
-          <p>
-            Assessment · {draft.route} · Last saved {savedLabel}
-          </p>
-          <div className="flex flex-wrap gap-3 mt-3">
-            <Link href={`/applicant/questionnaire?applicationId=${draft.id}`} className="btn btn-primary">
-              Continue your assessment
-            </Link>
-            <Link href="/applicant/find" className="btn">
-              Start a new assessment
-            </Link>
-          </div>
-        </section>
-      )}
+      <p className="eyebrow">Your workspace</p>
+      <h1>Your SOPHIMA AI dashboard</h1>
+      <p className="lead">Your profiles, potential matches and introductions in one place.</p>
 
       <div className="tiles">
         <section className="tile">
-          <h2>Find a provider</h2>
-          <p>Tell us what you need.</p>
+          <h2>Find a Provider</h2>
+          <p>Complete an assessment yourself or with AI guidance.</p>
           <Link href="/applicant/find" className="btn btn-primary">
             Start an assessment
           </Link>
         </section>
         <section className="tile">
           <h2>My assessments</h2>
-          <p>Continue or update your saved assessments.</p>
+          <p>Resume a saved profile or review your requirements.</p>
           <Link href="/applicant/assessments" className="btn btn-primary">
-            View my assessments
-          </Link>
-        </section>
-        <section className="tile">
-          <h2>Results &amp; introductions</h2>
-          <p>Review potential matches and track introductions.</p>
-          <Link href="/applicant/results" className="btn btn-primary">
-            View results
-          </Link>
-        </section>
-        <section className="tile">
-          <h2>Match notifications</h2>
-          <p>Choose whether to hear about new providers matching your needs.</p>
-          <Link href="/applicant/alerts" className="btn btn-primary">
-            Manage notifications
+            View assessments
           </Link>
         </section>
       </div>
+
+      {draft && (
+        <section className="panel dashboard-continue">
+          <h2>Continue your assessment</h2>
+          <p>
+            {formatAssessmentRoute(draft.route)}
+            {savedLabel ? ` · Draft — last saved ${savedLabel}` : " · Draft — Your saved Client Information Profile"}
+          </p>
+          <div className="flex flex-wrap gap-3 mt-3">
+            <Link href={`/applicant/questionnaire?applicationId=${draft.id}`} className="btn btn-primary">
+              Continue
+            </Link>
+          </div>
+        </section>
+      )}
+
+      <p className="text-sm text-[var(--muted)] mt-6">
+        Potential fit is not account approval. You approve sharing for a specific institution and profile
+        revision.
+      </p>
     </>
   );
 }

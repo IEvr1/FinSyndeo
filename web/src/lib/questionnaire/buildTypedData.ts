@@ -1,20 +1,59 @@
 import { criteria } from "@/lib/matching";
 import { APPLICANT_ONBOARDING_METHODS, onboardingStorageKey } from "@/lib/onboarding-methods";
 import type { CountryPickers, QuestionnaireValues } from "./types";
-import { apiRouteFromValues, isPersonalFlow } from "./flows";
+import { apiRouteFromValues, isLegalEntityBankFlow, isPersonalFlow } from "./flows";
 import {
+  financePurposeFromValue,
+  financePurposeKey,
+} from "./financing-config";
+import { deriveAverage, parseMarkets } from "./merchant-config";
+import {
+  CO_ACCOUNT_STRUCTURES,
+  CO_CLIENT_TYPES,
+  CO_CURRENCIES,
+  CO_INSTITUTION_CATEGORIES,
+  CO_PAYMENT_ROUTES,
+  CO_REGIONS,
+  CO_SERVICES,
+  coClientTypeKey,
+  coCurrKey,
+  coCurrLevelKey,
+  coRailKey,
+  coRegionKey,
+  coStructKey,
+  coSvcKey,
+  flowCountriesKey,
+  flowKey,
+  parseJsonList,
+  type CoCorporateShareholder,
+  type CoExistingProvider,
+  type CoUbo,
+  websiteUnavailableKey,
+} from "./correspondent-config";
+import {
+  PB_BASELINE_ACCOUNT,
   PB_CURRENCIES,
-  PB_FUND_SOURCES,
+  PB_INCOMING_PURPOSES,
+  PB_OUTGOING_PURPOSES,
+  PB_PAYMENT_ROUTES,
   PB_SERVICES,
-  PB_TRANSFER_PURPOSES,
   PB_WEALTH_SOURCES,
   currKey,
-  fundKey,
-  purposeKey,
+  currLevelKey,
+  inAmountKey,
+  inCountKey,
+  inPurposeKey,
+  outAmountKey,
+  outCountKey,
+  outPurposeKey,
+  railKey,
   svcKey,
   svcLevelKey,
   wealthKey,
 } from "./private-banking-config";
+import { activeCorrespondentBranch } from "./validate-correspondent";
+import { applyLegalEntityBank } from "./legal-entity-bank-typed";
+import { activeAuditedYears, activeFinanceFacilities } from "./validate-financing";
 
 const C = criteria as {
   version: string;
@@ -60,7 +99,7 @@ function cap(family: string, labels: string[]) {
       labels.flatMap((s) => {
         const id = C.capability(family, s);
         if (id === "online_pos") return ["online", "pos"];
-        if (id === "sepa" && s === "SEPA / SEPA Instant") return ["sepa", "sepa_instant"];
+        // SEPA and SEPA Instant are distinct rails (T12 / M06); never expand a combined label.
         return id ? [id] : [];
       })
     ),
@@ -87,7 +126,11 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
         : v(values, "company-name"),
       jurisdiction: personal ? v(values, "pb-residence") : v(values, "incorporation"),
       registration: personal || bool(values, "registration-notissued") ? null : v(values, "registration"),
-      entityType: personal ? null : v(values, "entity-type"),
+      entityType: personal
+        ? null
+        : route === "institution"
+          ? "Private limited company (Ltd / LLC or equivalent)"
+          : v(values, "entity-type"),
       personal: personal
         ? {
             name: v(values, "pb-name"),
@@ -137,7 +180,10 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
     },
   };
 
-  if (["bank", "both"].includes(route)) {
+  // LE bank journey (LE01–LE23) builds its own typed bank block via applyLegalEntityBank().
+  const leBank = isLegalEntityBankFlow(values);
+
+  if (["bank", "both"].includes(route) && !leBank) {
     const purposeLabels = chosen(values, "purpose:").length
       ? chosen(values, "purpose:")
       : Object.entries(values)
@@ -167,43 +213,74 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
 
   if (["merchant", "both"].includes(route)) {
     const labels: string[] = [];
-    if (bool(values, "online")) labels.push("Online card acquiring");
-    if (bool(values, "pos")) labels.push("In-person card payments / POS");
+    if (bool(values, "online") || bool(values, "merchant-channel:online")) {
+      labels.push("Online card payments");
+    }
+    if (bool(values, "pos") || bool(values, "merchant-channel:pos")) {
+      labels.push("In-person card payments / POS");
+    }
+    const markets = parseMarkets(values);
+    const settleCurrencies = ["EUR", "GBP", "USD"].filter(
+      (c) => bool(values, `merchant-settle-curr:${c}`) || bool(values, `settle:${c}`)
+    );
+    const processingCurrencies = Array.from(
+      new Set(
+        markets.flatMap((m) =>
+          m.methods.flatMap((method) =>
+            method.currencies.map((c) => c.currency).filter(Boolean)
+          )
+        )
+      )
+    );
     (base.requirements as Record<string, unknown>).merchant = {
       capabilities: cap("merchant", labels),
       salesModel: v(values, "sales-role"),
-      cardCountries: parseCardCountries(values),
-      chargeCurrencies: curr("merchant.charge", checkboxList(values, "charge-currencies"), ""),
-      settlementCurrencies: curr("merchant.settlement", checkboxList(values, "settle-currencies"), ""),
-      reportCurrency:
-        v(values, "estimate-currency") === "Other"
-          ? v(values, "estimate-other-code")
-          : v(values, "estimate-currency"),
-      monthlyAmount: n(values, "merchant-monthly-value"),
-      monthlyCount: n(values, "merchant-monthly-count"),
-      averageTicket: n(values, "merchant-average-ticket"),
-      maxTicket: n(values, "merchant-max-ticket"),
-      historyMonths: n(values, "history-months"),
-      history: v(values, "history"),
-      chargeback: n(values, "merchant-chargeback"),
-      fraud: n(values, "merchant-fraud"),
-      gateway: v(values, "gateway"),
-      platform: v(values, "platform"),
-      apms: v(values, "apm-request")
-        .split(/[,;\n]+/)
-        .map((s) => s.trim())
+      markets,
+      cardCountries: markets
+        .filter((m) => m.kind === "country")
+        .map((m) => m.name)
         .filter(Boolean),
+      chargeCurrencies: curr("merchant.charge", processingCurrencies, ""),
+      settlementCurrencies: curr("merchant.settlement", settleCurrencies, ""),
+      settlementType: v(values, "merchant-settlement-type"),
+      historyStatus: v(values, "merchant-history-status") || v(values, "history"),
+      historyMonths: n(values, "history-months") || n(values, "merchant-history-months"),
+      statementAvailability: v(values, "merchant-statement-availability"),
+      gateway: v(values, "gateway") || v(values, "merchant-gateway"),
+      gatewayKeep: v(values, "merchant-gateway-keep"),
+      platform: v(values, "platform") || v(values, "merchant-platform"),
+      fulfilment: v(values, "merchant-fulfilment"),
+      targetRate: v(values, "merchant-target-rate"),
+      // MC11: average is derived from comparable value/count only — no max/typical ticket inputs.
+      derivedAverages: markets.flatMap((m) =>
+        m.methods.flatMap((method) =>
+          method.currencies
+            .map((c) => ({
+              market: m.name,
+              method: method.method,
+              currency: c.currency,
+              average: deriveAverage(c.monthlyValue, c.monthlyCount),
+            }))
+            .filter((row) => row.average != null)
+        )
+      ),
       settlement: {
-        exists: v(values, "settlement"),
-        country: v(values, "settlement-country"),
-        currencies: [],
+        exists: v(values, "merchant-receiving-account") || v(values, "settlement"),
+        ownNameAcknowledged: bool(values, "merchant-own-name-ack"),
+        currencies: settleCurrencies,
         requestedBank: route === "both" || v(values, "find-bank") === "Yes",
+        bankEntry: v(values, "bank-entry"),
       },
     };
   }
 
   if (route === "individual") {
-    const capabilities = PB_SERVICES
+    const baselineId = C.capability("private", PB_BASELINE_ACCOUNT.matchLabel);
+    const baselineCap = baselineId
+      ? [req(`private.capability.${baselineId}`, baselineId, "essential")]
+      : [];
+
+    const extraCapabilities = PB_SERVICES
       .filter((s) => bool(values, svcKey(s.id)))
       .flatMap((s) => {
         const capId = C.capability("private", s.matchLabel);
@@ -212,37 +289,74 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
         return [req(`private.capability.${capId}`, capId, level as "essential" | "preferred")];
       });
 
-    const currencySelection = PB_CURRENCIES.filter((c) => c !== "Other" && bool(values, currKey(c)));
+    const currencySelection = PB_CURRENCIES.filter((c) => bool(values, currKey(c)));
+    const currencyReqs = currencySelection.map((code) =>
+      req(
+        `private.currency.${code}`,
+        code,
+        v(values, currLevelKey(code)) === "required" ? "essential" : "preferred"
+      )
+    );
+    const rails = PB_PAYMENT_ROUTES.filter((r) => bool(values, railKey(r.id))).map((r) => ({
+      id: r.id,
+      currency: r.currency,
+      label: r.label,
+      priority: v(values, currLevelKey(r.currency)) === "required" ? "essential" : "preferred",
+    }));
+
     const lang =
       v(values, "pb-language") === "Other"
         ? v(values, "pb-language-other")
         : v(values, "pb-language");
 
+    const incomingInactive = bool(values, "pb-incoming-none");
+    const outgoingInactive = bool(values, "pb-outgoing-none");
+    const regular = v(values, "pb-regular-transfers");
+
+    const monthlyByCurrency = currencySelection.map((code) => ({
+      currency: code,
+      incoming:
+        regular === "Yes" && !incomingInactive
+          ? { countBand: v(values, inCountKey(code)), amountBand: v(values, inAmountKey(code)) }
+          : null,
+      outgoing:
+        regular === "Yes" && !outgoingInactive
+          ? { countBand: v(values, outCountKey(code)), amountBand: v(values, outAmountKey(code)) }
+          : null,
+    }));
+
     (base.requirements as Record<string, unknown>).private = {
-      capabilities,
+      capabilities: [...baselineCap, ...extraCapabilities],
+      accountImplicit: true,
       otherCapability: v(values, "pb-needs-text"),
       additionalNotes: v(values, "pb-needs-extra"),
-      currencies: curr("private", currencySelection, v(values, "pb-currencies-text")),
+      currencies: currencyReqs.length ? currencyReqs : curr("private", currencySelection),
+      paymentMethods: rails,
       assets: parseAssetRange(v(values, "pb-assets")),
       placement: n(values, "pb-transfer"),
-      placementCurrency: v(values, "pb-placement-currency") || "EUR",
+      placementCurrency: "EUR",
       language: lang ? req("private.language", lang, v(values, "pb-language-level") === "required" ? "essential" : "preferred") : null,
       wealthSources: PB_WEALTH_SOURCES.filter((s) => bool(values, wealthKey(s.id))).map((s) => C.source(s.label)),
-      fundSources: PB_FUND_SOURCES.filter((s) => bool(values, fundKey(s.id))).map((s) => C.source(s.label)),
-      existingSavingsOrigin: PB_WEALTH_SOURCES.filter((s) => bool(values, `pb-fund-origin:${s.id}`)).map((s) =>
-        C.source(s.label)
-      ),
+      // Proposed source-of-funds removed (PB04); keep empty so matching treats as unknown/conditional.
+      fundSources: [],
       ownFunds: v(values, "pb-own-funds"),
       fundOrigin: expandPicker(pickers, "pb-origin-country"),
-      incoming: expandPicker(pickers, "pb-incoming"),
-      outgoing: expandPicker(pickers, "pb-outgoing"),
-      regularTransfers: v(values, "pb-regular-transfers"),
-      transferDirection: v(values, "pb-transfer-direction"),
-      transferPurposes: PB_TRANSFER_PURPOSES.filter((p) => bool(values, purposeKey(p))),
-      transferPurposeOther: v(values, "pb-purpose-other"),
-      monthlyIncoming: { count: n(values, "pb-in-count"), amount: n(values, "pb-in-amount") },
-      monthlyOutgoing: { count: n(values, "pb-out-count"), amount: n(values, "pb-out-amount") },
-      reportCurrency: v(values, "pb-report-currency"),
+      incoming: regular === "Yes" && !incomingInactive ? expandPicker(pickers, "pb-incoming") : [],
+      outgoing: regular === "Yes" && !outgoingInactive ? expandPicker(pickers, "pb-outgoing") : [],
+      regularTransfers: regular,
+      incomingInactive: regular === "Yes" ? incomingInactive : null,
+      outgoingInactive: regular === "Yes" ? outgoingInactive : null,
+      incomingPurposes:
+        regular === "Yes" && !incomingInactive
+          ? PB_INCOMING_PURPOSES.filter((p) => bool(values, inPurposeKey(p.id))).map((p) => p.id)
+          : [],
+      incomingPurposeOther: v(values, "pb-in-purpose-other"),
+      outgoingPurposes:
+        regular === "Yes" && !outgoingInactive
+          ? PB_OUTGOING_PURPOSES.filter((p) => bool(values, outPurposeKey(p.id))).map((p) => p.id)
+          : [],
+      outgoingPurposeOther: v(values, "pb-out-purpose-other"),
+      monthlyByCurrency,
       occupation: v(values, "pb-occupation"),
       background: v(values, "pb-career"),
       linkedIn: v(values, "pb-linkedin"),
@@ -250,8 +364,9 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
       thirdPartyFunding:
         v(values, "pb-own-funds") === "No"
           ? {
-              name: v(values, "pb-third-party-name"),
+              name: v(values, "pb-third-party-name") || null,
               relationship: v(values, "pb-third-party-relationship"),
+              relationshipOther: v(values, "pb-third-party-relationship-other"),
               reason: v(values, "pb-third-party-reason"),
             }
           : null,
@@ -259,66 +374,216 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
   }
 
   if (route === "financing") {
+    const purposeMeta = financePurposeFromValue(v(values, "finance-purpose"));
+    const purposeKey = purposeMeta?.key ?? financePurposeKey(v(values, "finance-purpose"));
+    const purposeLabel = purposeMeta?.label ?? v(values, "finance-purpose");
+    const existingFinancing = v(values, "finance-existing") === "Yes";
+    const securityYes = v(values, "finance-security") === "Yes";
+    const termUnknown = values["finance-term-unknown"] === true;
+    const facilities = activeFinanceFacilities(values);
+    const auditedYears = activeAuditedYears(values);
+    const matchLabels = [purposeLabel];
+    if (purposeKey === "maritime_vessel_finance") {
+      matchLabels.push("Maritime / vessel finance", "Shipping finance");
+    }
     (base.requirements as Record<string, unknown>).finance = {
-      capabilities: cap("finance", [v(values, "finance-purpose")]),
-      otherCapability: v(values, "finance-other-text"),
-      currencies: [
-        req(
-          "finance.currency." + v(values, "finance-currency"),
-          v(values, "finance-currency") === "Other"
-            ? v(values, "finance-currency-code").toUpperCase()
-            : v(values, "finance-currency")
-        ),
-      ],
+      capabilities: cap("finance", matchLabels),
+      otherCapability: purposeKey === "other" ? v(values, "finance-other-text") : null,
+      currencies: [req("finance.currency." + v(values, "finance-currency"), v(values, "finance-currency"))],
       amount: n(values, "finance-amount"),
-      purpose: v(values, "finance-purpose"),
+      purpose: purposeKey,
+      purposeLabel,
+      useOfFunds: v(values, "finance-use"),
       stage: v(values, "finance-stage"),
-      projectCountry: v(values, "finance-project-country"),
-      termMonths: n(values, "finance-term-months"),
-      security: v(values, "finance-security"),
-      securityType: v(values, "finance-security-type"),
-      existingDebt: v(values, "finance-existing"),
-      auditYear: v(values, "finance-audit-year"),
+      projectCountry: v(values, "finance-project-country") || null,
+      vesselDetails:
+        purposeKey === "maritime_vessel_finance" ? v(values, "finance-vessel-details") || null : null,
+      termYears: termUnknown ? null : n(values, "finance-term"),
+      termUnknown,
       timeline: v(values, "finance-timeline"),
+      requiredDate:
+        v(values, "finance-timeline") === "specific_date" ? v(values, "finance-date") || null : null,
+      revenueStatus: v(values, "finance-revenue-status") || null,
+      reportingCurrency: v(values, "finance-report-currency") || null,
+      revenue: n(values, "finance-revenue"),
+      revenueYear: v(values, "finance-revenue-year") || null,
+      profit: n(values, "finance-profit"),
+      auditedAvailability: v(values, "finance-audited") || null,
+      auditedYears,
+      latestAuditedYear: auditedYears.length ? Math.max(...auditedYears) : null,
+      existingFinancing,
+      facilities: existingFinancing ? facilities : [],
+      refinanceTargets:
+        purposeKey === "refinancing" && existingFinancing ? v(values, "finance-refinance") || null : null,
+      securityAvailable: securityYes,
+      security: securityYes
+        ? {
+            details: v(values, "finance-security-details"),
+            value: n(values, "finance-security-value"),
+            currency: v(values, "finance-security-currency") || null,
+            pledged: v(values, "finance-pledged") || null,
+          }
+        : null,
+      websiteStatus: v(values, "finance-website-status") || null,
+      website: v(values, "finance-website-status") === "available" ? v(values, "website") || null : null,
+      // FN12/FN13: never export cross-service prefs or onboarding methods for financing
+      onboardingMethods: [],
+      groupCompanyCrossService: null,
+      uboPersonalAccount: null,
     };
+    // Strip any inherited onboarding from shared attach below for this route.
+    (base as { financingExcludesOnboarding?: boolean }).financingExcludesOnboarding = true;
   }
 
   if (route === "institution") {
+    const branch = activeCorrespondentBranch(values);
+    const catLabel =
+      CO_INSTITUTION_CATEGORIES.find((c) => c.id === branch.category)?.label ?? branch.category;
+    const selectedServices = branch.selectedServices.map((s) => s.matchLabel);
+    const currencyReqs = branch.selectedCurrencies.map((code) =>
+      req(
+        `correspondent.currency.${code}`,
+        code,
+        v(values, coCurrLevelKey(code)) === "required" ? "essential" : "preferred"
+      )
+    );
+    const rails = CO_PAYMENT_ROUTES.filter((r) => bool(values, coRailKey(r.id))).map((r) => ({
+      id: r.id,
+      currency: r.currency,
+      label: r.label,
+      level: v(values, coCurrLevelKey(r.currency)) === "required" ? "essential" : "preferred",
+    }));
+    const structures = CO_ACCOUNT_STRUCTURES.filter((s) => bool(values, coStructKey(s.id))).map(
+      (s) => s.id
+    );
+    const regions = CO_REGIONS.filter((r) => bool(values, coRegionKey(r))).map((r) => r);
+    const clientTypes = CO_CLIENT_TYPES.filter((t) => bool(values, coClientTypeKey(t.id))).map(
+      (t) => t.label
+    );
+
+    function schedule(scope: "operating" | "client", code: string) {
+      const buildDir = (dir: "in" | "out") => ({
+        amount: v(values, flowKey(scope, code, dir, "amount")) || null,
+        count: v(values, flowKey(scope, code, dir, "count")) || null,
+        purpose: v(values, flowKey(scope, code, dir, "purpose")) || null,
+        countries: expandPicker(pickers, flowCountriesKey(scope, code, dir)),
+      });
+      return { currency: code, incoming: buildDir("in"), outgoing: buildDir("out") };
+    }
+
+    const operatingSchedules = branch.selectedCurrencies.map((c) => schedule("operating", c));
+    const clientSchedules = branch.clientFunds
+      ? branch.selectedCurrencies.map((c) => schedule("client", c))
+      : [];
+
+    const ubos = parseJsonList<CoUbo>(values["co-ubos"]).map((u) => ({
+      ownershipPct: Number(u.ownership) || null,
+      nationalities: pickers[`co-ubo-nat-${u.id}`] ?? u.nationalities ?? [],
+      residence: u.residence || null,
+    }));
+    const corporateShareholders = branch.corporateYes
+      ? parseJsonList<CoCorporateShareholder>(values["co-corporate-shareholders"]).map((c) => ({
+          jurisdiction: c.jurisdiction || null,
+          shareholdingPct: Number(c.shareholding) || null,
+        }))
+      : [];
+    const existingProviders = parseJsonList<CoExistingProvider>(values["co-existing-providers"])
+      .filter((p) => p.name || p.country || p.status)
+      .map((p) => ({ name: p.name || null, country: p.country || null, status: p.status || null }));
+
+    (base.applicant as Record<string, unknown>).website =
+      values[websiteUnavailableKey()] === true ? null : v(values, "fi-website") || null;
+    (base.applicant as Record<string, unknown>).websiteUnavailable =
+      values[websiteUnavailableKey()] === true
+        ? { reason: v(values, "co-website-reason") || null }
+        : null;
+    (base.applicant as Record<string, unknown>).shareholders = corporateShareholders;
+    (base.applicant as Record<string, unknown>).persons = ubos.map((u, i) => ({
+      id: `ubo-${i + 1}`,
+      roles: ["beneficial_owner"],
+      ownershipPct: u.ownershipPct,
+      nationalities: u.nationalities,
+      residence: u.residence,
+    }));
+    (base.applicant as Record<string, unknown>).group = {
+      member: branch.groupYes,
+      name: branch.groupYes ? v(values, "group-name") || null : null,
+      sameInstitution: v(values, "group-same-institution") || null,
+      uboPersonalAccount: v(values, "group-ubo-personal") || null,
+    };
+
     (base.requirements as Record<string, unknown>).correspondent = {
-      capabilities: cap("correspondent", checkboxList(values, "fi-features")),
-      currencies: curr("correspondent", checkboxList(values, "fi-currencies"), v(values, "fi-other-currency-text")),
-      reportCurrency: v(values, "fi-reporting"),
-      type: checkboxList(values, "fi-type")[0] ?? null,
+      institutionCategory: branch.category || null,
+      institutionCategoryLabel: catLabel || null,
+      /** Matching criterion institution.type — same as category label. */
+      type: catLabel || null,
+      capabilities: selectedServices.map((label) => {
+        const svc = CO_SERVICES.find((s) => s.matchLabel === label);
+        return req(`correspondent.capability.${svc?.id ?? label}`, svc?.id ?? label, "essential");
+      }),
+      otherCapability: bool(values, coSvcKey("other")) ? v(values, "co-svc-other-text") : null,
+      currencies: currencyReqs,
+      rails,
+      accountStructures: structures,
+      operatingAccount: true,
+      clientFundsAccount: branch.clientFunds,
       status: v(values, "fi-status"),
       authority: v(values, "fi-regulatory"),
       permission: v(values, "fi-reference"),
-      permittedActivities: v(values, "fi-permitted"),
-      underlyingTypes: checkboxList(values, "fi-clients"),
+      permittedActivities: v(values, "fi-permitted") || null,
+      registerLink: v(values, "fi-register-link") || null,
+      operatingModel: v(values, "fi-activities") || null,
+      underlyingTypes: clientTypes,
       underlyingDescription: v(values, "fi-client-profile"),
-      underlyingCountries: expandPicker(pickers, "fi-underlying-countries").length
-        ? expandPicker(pickers, "fi-underlying-countries")
-        : expandPicker(pickers, "fi-client-countries"),
-      operational: {
-        countriesIn: expandPicker(pickers, "fi-incoming"),
-        countriesOut: expandPicker(pickers, "fi-outgoing"),
-        incoming: { amount: n(values, "fi-in-value"), count: n(values, "fi-in-count") },
-        outgoing: { amount: n(values, "fi-out-value"), count: n(values, "fi-out-count") },
-      },
-      clientFunds: checkboxList(values, "fi-account-model").includes("Dedicated client-funds account")
+      broadRegions: regions,
+      underlyingCountries: expandPicker(pickers, "fi-underlying-countries"),
+      nestedProcessing: v(values, "fi-downstream"),
+      nestedProcessingDetails:
+        v(values, "fi-downstream") === "Yes" ? v(values, "fi-downstream-text") : null,
+      directClientAccess: v(values, "fi-access"),
+      directClientAccessDetails: v(values, "fi-access") === "Yes" ? v(values, "fi-access-text") : null,
+      fundModel: v(values, "fi-fund-model"),
+      operationalSchedules: operatingSchedules,
+      clientFundsSchedules: clientSchedules,
+      // Inactive when client funds deselected — never export stale client schedules as active.
+      clientFunds: branch.clientFunds
         ? {
-            countriesIn: expandPicker(pickers, "fi-client-in"),
-            countriesOut: expandPicker(pickers, "fi-client-out"),
-            incoming: { amount: n(values, "fi-client-in-value"), count: n(values, "fi-client-in-count") },
-            outgoing: { amount: n(values, "fi-client-out-value"), count: n(values, "fi-client-out-count") },
+            schedules: clientSchedules,
           }
         : null,
       aml: v(values, "fi-aml"),
-      ddq: v(values, "fi-ddq"),
+      // CO08: DDQ availability/year removed from active correspondent intake.
+      ddq: null,
       audit: v(values, "fi-audit"),
+      auditYear: v(values, "fi-audit") === "Yes" ? v(values, "fi-audit-year") : null,
       mlro: v(values, "fi-mlro"),
       mlroCountry: v(values, "fi-mlro-country"),
+      relationshipReason: v(values, "fi-reason"),
+      existingProviders,
+      msbCanada: branch.isMsbCanada
+        ? {
+            office: v(values, "msb-office"),
+            director: v(values, "msb-director"),
+            bankOfCanada: v(values, "msb-boc"),
+            reference: v(values, "msb-boc-reference") || null,
+          }
+        : null,
+      casp: branch.isCasp
+        ? {
+            mica: v(values, "casp-mica"),
+            authority: v(values, "casp-authority") || null,
+            reference: v(values, "casp-reference") || null,
+            assets: v(values, "casp-assets"),
+            wallets: v(values, "casp-wallets"),
+            travelRule: v(values, "casp-travel"),
+            chainScreening: v(values, "casp-chain"),
+          }
+        : null,
+      ownershipClarification: v(values, "ownership-clarification") || null,
     };
   }
+
+  if (leBank) applyLegalEntityBank(base, values, pickers);
 
   const applicant = base.applicant as { name: string; jurisdiction: string };
   base.screeningSubjects = [
@@ -331,7 +596,22 @@ export function buildTypedData(values: QuestionnaireValues, pickers: CountryPick
     },
   ];
 
-  attachOnboardingPreferences(base, values);
+  if (route !== "financing") {
+    attachOnboardingPreferences(base, values);
+  } else {
+    // FN13: language may still be preferred; onboarding methods must not affect matching.
+    const language = v(values, "relationship-manager-language");
+    const reqs = base.requirements as Record<string, Record<string, unknown>>;
+    if (reqs.finance) {
+      reqs.finance = {
+        ...reqs.finance,
+        onboardingMethods: [],
+        relationshipLanguage: language || null,
+        relationshipLanguageOther:
+          language === "Other" ? v(values, "relationship-manager-language-other") || null : null,
+      };
+    }
+  }
 
   return base;
 }

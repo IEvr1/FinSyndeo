@@ -149,25 +149,30 @@ export const SERVICES: Record<string, string[]> = {
     "Other — please specify",
   ],
   correspondent: [
-    "Operational accounts — institution's own funds",
-    "Accounts for receiving and sending payments on behalf of clients",
-    "Accounts for holding client funds",
-    "Accounts specifically for safeguarding the applicant's client funds",
-    "Banking as a Service (BaaS)",
-    "Dedicated virtual IBANs for underlying clients",
     "API connectivity",
     "Bulk payments",
-    "Collections and payouts",
-    "Cross-border payments",
-    "Foreign exchange (FX)",
-    "Other — please specify",
+    "Currency conversion and FX",
+    "Cross border collection and payouts",
+    "Payment clearing and settlement",
+    "Banking as a Service (BaaS)",
+    "White Label",
+    "Card issuing",
+    "Crypto on ramp (fiat to crypto)",
+    "Crypto off ramp (crypto to fiat)",
+    "Safeguarding of client funds",
+    "Fixed term deposits (institution own funds)",
+    "Other",
   ],
 };
 
 export const BAAS_DESCRIPTION =
   "Banking or payment capabilities supplied to other businesses through an integration or platform. BaaS is not synonymous with a correspondent account and does not automatically include SWIFT, SEPA, cards or third-party fund holding.";
 
-export const CURRENCY_OPTIONS = ["EUR", "GBP", "USD", "CHF", "Other"];
+/** Main fiat currencies — CHF removed from shared main pickers (CO06 / M06). */
+export const CURRENCY_OPTIONS = ["EUR", "GBP", "USD"];
+
+/** Merchant processing alone may name an additional ISO fiat currency. */
+export const MERCHANT_CURRENCY_OPTIONS = ["EUR", "GBP", "USD", "Other"];
 
 export function servicesLegend(family: string): string {
   switch (family) {

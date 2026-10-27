@@ -8,10 +8,17 @@ const LANGS = ["English", "Greek", "French", "German", "Spanish", "Italian", "He
 type Props = {
   values: QuestionnaireValues;
   onChange: (id: string, value: FieldValue) => void;
+  /** CO12: remove Other please specify on correspondent route. */
+  hideOtherMethod?: boolean;
 };
 
-export function OnboardingPreferencesPanel({ values, onChange }: Props) {
+export function OnboardingPreferencesPanel({ values, onChange, hideOtherMethod }: Props) {
   const noPref = values["onboarding-no-preference"] === true;
+  const methods = APPLICANT_ONBOARDING_METHODS.filter((m) => {
+    if (m === "No preference") return false;
+    if (hideOtherMethod && m === "Other — please specify") return false;
+    return true;
+  });
 
   return (
     <section className="panel">
@@ -19,19 +26,22 @@ export function OnboardingPreferencesPanel({ values, onChange }: Props) {
       <p className="hint">Which onboarding methods are acceptable to you? Select all that apply.</p>
       <fieldset>
         <legend className="sr-only">Onboarding methods</legend>
-        <div className="checks">
-          {APPLICANT_ONBOARDING_METHODS.filter((m) => m !== "No preference").map((method) => (
-            <label key={method}>
+        <div className="checks spaced-checks">
+          {methods.map((method) => (
+            <label key={method} className="checkline">
               <input
                 type="checkbox"
                 disabled={noPref}
                 checked={values[onboardingStorageKey(method)] === true}
-                onChange={(e) => onChange(onboardingStorageKey(method), e.target.checked)}
+                onChange={(e) => {
+                  onChange(onboardingStorageKey(method), e.target.checked);
+                  if (e.target.checked) onChange("onboarding-no-preference", false);
+                }}
               />
-              {method}
+              <span>{method}</span>
             </label>
           ))}
-          <label>
+          <label className="checkline">
             <input
               type="checkbox"
               checked={noPref}
@@ -44,7 +54,7 @@ export function OnboardingPreferencesPanel({ values, onChange }: Props) {
                 }
               }}
             />
-            No preference
+            <span>No preference</span>
           </label>
         </div>
       </fieldset>
@@ -56,7 +66,9 @@ export function OnboardingPreferencesPanel({ values, onChange }: Props) {
         >
           <option value="">Not specified</option>
           {LANGS.map((l) => (
-            <option key={l} value={l}>{l}</option>
+            <option key={l} value={l}>
+              {l}
+            </option>
           ))}
         </select>
       </label>
@@ -67,8 +79,8 @@ export function OnboardingPreferencesPanel({ values, onChange }: Props) {
             value={String(values["relationship-manager-language-level"] ?? "preferred")}
             onChange={(e) => onChange("relationship-manager-language-level", e.target.value)}
           >
-            <option value="preferred">Preferred</option>
-            <option value="required">Required</option>
+            <option value="preferred">Good to have</option>
+            <option value="required">Must-have</option>
           </select>
         </label>
       )}

@@ -10,6 +10,7 @@ import {
   BAAS_DESCRIPTION,
   CORPORATE_ACCOUNT_AVAILABILITY,
   CURRENCY_OPTIONS,
+  MERCHANT_CURRENCY_OPTIONS,
   FAMILIES,
   MERCHANT_CRYPTO_SERVICES,
   SERVICES,
@@ -56,20 +57,15 @@ export function ProductOfferFields({ offer: o, setState, patchOffer }: Props) {
     o.family === "correspondent" &&
     services.some((s) =>
       [
-        "Accounts for receiving and sending payments on behalf of clients",
-        "Accounts for holding client funds",
-        "Accounts specifically for safeguarding the applicant's client funds",
+        "Cross border collection and payouts",
+        "Safeguarding of client funds",
+        "API connectivity",
+        "Bulk payments",
       ].includes(s)
     );
 
   const holdingSelected =
-    o.family === "correspondent" &&
-    services.some((s) =>
-      [
-        "Accounts for holding client funds",
-        "Accounts specifically for safeguarding the applicant's client funds",
-      ].includes(s)
-    );
+    o.family === "correspondent" && services.includes("Safeguarding of client funds");
 
   return (
     <section className="product-offer-section" aria-labelledby={`offer-${o.id}`}>
@@ -108,7 +104,7 @@ export function ProductOfferFields({ offer: o, setState, patchOffer }: Props) {
         />
       )}
 
-      {services.includes("Other — please specify") && (
+      {(services.includes("Other — please specify") || services.includes("Other")) && (
         <FieldInput
           label="Other — please specify"
           value={str(o.data.servicesOther)}
@@ -201,7 +197,7 @@ export function ProductOfferFields({ offer: o, setState, patchOffer }: Props) {
               setState((s) => patchOffer(s, o.id, { fundHoldingStructure: next }));
             }}
           />
-          {services.includes("Accounts specifically for safeguarding the applicant's client funds") && (
+          {services.includes("Safeguarding of client funds") && (
             <FieldTextarea
               label="Safeguarding conditions"
               value={str(o.data.safeguardingConditions)}
@@ -213,7 +209,7 @@ export function ProductOfferFields({ offer: o, setState, patchOffer }: Props) {
 
       <CheckGroup
         legend={currenciesLegend(o.family)}
-        options={CURRENCY_OPTIONS}
+        options={o.family === "merchant" ? MERCHANT_CURRENCY_OPTIONS : CURRENCY_OPTIONS}
         values={arr(o.data.currencies)}
         onToggle={(value, checked) => {
           const current = arr(o.data.currencies);

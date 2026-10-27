@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { PasswordField } from "@/components/PasswordField";
+import { AuthChrome } from "@/components/AuthChrome";
 import { validatePassword } from "@/lib/password-policy";
 
 export default function SignUpForm() {
   const params = useSearchParams();
-  const router = useRouter();
   const roleParam = params.get("role");
   const role: "applicant" | "provider" | null =
     roleParam === "provider" ? "provider" : roleParam === "applicant" ? "applicant" : null;
@@ -19,12 +18,42 @@ export default function SignUpForm() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!role) router.replace("/");
-  }, [role, router]);
+  const headerNav = (
+    <nav className="public-header-nav">
+      <Link href="/auth/sign-in">Sign in</Link>
+      <Link href="/auth/sign-up" className="btn">
+        Register
+      </Link>
+    </nav>
+  );
 
   if (!role) {
-    return null;
+    return (
+      <AuthChrome nav={headerNav}>
+        <p className="eyebrow">Register</p>
+        <h1>Create an account</h1>
+        <p className="lead">Choose how you will use SOPHIMA AI. Introducer and Admin access is invitation-only.</p>
+        <div className="tiles" style={{ gridTemplateColumns: "1fr" }}>
+          <section className="tile">
+            <h2>Looking for a financial provider?</h2>
+            <p>Complete your profile and explore institutions that may meet your requirements.</p>
+            <Link href="/auth/sign-up?role=applicant" className="btn btn-primary mt-3">
+              Register as Applicant
+            </Link>
+          </section>
+          <section className="tile">
+            <h2>Represent a financial institution?</h2>
+            <p>Manage your institution profile, services and eligibility criteria.</p>
+            <Link href="/auth/sign-up?role=provider" className="btn btn-primary mt-3">
+              Register as Provider
+            </Link>
+          </section>
+        </div>
+        <p className="text-sm text-[var(--muted)] mt-4">
+          Already registered? <Link href="/auth/sign-in">Sign in</Link>
+        </p>
+      </AuthChrome>
+    );
   }
 
   const heading = role === "provider" ? "Register as a Provider" : "Register as an Applicant";
@@ -51,48 +80,41 @@ export default function SignUpForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--paper)] flex flex-col">
-      <header className="px-6 py-5 bg-white border-b border-[var(--line)]">
-        <Link href="/">
-          <Image src="/assets/FinSyndeo-logo.png" alt="FinSyndeo" width={180} height={48} />
-        </Link>
-      </header>
-      <main className="max-w-md mx-auto px-6 py-12 w-full">
-        <h1>{heading}</h1>
-        <p className="text-sm text-[var(--muted)] mb-4">
-          <Link href="/">Change registration type</Link>
-        </p>
-        <form onSubmit={handleSubmit} className="panel">
-          {error && <div className="notice notice-error">{error}</div>}
-          <label className="field">
-            <span>Name</span>
-            <input type="text" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </label>
-          <label className="field">
-            <span>Email</span>
-            <input
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-          <PasswordField
-            label="Password"
-            value={password}
-            onChange={setPassword}
-            autoComplete="new-password"
-            showHint
+    <AuthChrome nav={headerNav}>
+      <h1>{heading}</h1>
+      <p className="text-sm text-[var(--muted)] mb-4">
+        <Link href="/auth/sign-up">Change registration type</Link>
+      </p>
+      <form onSubmit={handleSubmit} className="panel">
+        {error && <div className="notice notice-error">{error}</div>}
+        <label className="field">
+          <span>Name</span>
+          <input type="text" required autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="field">
+          <span>Email</span>
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          <button type="submit" className="btn btn-primary w-full">
-            Register
-          </button>
-        </form>
-        <p className="text-sm text-[var(--muted)] mt-4">
-          Already registered? <Link href="/auth/sign-in">Sign in</Link>
-        </p>
-      </main>
-    </div>
+        </label>
+        <PasswordField
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="new-password"
+          showHint
+        />
+        <button type="submit" className="btn btn-primary w-full">
+          Register
+        </button>
+      </form>
+      <p className="text-sm text-[var(--muted)] mt-4">
+        Already registered? <Link href="/auth/sign-in">Sign in</Link>
+      </p>
+    </AuthChrome>
   );
 }

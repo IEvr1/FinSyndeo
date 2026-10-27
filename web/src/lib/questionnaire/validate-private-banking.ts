@@ -1,13 +1,18 @@
 import {
   PB_CURRENCIES,
-  PB_SERVICES,
+  PB_INCOMING_PURPOSES,
+  PB_OUTGOING_PURPOSES,
   PB_WEALTH_SOURCES,
-  PB_FUND_SOURCES,
-  PB_TRANSFER_PURPOSES,
+  currKey,
+  currLevelKey,
+  inAmountKey,
+  inCountKey,
+  inPurposeKey,
+  outAmountKey,
+  outCountKey,
+  outPurposeKey,
   svcKey,
   wealthKey,
-  fundKey,
-  purposeKey,
 } from "./private-banking-config";
 import type { CountryPickers, QuestionnaireValues } from "./types";
 
@@ -19,109 +24,162 @@ function bool(v: unknown): boolean {
   return v === true;
 }
 
+export type PbValidationResult = {
+  message: string;
+  fields: Record<string, string>;
+  firstField?: string;
+};
+
 export function validatePrivateBankingStep(
   step: number,
   values: QuestionnaireValues,
   pickers: CountryPickers
 ): string | null {
+  const result = validatePrivateBankingFields(step, values, pickers);
+  return result?.message ?? null;
+}
+
+export function validatePrivateBankingFields(
+  step: number,
+  values: QuestionnaireValues,
+  pickers: CountryPickers
+): PbValidationResult | null {
+  const fields: Record<string, string> = {};
+
   if (step === 20) {
-    if (!str(values["pb-name"])) return "Please enter your name.";
-    if (!str(values["pb-surname"])) return "Please enter your surname.";
+    if (!str(values["pb-name"])) fields["pb-name"] = "Please enter your name.";
+    if (!str(values["pb-surname"])) fields["pb-surname"] = "Please enter your surname.";
     if (!str(values["pb-email"]) || !/^\S+@\S+\.\S+$/.test(str(values["pb-email"]))) {
-      return "Please enter a valid contact email.";
+      fields["pb-email"] = "Please enter a valid contact email.";
     }
-    if (!(pickers["pb-nationality"]?.length ?? 0)) return "Please select at least one nationality.";
-    if (!str(values["pb-residence"])) return "Please select your country of residence.";
-    if (!(pickers["pb-tax"]?.length ?? 0)) return "Please select all countries where you are tax resident.";
-    return null;
+    if (!(pickers["pb-nationality"]?.length ?? 0)) {
+      fields["pb-nationality"] = "Please select at least one nationality.";
+    }
+    if (!str(values["pb-residence"])) fields["pb-residence"] = "Please select your country of residence.";
+    if (!(pickers["pb-tax"]?.length ?? 0)) {
+      fields["pb-tax"] = "Please select all countries where you are tax resident.";
+    }
   }
 
   if (step === 21) {
-    const anySvc = PB_SERVICES.some((s) => bool(values[svcKey(s.id)]));
-    if (!anySvc) return "Please select at least one service you would like the bank to provide.";
     if (bool(values[svcKey("other")]) && !str(values["pb-needs-text"])) {
-      return "Please describe the other service you need.";
+      fields["pb-needs-text"] = "Please describe the other service you need.";
     }
-    if (!str(values["pb-assets"])) return "Please select your approximate liquid assets.";
+    if (!str(values["pb-assets"])) fields["pb-assets"] = "Please select your approximate liquid assets.";
     if (values["pb-transfer"] === undefined || values["pb-transfer"] === "") {
-      return "Please enter the amount you expect to place with the bank.";
-    }
-    const amount = Number(values["pb-transfer"]);
-    if (!Number.isFinite(amount) || amount < 0) return "Please enter a valid placement amount.";
-    const anyCurr = PB_CURRENCIES.some((c) => bool(values[`pb-curr:${c}`]));
-    if (!anyCurr) return "Please select at least one account currency.";
-    if (bool(values["pb-curr:Other"]) && !str(values["pb-currencies-text"])) {
-      return "Please specify other currencies.";
-    }
-    if (bool(values["pb-current-bank-details"]) || values["pb-current-bank"] === "Yes") {
-      if (values["pb-current-bank"] === "Yes" && !str(values["pb-current-bank-name"]) && !str(values["pb-current-bank-country"])) {
-        /* optional bank name/country */
+      fields["pb-transfer"] = "Please enter the amount you expect to place with the bank.";
+    } else {
+      const amount = Number(values["pb-transfer"]);
+      if (!Number.isFinite(amount) || amount < 0) {
+        fields["pb-transfer"] = "Please enter a valid EUR-equivalent placement amount.";
       }
     }
-    return null;
+    const anyCurr = PB_CURRENCIES.some((c) => bool(values[currKey(c)]));
+    if (!anyCurr) {
+      fields["pb-currencies"] = "Select at least one account currency.";
+    } else {
+      for (const code of PB_CURRENCIES) {
+        if (!bool(values[currKey(code)])) continue;
+        const level = str(values[currLevelKey(code)]) || "preferred";
+        if (level !== "required" && level !== "preferred") {
+          fields[`pb-curr-level:${code}`] = `Choose Must-have or Good to have for ${code}.`;
+        }
+      }
+    }
   }
 
   if (step === 22) {
-    if (!str(values["pb-occupation"])) return "Please select your current professional status.";
+    if (!str(values["pb-occupation"])) fields["pb-occupation"] = "Please select your current professional status.";
     if (values["pb-occupation"] === "Other" && !str(values["pb-occupation-other"])) {
-      return "Please briefly describe your professional status.";
+      fields["pb-occupation-other"] = "Please briefly describe your professional status.";
     }
     const anyWealth = PB_WEALTH_SOURCES.some((s) => bool(values[wealthKey(s.id)]));
-    if (!anyWealth) return "Please select at least one source of wealth.";
+    if (!anyWealth) fields["pb-wealth"] = "Please select at least one source of wealth.";
     if (bool(values[wealthKey("other")]) && !str(values["pb-wealth-other-text"])) {
-      return "Please describe how your wealth was accumulated.";
+      fields["pb-wealth-other-text"] = "Please describe how your wealth was accumulated.";
     }
-    const anyFund = PB_FUND_SOURCES.some((s) => bool(values[fundKey(s.id)]));
-    if (!anyFund) return "Please select the source of the money you intend to place with the bank.";
-    if (bool(values[fundKey("other")]) && !str(values["pb-fund-other-text"])) {
-      return "Please describe the source of the proposed funds.";
-    }
-    if (
-      bool(values[fundKey("existing_savings")]) &&
-      !PB_WEALTH_SOURCES.some((s) => bool(values[`pb-fund-origin:${s.id}`]))
-    ) {
-      return "Please indicate the original source of your existing savings or investments.";
-    }
-    return null;
   }
 
   if (step === 23) {
-    if (!(pickers["pb-origin-country"]?.length ?? 0)) {
-      return "Please select the country or countries from which the initial transfer will be sent.";
-    }
     const own = str(values["pb-own-funds"]);
-    if (!own) return "Please indicate whether the initial funds will come from an account in your own name.";
+    if (!own) {
+      fields["pb-own-funds"] = "Please indicate whether the initial funds will come from an account in your own name.";
+    }
     if (own === "No") {
-      if (!str(values["pb-third-party-name"])) return "Please enter the sender's name.";
-      if (!str(values["pb-third-party-relationship"])) return "Please describe the sender's relationship to you.";
-      if (!str(values["pb-third-party-reason"])) return "Please provide a brief reason for third-party funding.";
+      if (!str(values["pb-third-party-relationship"])) {
+        fields["pb-third-party-relationship"] = "Please select the sender's relationship to you.";
+      }
+      if (values["pb-third-party-relationship"] === "Other" && !str(values["pb-third-party-relationship-other"])) {
+        fields["pb-third-party-relationship-other"] = "Please describe the relationship.";
+      }
+      if (!str(values["pb-third-party-reason"])) {
+        fields["pb-third-party-reason"] = "Please provide a brief reason for third-party funding.";
+      }
     }
+    if (!(pickers["pb-origin-country"]?.length ?? 0)) {
+      fields["pb-origin-country"] =
+        "Please select the country or countries from which the initial transfer will be sent.";
+    }
+
     const regular = str(values["pb-regular-transfers"]);
-    if (!regular) return "Please indicate whether you expect regular incoming or outgoing transfers.";
+    if (!regular) {
+      fields["pb-regular-transfers"] = "Please indicate whether you expect regular incoming or outgoing transfers.";
+    }
     if (regular === "Yes") {
-      const dir = str(values["pb-transfer-direction"]);
-      if (!dir) return "Please select incoming, outgoing or both.";
-      if (dir === "Incoming" || dir === "Both") {
-        if (!(pickers["pb-incoming"]?.length ?? 0)) return "Please select incoming countries.";
-        if (!str(values["pb-in-count"]) || !str(values["pb-in-amount"])) {
-          return "Please enter expected incoming transactions and amount per month.";
+      const incomingInactive = bool(values["pb-incoming-none"]);
+      const outgoingInactive = bool(values["pb-outgoing-none"]);
+      if (incomingInactive && outgoingInactive) {
+        fields["pb-transfer-directions"] =
+          "Both directions are marked inactive. Choose No for regular transfers, or leave at least one direction active.";
+      }
+      const selectedCurrencies = PB_CURRENCIES.filter((c) => bool(values[currKey(c)]));
+
+      if (!incomingInactive) {
+        if (!(pickers["pb-incoming"]?.length ?? 0)) {
+          fields["pb-incoming"] = "Please select incoming countries.";
+        }
+        for (const code of selectedCurrencies) {
+          if (!str(values[inCountKey(code)])) {
+            fields[inCountKey(code)] = `Select expected incoming transactions per month for ${code}.`;
+          }
+          if (!str(values[inAmountKey(code)])) {
+            fields[inAmountKey(code)] = `Select expected incoming amount per month for ${code}.`;
+          }
+        }
+        const anyInPurpose = PB_INCOMING_PURPOSES.some((p) => bool(values[inPurposeKey(p.id)]));
+        if (!anyInPurpose) fields["pb-in-purposes"] = "Select at least one purpose of incoming transfers.";
+        if (bool(values[inPurposeKey("other")]) && !str(values["pb-in-purpose-other"])) {
+          fields["pb-in-purpose-other"] = "Please specify the other incoming purpose.";
         }
       }
-      if (dir === "Outgoing" || dir === "Both") {
-        if (!(pickers["pb-outgoing"]?.length ?? 0)) return "Please select outgoing countries.";
-        if (!str(values["pb-out-count"]) || !str(values["pb-out-amount"])) {
-          return "Please enter expected outgoing transactions and amount per month.";
+
+      if (!outgoingInactive) {
+        if (!(pickers["pb-outgoing"]?.length ?? 0)) {
+          fields["pb-outgoing"] = "Please select outgoing countries.";
         }
-      }
-      if (!str(values["pb-report-currency"])) return "Please select the reporting currency for monthly amounts.";
-      const anyPurpose = PB_TRANSFER_PURPOSES.some((p) => bool(values[purposeKey(p)]));
-      if (!anyPurpose) return "Please select at least one purpose of regular transfers.";
-      if (bool(values[purposeKey("Other")]) && !str(values["pb-purpose-other"])) {
-        return "Please specify the other purpose of regular transfers.";
+        for (const code of selectedCurrencies) {
+          if (!str(values[outCountKey(code)])) {
+            fields[outCountKey(code)] = `Select expected outgoing transactions per month for ${code}.`;
+          }
+          if (!str(values[outAmountKey(code)])) {
+            fields[outAmountKey(code)] = `Select expected outgoing amount per month for ${code}.`;
+          }
+        }
+        const anyOutPurpose = PB_OUTGOING_PURPOSES.some((p) => bool(values[outPurposeKey(p.id)]));
+        if (!anyOutPurpose) fields["pb-out-purposes"] = "Select at least one purpose of outgoing transfers.";
+        if (bool(values[outPurposeKey("other")]) && !str(values["pb-out-purpose-other"])) {
+          fields["pb-out-purpose-other"] = "Please specify the other outgoing purpose.";
+        }
       }
     }
-    return null;
   }
 
-  return null;
+  const keys = Object.keys(fields);
+  if (!keys.length) return null;
+  const firstField = keys[0];
+  const message =
+    keys.length === 1
+      ? fields[firstField]
+      : `Please complete ${keys.length} required items below. First: ${fields[firstField]}`;
+  return { message, fields, firstField };
 }

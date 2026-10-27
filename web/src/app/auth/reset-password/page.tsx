@@ -2,9 +2,9 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { PasswordField } from "@/components/PasswordField";
+import { AuthChrome } from "@/components/AuthChrome";
 import { validatePassword } from "@/lib/password-policy";
 
 function ResetPasswordForm() {
@@ -51,7 +51,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <main className="max-w-md mx-auto px-6 py-12 w-full">
+    <>
       <h1>Choose a new password</h1>
       {done ? (
         <div className="panel">
@@ -90,21 +90,16 @@ function ResetPasswordForm() {
       <p className="text-sm text-[var(--muted)] mt-4">
         <Link href="/auth/sign-in">Back to sign in</Link>
       </p>
-    </main>
+    </>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-[var(--paper)] flex flex-col">
-      <header className="px-6 py-5 bg-white border-b border-[var(--line)]">
-        <Link href="/">
-          <Image src="/assets/FinSyndeo-logo.png" alt="FinSyndeo" width={180} height={48} />
-        </Link>
-      </header>
-      <Suspense fallback={<p className="p-6">Loading…</p>}>
+    <AuthChrome>
+      <Suspense fallback={<p>Loading…</p>}>
         <ResetPasswordForm />
       </Suspense>
-    </div>
+    </AuthChrome>
   );
 }

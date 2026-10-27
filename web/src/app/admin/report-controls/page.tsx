@@ -5,7 +5,7 @@ export default function AdminReportControlsPage() {
     <AdminFunctionPage
       eyebrow="Report controls"
       title="Provider report controls"
-      lead="These reports go from FinSyndeo to the selected provider. Incoming commission reports remain separate."
+      lead="These reports go from SOPHIMA AI to the selected provider. Incoming commission reports remain separate."
     />
   );
 }

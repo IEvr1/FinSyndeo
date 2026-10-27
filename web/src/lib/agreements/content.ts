@@ -1,6 +1,6 @@
 /** Introducer agreement content from guidelines — placeholders retained. */
 
-export const MASTER_AGREEMENT_HEADER = `# FinSyndeo / SOPHIMA — Introducer Agreement
+export const MASTER_AGREEMENT_HEADER = `# SOPHIMA AI — Introducer Agreement
 
 **NOT FOR EXECUTION**
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatAssessmentRoute } from "@/lib/questionnaire/private-banking-config";
 
 type App = { id: string; route: string; status: string; updatedAt: string };
 
@@ -57,8 +58,10 @@ export default function AssessmentsPage() {
             ) : (
               apps.map((a) => (
                 <tr key={a.id}>
-                  <td>{a.id.slice(0, 8)}…</td>
-                  <td>{a.route}</td>
+                  <td>
+                    {a.id.slice(0, 8)}… · {new Date(a.updatedAt).toLocaleDateString()}
+                  </td>
+                  <td>{formatAssessmentRoute(a.route)}</td>
                   <td>{a.status}</td>
                   <td>
                     <Link href={`/applicant/results?id=${a.id}`} className="btn text-sm py-1 px-2">
@@ -69,6 +72,12 @@ export default function AssessmentsPage() {
                       className="btn text-sm py-1 px-2 ml-2"
                     >
                       Edit assessment
+                    </Link>
+                    <Link
+                      href={`/applicant/alerts?applicationId=${a.id}`}
+                      className="btn text-sm py-1 px-2 ml-2"
+                    >
+                      Notifications
                     </Link>
                     {a.status !== "withdrawn" && (
                       <button type="button" className="btn text-sm py-1 px-2 ml-2" onClick={() => withdraw(a)}>

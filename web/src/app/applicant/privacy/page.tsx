@@ -114,7 +114,7 @@ export default function ApplicantPrivacyPage() {
             className="btn"
             onClick={() =>
               setMessage(
-                "To change your sign-in email, contact SOPHIMA support. The new address must be verified before confidential messages are sent there."
+                "To change your sign-in email, contact introductions@sophima.ai. The new address must be verified before confidential messages are sent there."
               )
             }
           >

@@ -3,7 +3,7 @@ export const EMAIL_TEMPLATE_VERSION = "2026-10-06-approved";
 
 export const EMAIL_TEMPLATE_BODIES: Record<string, string> = {
   E01: `<p>Hello [first name],</p>
-<p>Please verify your email address to access your FinSyndeo account: <a href="[verification link]">[verification link]</a>.</p>
+<p>Please verify your email address to access your SOPHIMA AI account: <a href="[verification link]">[verification link]</a>.</p>
 <p>This link expires at [expiry]. If you did not request this account, you can ignore this message.</p>`,
 
   E02: `<p>Hello [first name],</p>
@@ -49,7 +49,8 @@ export const EMAIL_TEMPLATE_BODIES: Record<string, string> = {
 <p>[profile delivery method]</p>
 <p>[Applicant contact first name], [banker name and title] is the designated contact at [institution legal name] for this request. I have copied you both so you can continue the discussion directly.</p>
 <p>The profile records preliminary information and does not represent completion of the institution's KYC or a commitment to accept the client.</p>
-<p>Kind regards,<br>[Approved SOPHIMA sender name and title]<br>[Verified SOPHIMA contracting entity] | FinSyndeo</p>`,
+<p>Kind regards,<br>[Approved SOPHIMA sender name and title]<br>[Verified SOPHIMA contracting entity]</p>
+<p><strong>SOPHIMA AI</strong><br>Matching and introductions<br>Operated by SOPHIMA LTD<br><a href="mailto:introductions@sophima.ai">introductions@sophima.ai</a><br><a href="https://sophima.ai">sophima.ai</a></p>`,
 
   E10: `<p>Hello [first name],</p>
 <p>Your authorised introduction has been sent to [banker name and institution] for [service]. You can view the introduction status in your account: <a href="[secure case link]">[secure case link]</a>.</p>
@@ -77,7 +78,7 @@ export const EMAIL_TEMPLATE_BODIES: Record<string, string> = {
   E16: `<p>Dear [provider contact name],</p>
 <p>Please provide the agreed analytical commission report for [period], identifying the relevant client and provider relationship for each commission entry, with the agreed currency, net commission, applicable tax breakdown and receipt reference.</p>
 <p>Include the stable statement-line reference, commission amount and its gross/net definition, VAT treatment, any withholding or directly attributable charges and provider payment reference where available. SOPHIMA separately reconciles actual cash received; the report is not itself proof of bank settlement.</p>
-<p>Submit it through <a href="[secure portal link]">[secure portal link]</a>. This request is distinct from FinSyndeo's outgoing case reports.</p>
+<p>Submit it through <a href="[secure portal link]">[secure portal link]</a>. This request is distinct from SOPHIMA AI's outgoing case reports.</p>
 <p>Kind regards,<br>[Approved SOPHIMA sender]</p>`,
 
   E17: `<p>Dear [introducer contact name],</p>

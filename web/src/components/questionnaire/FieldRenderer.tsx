@@ -1,6 +1,8 @@
 "use client";
 
 import countries from "@/data/countries.json";
+import { FINANCE_ENTITY_TYPES } from "@/lib/questionnaire/financing-config";
+import { MERCHANT_ENTITY_TYPES, MERCHANT_CONTACT_CAPACITIES } from "@/lib/questionnaire/merchant-config";
 import { fieldStorageKey } from "@/lib/questionnaire/dictionary";
 import type { ApplicantField, FieldValue, QuestionnaireValues } from "@/lib/questionnaire/types";
 
@@ -9,12 +11,27 @@ type Props = {
   values: QuestionnaireValues;
   onChange: (key: string, value: FieldValue) => void;
   step?: number;
+  /** When true, omit repeated "(optional)" markers (FN15 financing). */
+  hideOptionalMarker?: boolean;
 };
 
-export function FieldRenderer({ field, values, onChange, step }: Props) {
+function isFinancing(values: QuestionnaireValues): boolean {
+  return String(values.applicant ?? "") === "company" && String(values["account-type"] ?? "") === "financing";
+}
+
+function isMerchant(values: QuestionnaireValues): boolean {
+  const accountType = String(values["account-type"] ?? "");
+  return (
+    String(values.applicant ?? "") === "company" && (accountType === "merchant" || accountType === "both")
+  );
+}
+
+export function FieldRenderer({ field, values, onChange, step, hideOptionalMarker }: Props) {
   const key = fieldStorageKey(field);
   const raw = values[key];
   const str = typeof raw === "string" ? raw : raw === true ? "Yes" : "";
+  const financing = isFinancing(values);
+  const showOptional = !field.required && !hideOptionalMarker && !financing;
 
   if (field.type === "checkbox") {
     const checked = raw === true;
@@ -36,12 +53,101 @@ export function FieldRenderer({ field, values, onChange, step }: Props) {
   }
 
   if (field.type === "select-one") {
-    const opts = field.choices ?? [];
+    let opts = field.choices ?? [];
+    const merchant = isMerchant(values);
+    if (merchant && field.id === "entity-type") {
+      const allowed = new Set<string>(["", ...MERCHANT_ENTITY_TYPES]);
+      opts = opts.filter((o) => allowed.has(o.value) || allowed.has(o.label));
+      const unsupported = Boolean(str && !allowed.has(str));
+      return (
+        <label className="field" data-field="entity-type">
+          <span>{field.label}</span>
+          <select
+            value={str}
+            required={field.required}
+            onChange={(e) => onChange(key, e.target.value)}
+          >
+            {unsupported && (
+              <option value={str}>
+                {str} (outside merchant scope — needs review)
+              </option>
+            )}
+            {opts.map((o) => (
+              <option key={`${key}-${o.value}`} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          {unsupported && (
+            <p className="hint" role="alert">
+              Merchant applications currently support Private limited company and Association only. This draft
+              entity type is preserved and flagged for scope review; it will not be silently relabelled.
+            </p>
+          )}
+        </label>
+      );
+    }
+    if (merchant && field.id === "representative-role") {
+      opts = MERCHANT_CONTACT_CAPACITIES.map((c) => ({ value: c, label: c }));
+    }
+    if (financing && field.id === "entity-type") {
+      const allowed = new Set<string>(["", ...FINANCE_ENTITY_TYPES]);
+      opts = opts.filter((o) => allowed.has(o.value) || allowed.has(o.label));
+      const unsupported = str && !allowed.has(str);
+      return (
+        <label className="field" data-field="entity-type">
+          <span>{field.label}</span>
+          <select
+            value={unsupported ? str : str}
+            required={field.required}
+            onChange={(e) => onChange(key, e.target.value)}
+          >
+            {unsupported && (
+              <option value={str}>
+                {str} (outside financing scope)
+              </option>
+            )}
+            {opts.map((o) => (
+              <option key={`${key}-${o.value}`} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          {unsupported && (
+            <p className="hint" role="alert">
+              This financing route supports only private limited companies, partnerships and LLPs. This draft is
+              outside its current scope and cannot be relabelled to proceed.
+            </p>
+          )}
+        </label>
+      );
+    }
+    if (financing && field.id === "representative-role") {
+      const hasPartner = opts.some((o) => o.value.includes("Partner"));
+      if (!hasPartner) {
+        opts = [
+          ...opts.slice(0, 4),
+          { value: "Partner / member", label: "Partner / member" },
+          ...opts.slice(4),
+        ];
+      }
+    }
+    let selectLabel = field.label;
+    if (financing && field.id === "corporate") {
+      const entity = String(values["entity-type"] ?? "");
+      selectLabel =
+        entity.includes("Partnership") || entity.includes("LLP")
+          ? "Are any partners or members legal entities?"
+          : "Are any direct shareholders legal entities?";
+    }
+    if (financing && field.id === "group") {
+      selectLabel = "Is the entity part of a group?";
+    }
     return (
       <label className="field">
         <span>
-          {field.label}
-          {!field.required && <small> (optional)</small>}
+          {selectLabel}
+          {showOptional && <small> (optional)</small>}
         </span>
         <select
           value={str}
@@ -63,7 +169,7 @@ export function FieldRenderer({ field, values, onChange, step }: Props) {
       <label className="field">
         <span>
           {field.label}
-          {!field.required && <small> (optional)</small>}
+          {showOptional && <small> (optional)</small>}
         </span>
         <textarea
           value={str}
@@ -89,7 +195,7 @@ export function FieldRenderer({ field, values, onChange, step }: Props) {
     <label className="field">
       <span>
         {field.label}
-        {!field.required && <small> (optional)</small>}
+        {showOptional && <small> (optional)</small>}
       </span>
       <input
         type={inputType}

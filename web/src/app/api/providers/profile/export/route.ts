@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   return new NextResponse(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Content-Disposition": `attachment; filename="FinSyndeo-provider-responses.html"`,
+      "Content-Disposition": `attachment; filename="SOPHIMA-AI-provider-responses.html"`,
     },
   });
 }

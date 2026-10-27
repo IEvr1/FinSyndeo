@@ -1,6 +1,10 @@
 # Applicant and provider matching contract
 
-Approved implementation reference, 7 October 2026. The criterion catalogue, typed applicant snapshots, provider offers and calculated result explain each decision. The runtime matcher is a local demonstration of deterministic evaluation; live legal screening remains a separate release requirement.
+Approved implementation reference, 7 October 2026. Updated 20 October 2026 with the Proofing Alignment and Matching Register common contract **M01–M12** (see `web/src/lib/matching/contract/` and reference checks **T01–T51** in `web/tests/matching-contract.test.ts`). The criterion catalogue, typed applicant snapshots, provider offers and calculated result explain each decision. The runtime matcher is a local demonstration of deterministic evaluation; live legal screening remains a separate release requirement.
+
+## Common contract outcomes (M03)
+
+Essential predicates evaluate to **Pass**, **Fail**, **Unresolved**, or **Not applicable**. Service coverage is separate from readiness: **Complete potential fit**, **Partial coverage**, **Needs clarification**, **Not supported**. Preference gaps never become essential predicates. Bank rails use ALL essentials; settlement receiving uses ANY compatible rail.
 
 ## Evaluation order
 
