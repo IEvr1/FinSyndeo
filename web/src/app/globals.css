@@ -63,6 +63,12 @@ summary:focus-visible {
   color: #7b281f;
 }
 
+.notice-warning {
+  border-left-color: #b8860b;
+  background: #fffbf0;
+  color: #5c4a12;
+}
+
 .btn {
   cursor: pointer;
   background: white;
