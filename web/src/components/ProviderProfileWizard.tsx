@@ -13,7 +13,6 @@ import { providerStateToProfileData } from "@/lib/provider-apply/profile-mapper"
 import { createInitialProviderState, ensureOfferArrays } from "@/lib/provider-apply/state";
 import type { ProviderDraftState } from "@/lib/provider-apply/types";
 import {
-  isAgreementVerified,
   validateAllProviderStepsGrouped,
   validateCurrentStep,
   type StepValidationGroup,
@@ -78,12 +77,6 @@ export function ProviderProfileWizard() {
   const isLast = state.step === 8;
 
   function go(step: number, validate = true) {
-    // P02: draft may be saved on Institution, but progression past step 0 requires verified agreement.
-    if (step > 0 && !isAgreementVerified(state)) {
-      setErrors(validateCurrentStep({ ...state, step: 0 }));
-      setErrorGroups([]);
-      return;
-    }
     if (validate && step > state.step) {
       const missing = validateCurrentStep(state);
       if (missing.length) {
