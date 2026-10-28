@@ -23,3 +23,14 @@ web/.vercel/
 web/next-env.d.ts
 npm-debug.log*
 .DS_Store
+
+# Local docx / questionnaire extract scratch (do not commit)
+_correspondent_docx/
+_correspondent_docx.zip
+_correspondent_docx_text.txt
+_le_bank_docx/
+_le_bank_docx.zip
+_le_bank_extract.txt
+_mc_parts/
+_tmp_*.txt
+tmp-docx-extract.txt
