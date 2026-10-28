@@ -1,5 +1,6 @@
 ﻿import { AdminFunctionPage } from "@/components/AdminFunctionPage";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { AdminReceiptForm } from "@/components/admin/AdminReceiptForm";
 import { AdminToolbar } from "@/components/admin/AdminToolbar";
 import { formatDate, formatMinor, listCommissionEntries } from "@/lib/admin/queries";
 
@@ -12,9 +13,9 @@ export default async function AdminReceiptsPage() {
       title="Add provider commissions"
       lead="Record provider-side commission receipts and client allocation."
     >
+      <AdminReceiptForm />
       <div className="notice">
-        Recording commission receipts with bank evidence remains a separate authorised workflow. This view lists posted
-        commission entries when present.
+        Posted commission entries appear below after authorised receipt posting.
       </div>
       <AdminToolbar hint={`${rows.length} commission entries`} />
       <AdminDataTable

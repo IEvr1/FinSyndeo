@@ -10,7 +10,7 @@ Next.js application implementing the FinSyndeo guidelines (Revision 2). The [`Fi
 
 ## Setup
 
-1. Copy `.env.example` to `.env.local` and set `DATABASE_URL`.
+1. Copy `.env.example` to `.env.local` and set `DATABASE_URL` and `NEXT_PUBLIC_APP_URL` (use your Vercel production URL when deployed with Neon).
 2. Enable Neon Auth: set `auth: true` in `neon.ts`, run `neon deploy`.
 3. Push schema: `npm run db:push`
 4. Seed demo data: `npm run db:seed`

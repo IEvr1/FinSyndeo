@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { createHash } from "crypto";
+import { cookies } from "next/headers";
 import { getCurrentUser } from "@/lib/auth/session-server";
 import { loadAuthContext, requireRole } from "@/lib/permissions";
 import { getDb, schema } from "@/lib/db";
+import { PENDING_REFERRAL_COOKIE } from "@/lib/referrals/constants";
+import { createApplicationForUser } from "@/lib/services/application-create";
+import { ReferralError } from "@/lib/services/referrals";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -12,8 +15,18 @@ export async function GET() {
   requireRole(ctx, "applicant");
   const db = getDb();
   const apps = await db
-    .select()
+    .select({
+      id: schema.applications.id,
+      route: schema.applications.route,
+      status: schema.applications.status,
+      updatedAt: schema.applications.updatedAt,
+      clientId: schema.applications.clientId,
+      introducerId: schema.canonicalClients.introducerId,
+      introducerName: schema.introducers.displayName,
+    })
     .from(schema.applications)
+    .leftJoin(schema.canonicalClients, eq(schema.applications.clientId, schema.canonicalClients.id))
+    .leftJoin(schema.introducers, eq(schema.canonicalClients.introducerId, schema.introducers.id))
     .where(eq(schema.applications.ownerUserId, user.id));
   return NextResponse.json({ applications: apps });
 }
@@ -24,55 +37,32 @@ export async function POST(request: Request) {
   const ctx = await loadAuthContext(user);
   requireRole(ctx, "applicant");
 
-  const { route, typedData } = await request.json();
-  const db = getDb();
+  const body = await request.json();
+  const { route, typedData, referralToken: bodyToken } = body;
+  const jar = await cookies();
+  const referralToken =
+    (typeof bodyToken === "string" ? bodyToken : null) ?? jar.get(PENDING_REFERRAL_COOKIE)?.value ?? null;
 
-  const identityKey = typedData?.applicant?.registration
-    ? `entity:${typedData.applicant.jurisdiction}:${typedData.applicant.registration}`
-    : `person:${user.email}`;
-
-  let [client] = await db
-    .select()
-    .from(schema.canonicalClients)
-    .where(eq(schema.canonicalClients.identityKey, identityKey))
-    .limit(1);
-
-  if (!client) {
-    [client] = await db
-      .insert(schema.canonicalClients)
-      .values({
-        identityType: typedData?.applicant?.registration ? "entity" : "person",
-        identityKey,
-        displayName: typedData?.applicant?.name ?? user.email,
-      })
-      .returning();
-  }
-
-  const [app] = await db
-    .insert(schema.applications)
-    .values({
+  try {
+    const { application, revision } = await createApplicationForUser({
       ownerUserId: user.id,
-      clientId: client.id,
+      ownerEmail: user.email,
       route: route ?? "bank",
-      status: "draft",
-    })
-    .returning();
-
-  const hash = createHash("sha256").update(JSON.stringify(typedData ?? {})).digest("hex");
-  const [revision] = await db
-    .insert(schema.assessmentRevisions)
-    .values({
-      applicationId: app.id,
-      revisionNumber: 1,
       typedData: typedData ?? {},
-      contentHash: hash,
-    })
-    .returning();
+      submittedByUserId: user.id,
+      referralToken,
+    });
 
-  await db
-    .update(schema.applications)
-    .set({ currentRevisionId: revision.id })
-    .where(eq(schema.applications.id, app.id));
+    if (referralToken) {
+      jar.delete(PENDING_REFERRAL_COOKIE);
+    }
 
-  return NextResponse.json({ application: app, revision });
+    return NextResponse.json({ application, revision });
+  } catch (e) {
+    if (e instanceof ReferralError) {
+      const status = e.code === "REFERRAL_CONFLICT" ? 409 : 400;
+      return NextResponse.json({ error: e.message, code: e.code }, { status });
+    }
+    throw e;
+  }
 }

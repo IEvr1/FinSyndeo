@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatAssessmentRoute } from "@/lib/questionnaire/private-banking-config";
 
-type App = { id: string; route: string; status: string; updatedAt: string };
+type App = {
+  id: string;
+  route: string;
+  status: string;
+  updatedAt: string;
+  introducerName?: string | null;
+};
 
 export default function AssessmentsPage() {
   const [apps, setApps] = useState<App[]>([]);
@@ -47,13 +53,14 @@ export default function AssessmentsPage() {
               <th>Case</th>
               <th>Route</th>
               <th>Status</th>
+              <th>Attribution</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {apps.length === 0 ? (
               <tr>
-                <td colSpan={4}>No assessments yet.</td>
+                <td colSpan={5}>No assessments yet.</td>
               </tr>
             ) : (
               apps.map((a) => (
@@ -63,6 +70,7 @@ export default function AssessmentsPage() {
                   </td>
                   <td>{formatAssessmentRoute(a.route)}</td>
                   <td>{a.status}</td>
+                  <td>{a.introducerName ?? "Direct"}</td>
                   <td>
                     <Link href={`/applicant/results?id=${a.id}`} className="btn text-sm py-1 px-2">
                       View results

@@ -1,4 +1,5 @@
 ﻿import { AdminFunctionPage } from "@/components/AdminFunctionPage";
+import { AdminSupplierPaymentForm } from "@/components/admin/AdminSupplierPaymentForm";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminStatusPill } from "@/components/admin/AdminStatusPill";
 import { AdminToolbar } from "@/components/admin/AdminToolbar";
@@ -13,9 +14,9 @@ export default async function AdminInvoicesPage() {
       title="Invoices & payments"
       lead="Introducer invoice review, payment recording and reconciliation."
     >
+      <AdminSupplierPaymentForm />
       <div className="notice">
-        There is no dedicated invoices table yet. Applicant introduction payments and introducer commission entries are
-        shown below for reconciliation.
+        Applicant introduction payments and introducer commission entries are shown below for reconciliation.
       </div>
       <h2 className="text-xl">Introduction payments</h2>
       <AdminToolbar hint={`${payments.length} payment records`} />

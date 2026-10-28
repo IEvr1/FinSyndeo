@@ -4,6 +4,7 @@ import { getDb, schema } from "@/lib/db";
 import { evaluateMatches, fixtureProfile } from "@/lib/matching";
 import { applicantEmailVars } from "@/lib/email/vars";
 import { enqueueEmail } from "@/lib/services/outbox";
+import { assertApplicantReferralConfirmed } from "@/lib/services/referrals";
 
 export async function getApplicationForOwner(applicationId: string, ownerUserId: string) {
   const db = getDb();
@@ -158,6 +159,7 @@ export async function computeMatches(
     .limit(1);
 
   if (!revision.confirmedAt) throw new Error("Confirm the assessment before matching.");
+  await assertApplicantReferralConfirmed(applicationId);
 
   const providers = await db.select().from(schema.providers).where(eq(schema.providers.active, true));
   const providerList = providers.map((p) => ({

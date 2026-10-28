@@ -321,31 +321,43 @@ export const introducers = pgTable("introducers", {
   email: text("email").notNull(),
   status: text("status").notNull().default("invited"),
   referralToken: text("referral_token").notNull().unique(),
+  linkSuspended: boolean("link_suspended").notNull().default(false),
   tierAchieved: integer("tier_achieved").notNull().default(0),
   bespokeRate: integer("bespoke_rate"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const commissionEntries = pgTable("commission_entries", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  introducerId: uuid("introducer_id")
-    .notNull()
-    .references(() => introducers.id),
-  clientId: uuid("client_id")
-    .notNull()
-    .references(() => canonicalClients.id),
-  providerId: uuid("provider_id")
-    .notNull()
-    .references(() => providers.id),
-  grossMinor: integer("gross_minor").notNull(),
-  netMinor: integer("net_minor").notNull(),
-  shareMinor: integer("share_minor").notNull(),
-  currency: text("currency").notNull(),
-  ratePercent: integer("rate_percent").notNull(),
-  termsSnapshot: jsonb("terms_snapshot").notNull(),
-  postedAt: timestamp("posted_at", { withTimezone: true }).notNull().defaultNow(),
-  reversedById: uuid("reversed_by_id"),
-});
+export const commissionEntries = pgTable(
+  "commission_entries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    introducerId: uuid("introducer_id")
+      .notNull()
+      .references(() => introducers.id),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => canonicalClients.id),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => providers.id),
+    relationshipId: uuid("relationship_id"),
+    receiptAllocationId: uuid("receipt_allocation_id"),
+    statementLineId: text("statement_line_id"),
+    grossMinor: integer("gross_minor").notNull(),
+    netMinor: integer("net_minor").notNull(),
+    shareMinor: integer("share_minor").notNull(),
+    currency: text("currency").notNull(),
+    ratePercent: integer("rate_percent").notNull(),
+    termsSnapshot: jsonb("terms_snapshot").notNull(),
+    supplierInvoiceAllocationId: uuid("supplier_invoice_allocation_id"),
+    postedAt: timestamp("posted_at", { withTimezone: true }).notNull().defaultNow(),
+    reversedById: uuid("reversed_by_id"),
+  },
+  (t) => [
+    uniqueIndex("commission_statement_line_idx").on(t.statementLineId),
+    uniqueIndex("commission_receipt_allocation_idx").on(t.receiptAllocationId),
+  ]
+);
 
 export const agreements = pgTable("agreements", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -425,6 +437,139 @@ export const providerReportSnapshots = pgTable(
     storageKey: text("storage_key"),
   },
   (t) => [index("provider_report_provider_idx").on(t.providerId)]
+);
+
+export const providerRelationships = pgTable(
+  "provider_relationships",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    applicationId: uuid("application_id")
+      .notNull()
+      .references(() => applications.id),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => canonicalClients.id),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => providers.id),
+    product: text("product").notNull(),
+    status: text("status").notNull().default("submitted"),
+    ddClear: boolean("dd_clear").notNull().default(false),
+    evidence: jsonb("evidence"),
+    activatedAt: timestamp("activated_at", { withTimezone: true }),
+    financingFirstDisbursementAt: timestamp("financing_first_disbursement_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("provider_relationship_app_idx").on(t.applicationId),
+    index("provider_relationship_client_idx").on(t.clientId),
+  ]
+);
+
+export const providerStatements = pgTable("provider_statements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  providerId: uuid("provider_id")
+    .notNull()
+    .references(() => providers.id),
+  statementReference: text("statement_reference").notNull(),
+  periodLabel: text("period_label").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const providerCashReceipts = pgTable(
+  "provider_cash_receipts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    providerId: uuid("provider_id")
+      .notNull()
+      .references(() => providers.id),
+    statementId: uuid("statement_id").references(() => providerStatements.id),
+    bankReference: text("bank_reference").notNull(),
+    currency: text("currency").notNull(),
+    valueDate: timestamp("value_date", { withTimezone: true }).notNull(),
+    verifiedCashMinor: integer("verified_cash_minor").notNull(),
+    evidence: jsonb("evidence"),
+    verifiedByUserId: uuid("verified_by_user_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("provider_cash_receipt_bank_ref_idx").on(t.bankReference)]
+);
+
+export const receiptAllocations = pgTable(
+  "receipt_allocations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    receiptId: uuid("receipt_id")
+      .notNull()
+      .references(() => providerCashReceipts.id, { onDelete: "cascade" }),
+    statementLineId: text("statement_line_id").notNull(),
+    relationshipId: uuid("relationship_id")
+      .notNull()
+      .references(() => providerRelationships.id),
+    grossMinor: integer("gross_minor").notNull(),
+    vatMinor: integer("vat_minor").notNull().default(0),
+    withholdingMinor: integer("withholding_minor").notNull().default(0),
+    chargesMinor: integer("charges_minor").notNull().default(0),
+    taxMode: text("tax_mode").notNull(),
+    expectedCashMinor: integer("expected_cash_minor").notNull(),
+    eligibleNetMinor: integer("eligible_net_minor").notNull(),
+    actualCashMinor: integer("actual_cash_minor").notNull(),
+    holdReason: text("hold_reason"),
+    commissionEntryId: uuid("commission_entry_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("receipt_allocation_line_idx").on(t.statementLineId)]
+);
+
+export const supplierInvoices = pgTable("supplier_invoices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  introducerId: uuid("introducer_id")
+    .notNull()
+    .references(() => introducers.id),
+  invoiceNumber: text("invoice_number").notNull(),
+  currency: text("currency").notNull(),
+  subtotalMinor: integer("subtotal_minor").notNull(),
+  taxMinor: integer("tax_minor").notNull().default(0),
+  totalMinor: integer("total_minor").notNull(),
+  status: text("status").notNull().default("submitted"),
+  documentId: uuid("document_id"),
+  rejectedReason: text("rejected_reason"),
+  priorInvoiceId: uuid("prior_invoice_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const supplierInvoiceAllocations = pgTable(
+  "supplier_invoice_allocations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => supplierInvoices.id, { onDelete: "cascade" }),
+    commissionEntryId: uuid("commission_entry_id")
+      .notNull()
+      .references(() => commissionEntries.id),
+    amountMinor: integer("amount_minor").notNull(),
+  },
+  (t) => [uniqueIndex("supplier_invoice_entry_idx").on(t.commissionEntryId)]
+);
+
+export const supplierPayments = pgTable(
+  "supplier_payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invoiceId: uuid("invoice_id")
+      .notNull()
+      .references(() => supplierInvoices.id),
+    amountMinor: integer("amount_minor").notNull(),
+    currency: text("currency").notNull(),
+    valueDate: timestamp("value_date", { withTimezone: true }).notNull(),
+    bankReference: text("bank_reference").notNull(),
+    status: text("status").notNull().default("recorded"),
+    recordedByUserId: uuid("recorded_by_user_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("supplier_payment_bank_ref_idx").on(t.bankReference)]
 );
 
 export const privacyDataRequests = pgTable("privacy_data_requests", {

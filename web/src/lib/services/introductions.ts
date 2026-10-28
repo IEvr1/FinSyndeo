@@ -8,6 +8,8 @@ import { renderEmailHtml, renderSubject } from "@/lib/email/templates";
 import { applicantEmailVars } from "@/lib/email/vars";
 import { enqueueEmail } from "@/lib/services/outbox";
 import { consumesOneEntitlement } from "@/lib/accounting";
+import { assertApplicantReferralConfirmed } from "@/lib/services/referrals";
+import { ensureRelationship } from "@/lib/services/relationships";
 import { createHash } from "crypto";
 
 export async function requestIntroduction(params: {
@@ -30,6 +32,7 @@ export async function requestIntroduction(params: {
 
   if (!app?.currentRevisionId) throw new Error("Application not found.");
   if (!params.acceptedQuote) throw new Error("Confirm the introduction terms first.");
+  await assertApplicantReferralConfirmed(params.applicationId);
 
   const entitlementUnits = consumesOneEntitlement([app.route]);
   const [client] = await db
@@ -51,6 +54,15 @@ export async function requestIntroduction(params: {
       status: requiresPayment ? "awaiting_payment" : "requested",
     })
     .returning();
+
+  if (client) {
+    await ensureRelationship({
+      applicationId: app.id,
+      clientId: client.id,
+      providerId: params.providerId,
+      product: app.route,
+    });
+  }
 
   return intro;
 }
@@ -78,6 +90,7 @@ export async function approveSharing(params: {
     .limit(1);
 
   if (!app?.currentRevisionId) throw new Error("Application not found.");
+  await assertApplicantReferralConfirmed(params.applicationId);
 
   const [revision] = await db
     .select()
