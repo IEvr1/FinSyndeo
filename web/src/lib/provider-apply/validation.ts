@@ -44,11 +44,6 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
       missing.push("Enter a valid operating year.");
     }
     need(missing, "Referral agreement status", c.agreement);
-    if (!isAgreementVerified(state)) {
-      missing.push(
-        "Continue, submission and matching require a current referral agreement verified by SOPHIMA. Self-declared “Signed and current” is not verification."
-      );
-    }
   }
 
   if (step === 1) {
@@ -146,13 +141,21 @@ export function validateProviderStep(state: ProviderDraftState, step: number): s
 
 const VALIDATE_STEPS = [0, 1, 2, 3, 5, 7] as const;
 
+/** P02: agreement must be verified by SOPHIMA before submit/matching, not before wizard progression. */
+export function agreementSubmissionErrors(state: ProviderDraftState): string[] {
+  if (isAgreementVerified(state)) return [];
+  return [
+    "Submission and matching require a current referral agreement verified by SOPHIMA. Self-declared “Signed and current” is not verification.",
+  ];
+}
+
 export function validateAllProviderSteps(state: ProviderDraftState): string[] {
-  return VALIDATE_STEPS.flatMap((s) => validateProviderStep(state, s));
+  return [...VALIDATE_STEPS.flatMap((s) => validateProviderStep(state, s)), ...agreementSubmissionErrors(state)];
 }
 
 /** Group missing fields by questionnaire step for “Complete this section” links. */
 export function validateAllProviderStepsGrouped(state: ProviderDraftState): StepValidationGroup[] {
-  return VALIDATE_STEPS.map((step) => {
+  const groups = VALIDATE_STEPS.map((step) => {
     const idx = STEP_ORDER.indexOf(step as (typeof STEP_ORDER)[number]);
     return {
       step,
@@ -160,6 +163,21 @@ export function validateAllProviderStepsGrouped(state: ProviderDraftState): Step
       missing: validateProviderStep(state, step),
     };
   }).filter((g) => g.missing.length > 0);
+
+  const agreementErrors = agreementSubmissionErrors(state);
+  if (agreementErrors.length) {
+    const institution = groups.find((g) => g.step === 0);
+    if (institution) institution.missing.push(...agreementErrors);
+    else {
+      groups.unshift({
+        step: 0,
+        label: STEP_LABELS[0] ?? "Institution",
+        missing: agreementErrors,
+      });
+    }
+  }
+
+  return groups;
 }
 
 export function validateCurrentStep(state: ProviderDraftState): string[] {
@@ -183,19 +201,19 @@ export function isAgreementVerified(state: ProviderDraftState): boolean {
 
 export function agreementGateMessage(state: ProviderDraftState): string {
   if (isAgreementVerified(state)) {
-    return "Referral agreement verified by SOPHIMA — you may continue.";
+    return "Referral agreement verified by SOPHIMA — you may submit for review when the rest of your profile is complete.";
   }
   const status = String(state.core.agreement ?? "");
   if (!status || status === "Not yet arranged") {
-    return "Missing agreement: arrange a referral agreement with SOPHIMA. Draft answers on this step can be saved, but Continue, submission, publication and matching stay blocked until verification.";
+    return "Missing agreement: arrange a referral agreement with SOPHIMA. You can continue completing your profile, but submission, publication and matching stay blocked until verification.";
   }
   if (status === "In progress") {
-    return "Agreement in progress: SOPHIMA must complete verification before you can continue beyond Institution.";
+    return "Agreement in progress: you can continue completing your profile. SOPHIMA must verify the agreement before submission or matching.";
   }
   if (status === "Signed — status needs confirmation" || status === "Signed and current") {
-    return "Unverified agreement: selecting “Signed and current” is not verification. SOPHIMA must confirm a current signed agreement before Continue, submission or matching.";
+    return "Unverified agreement: selecting “Signed and current” is not verification. You can continue your registration; SOPHIMA must confirm a current signed agreement before submission or matching.";
   }
-  return "Referral agreement not verified by SOPHIMA.";
+  return "Referral agreement not verified by SOPHIMA. You can continue your registration; submission and matching require verification.";
 }
 
 export function stepIndex(step: number): number {

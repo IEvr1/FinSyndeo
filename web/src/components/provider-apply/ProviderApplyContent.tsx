@@ -159,7 +159,10 @@ export function ProviderApplyContent({ state, setState, onGoToStep }: Props) {
             value={str(state.core.agreementRef)}
             onChange={(v) => setState((s) => patchCore(s, "agreementRef", v))}
           />
-          <div className={`notice ${isAgreementVerified(state) ? "" : "notice-error"}`} role="status">
+          <div
+            className={`notice ${isAgreementVerified(state) ? "" : "notice-warning"}`}
+            role="status"
+          >
             <strong>Verification status: </strong>
             {isAgreementVerified(state) ? "Verified by SOPHIMA" : "Not verified"}
             <p className="hint" style={{ marginBottom: 0 }}>

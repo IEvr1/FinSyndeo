@@ -61,7 +61,10 @@ add("P02", "Referral agreement mandatory / verified gate", [
   { label: "agreement required in validation", ok: has("lib/provider-apply/validation.ts", "Referral agreement status") },
   { label: "isAgreementVerified", ok: has("lib/provider-apply/validation.ts", "isAgreementVerified") },
   { label: "self-declared is not verification copy", ok: has("lib/provider-apply/validation.ts", "Self-declared") },
-  { label: "wizard blocks progression", ok: has("components/ProviderProfileWizard.tsx", "isAgreementVerified") },
+  {
+    label: "submit blocks without verification",
+    ok: has("lib/provider-apply/validation.ts", "agreementSubmissionErrors"),
+  },
   { label: "server submit requires verification", ok: has("app/api/providers/profile/draft/route.ts", "agreementSigned") },
   { label: "verification status UI", ok: has("components/provider-apply/ProviderApplyContent.tsx", "Verification status") },
 ]);
