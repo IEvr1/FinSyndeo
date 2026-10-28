@@ -362,6 +362,34 @@ button.mini {
   gap: 12px;
 }
 
+.admin-pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.admin-pill-brand {
+  background: color-mix(in srgb, var(--brand) 12%, white);
+  color: var(--brand);
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--line));
+}
+
+.admin-pill-muted {
+  color: var(--muted);
+}
+
+.admin-pill-warn {
+  background: #fff4f0;
+  color: #7b281f;
+  border-color: #e8c4bc;
+}
+
 .listitem.panel {
   margin-bottom: 16px;
 }

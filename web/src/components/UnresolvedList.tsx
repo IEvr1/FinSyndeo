@@ -1,3 +1,4 @@
+import { AdminStatusPill } from "@/components/admin/AdminStatusPill";
 import { UNRESOLVED_PARTICULARS } from "@/lib/unresolved";
 
 export function UnresolvedList({ filter }: { filter?: "open" | "all" }) {
@@ -28,7 +29,9 @@ export function UnresolvedList({ filter }: { filter?: "open" | "all" }) {
                 {p.note ? <div className="text-xs text-[var(--muted)] mt-1">{p.note}</div> : null}
               </td>
               <td>{p.blocksActions.join(", ") || "—"}</td>
-              <td>{p.resolved ? "Resolved" : "Open"}</td>
+              <td>
+                <AdminStatusPill label={p.resolved ? "Resolved" : "Open"} tone={p.resolved ? "muted" : "warn"} />
+              </td>
             </tr>
           ))}
         </tbody>
